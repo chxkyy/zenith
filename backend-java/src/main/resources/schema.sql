@@ -78,16 +78,16 @@ CREATE TABLE IF NOT EXISTS sys_dict (
     id BIGSERIAL PRIMARY KEY,
     type VARCHAR(50) NOT NULL,
     label VARCHAR(100) NOT NULL,
-    value VARCHAR(100) NOT NULL,
+    dict_value VARCHAR(100) NOT NULL,
     sort INTEGER DEFAULT 0,
     status INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO sys_dict (type, label, value, sort) VALUES ('user_status', '正常', '1', 1);
-INSERT INTO sys_dict (type, label, value, sort) VALUES ('user_status', '禁用', '0', 2);
-INSERT INTO sys_dict (type, label, value, sort) VALUES ('notice_type', '通知', '1', 1);
-INSERT INTO sys_dict (type, label, value, sort) VALUES ('notice_type', '公告', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('user_status', '正常', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('user_status', '禁用', '0', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('notice_type', '通知', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('notice_type', '公告', '2', 2);
 
 CREATE TABLE IF NOT EXISTS sys_oper_log (
     id BIGSERIAL PRIMARY KEY,
