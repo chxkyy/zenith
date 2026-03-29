@@ -491,50 +491,42 @@ export default function UserTable() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="relative group">
-                      <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
-                        <MoreHorizontal size={18} />
+                    <div className="flex items-center justify-end gap-1">
+                      <button 
+                        onClick={() => handleEditUser(user)}
+                        className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="编辑"
+                      >
+                        <Edit size={16} />
                       </button>
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                        <div className="py-1">
-                          <button 
-                            onClick={() => handleEditUser(user)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <Edit size={14} />
-                            编辑
-                          </button>
-                          <button 
-                            onClick={() => handleResetPassword(user.id)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <RefreshCw size={14} />
-                            重置密码
-                          </button>
-                          <button 
-                            onClick={() => handleChangeStatus(user.id, user.status)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <User size={14} />
-                            {user.status === 1 ? '禁用' : '启用'}
-                          </button>
-                          <button 
-                            onClick={() => handleAssignRoles(user)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <Shield size={14} />
-                            分配角色
-                          </button>
-                          <div className="border-t border-slate-100 my-1"></div>
-                          <button 
-                            onClick={() => handleDeleteUser(user.id)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            <Trash2 size={14} />
-                            删除
-                          </button>
-                        </div>
-                      </div>
+                      <button 
+                        onClick={() => handleResetPassword(user.id)}
+                        className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        title="重置密码"
+                      >
+                        <RefreshCw size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleChangeStatus(user.id, user.status)}
+                        className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        title={user.status === 1 ? '禁用' : '启用'}
+                      >
+                        <User size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleAssignRoles(user)}
+                        className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        title="分配角色"
+                      >
+                        <Shield size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="删除"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </td>
                 </tr>

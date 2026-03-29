@@ -11,6 +11,9 @@ interface User {
   status: number;
 }
 
+// 默认空数组
+const DEFAULT_ASSIGNED_USERS: number[] = [];
+
 interface UserAssignModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,7 +22,7 @@ interface UserAssignModalProps {
   assignedUsers?: number[];
 }
 
-export default function UserAssignModal({ isOpen, onClose, onSave, roleId, assignedUsers = [] }: UserAssignModalProps) {
+export default function UserAssignModal({ isOpen, onClose, onSave, roleId, assignedUsers = DEFAULT_ASSIGNED_USERS }: UserAssignModalProps) {
   const [selectedUsers, setSelectedUsers] = useState<number[]>(assignedUsers);
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<User[]>([]);

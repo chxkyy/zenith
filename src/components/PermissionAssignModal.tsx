@@ -126,6 +126,9 @@ const mockPermissions: Permission[] = [
   }
 ];
 
+// 默认空数组
+const DEFAULT_ASSIGNED_PERMISSIONS: string[] = [];
+
 interface PermissionAssignModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -134,7 +137,7 @@ interface PermissionAssignModalProps {
   assignedPermissions?: string[];
 }
 
-export default function PermissionAssignModal({ isOpen, onClose, onSave, roleId, assignedPermissions = [] }: PermissionAssignModalProps) {
+export default function PermissionAssignModal({ isOpen, onClose, onSave, roleId, assignedPermissions = DEFAULT_ASSIGNED_PERMISSIONS }: PermissionAssignModalProps) {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>(assignedPermissions);
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
