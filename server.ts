@@ -3,27 +3,25 @@ import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { spawn } from "child_process";
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // 必须先解析 JSON，否则 proxyReq 里的 req.body 为空
   app.use(express.json());
 
   // 请求日志中间件
   app.use((req, res, next) => {
-    console.log(`[Server] Received ${req.method} ${req.path}`);
     if (req.path.startsWith('/api')) {
-      console.log(`[API Request] ${req.method} ${req.path}`);
+      console.log(`[Server] Received API Request: ${req.method} ${req.path}`);
     }
     next();
   });
 
-  // 1. 系统日志 API (非代理)
+  // 1. 系统日志 API (本地处理)
   const LOG_FILE = path.join(process.cwd(), "java_backend.log");
   app.get("/api/system/logs", (req, res) => {
-    console.log("[API] Fetching system logs");
     if (fs.existsSync(LOG_FILE)) {
       const logs = fs.readFileSync(LOG_FILE, 'utf8');
       res.send(logs);
@@ -33,16 +31,18 @@ async function startServer() {
   });
 
   // 2. 代理 API 请求到 Java 后端
-  app.use("/api", createProxyMiddleware({
-    target: "http://localhost:8080",
+  // 修改点：直接 app.use 不带路径挂载，通过 pathFilter 拦截
+  // 这样 req.url 会保持完整的 "/api/users/page" 转发给后端
+  app.use(createProxyMiddleware({
+    pathFilter: '/api',
+    target: "http://127.0.0.1:8080", // 建议用 127.0.0.1 避免 localhost 解析延迟
     changeOrigin: true,
-    pathRewrite: {
-      '^/api': '/api', 
-    },
     on: {
-      proxyReq: (proxyReq: any, req: any, res: any) => {
-        console.log(`[Proxy] Forwarding ${req.method} ${req.url} to Java backend`);
-        console.log(`[Proxy] Request body: ${JSON.stringify(req.body)}`);
+      proxyReq: (proxyReq: any, req: any) => {
+        // 关键：打印最终发送给 Java 的完整路径，方便你验证
+        console.log(`[Proxy] Forwarding: ${req.method} ${req.originalUrl} -> ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`);
+
+        // 修复 Body 转发
         if (req.body && (req.method === 'POST' || req.method === 'PUT')) {
           const bodyData = JSON.stringify(req.body);
           proxyReq.setHeader('Content-Type', 'application/json');
@@ -50,30 +50,50 @@ async function startServer() {
           proxyReq.write(bodyData);
         }
       },
-      proxyRes: (proxyRes: any, req: any, res: any) => {
-        console.log(`[Proxy] Received response from Java backend: ${proxyRes.statusCode}`);
+      proxyRes: (proxyRes: any) => {
+        console.log(`[Proxy] Response from Java backend: ${proxyRes.statusCode}`);
       },
       error: (err: any, req: any, res: any) => {
         console.error("[Proxy Error]", err.message);
         if (!res.headersSent) {
-          res.status(503).json({ 
-            success: false, 
-            errMessage: "Java 后端正在启动或不可用，请稍候...",
-            error: err.message 
+          res.status(503).json({
+            success: false,
+            errMessage: "Java 后端连接失败",
+            error: err.message
           });
         }
       }
     }
   }));
 
-  // 3. 兜底：如果 /api 请求没被处理，返回 404 JSON 而不是 index.html
+  // 3. 兜底 API 404
   app.all("/api/*", (req, res) => {
-    console.log(`[API Fallback] 404 for ${req.method} ${req.originalUrl}`);
-    res.status(404).json({ 
-      success: false, 
-      errMessage: `API route not found: ${req.method} ${req.originalUrl}` 
+    res.status(404).json({
+      success: false,
+      errMessage: `API route not found: ${req.method} ${req.originalUrl}`
     });
   });
+
+  // Vite 开发/生产环境配置
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api')) {
+        next();
+      } else {
+        vite.middlewares(req, res, next);
+      }
+    });
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
 
   // 4. 错误处理中间件
   app.use((err: any, req: any, res: any, next: any) => {
@@ -86,21 +106,6 @@ async function startServer() {
     }
     next(err);
   });
-
-  // Vite 中介软件
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-  }
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
