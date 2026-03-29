@@ -38,20 +38,20 @@ public class RoleController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @DeleteMapping("/{id}")
-    public com.alibaba.cola.dto.Response delete(@PathVariable Long id) {
-        roleService.delete(id);
+    @DeleteMapping
+    public com.alibaba.cola.dto.Response delete(@RequestParam Long roleId) {
+        roleService.delete(roleId);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping("/{id}")
-    public com.alibaba.cola.dto.SingleResponse<RoleDTO> get(@PathVariable Long id) {
-        return com.alibaba.cola.dto.SingleResponse.of(roleService.getById(id));
+    @GetMapping("/detail")
+    public com.alibaba.cola.dto.SingleResponse<RoleDTO> get(@RequestParam Long roleId) {
+        return com.alibaba.cola.dto.SingleResponse.of(roleService.getById(roleId));
     }
 
-    @PutMapping("/status/{id}")
-    public com.alibaba.cola.dto.Response changeStatus(@PathVariable Long id, @RequestParam Integer status) {
-        roleService.changeStatus(id, status);
+    @PutMapping("/status")
+    public com.alibaba.cola.dto.Response changeStatus(@RequestParam Long roleId, @RequestParam Integer status) {
+        roleService.changeStatus(roleId, status);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 }
