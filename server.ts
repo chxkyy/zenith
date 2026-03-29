@@ -13,6 +13,7 @@ async function startServer() {
 
   // 请求日志中间件
   app.use((req, res, next) => {
+    console.log(`[Server] Received ${req.method} ${req.path}`);
     if (req.path.startsWith('/api')) {
       console.log(`[API Request] ${req.method} ${req.path}`);
     }
@@ -41,12 +42,16 @@ async function startServer() {
     on: {
       proxyReq: (proxyReq: any, req: any, res: any) => {
         console.log(`[Proxy] Forwarding ${req.method} ${req.url} to Java backend`);
+        console.log(`[Proxy] Request body: ${JSON.stringify(req.body)}`);
         if (req.body && (req.method === 'POST' || req.method === 'PUT')) {
           const bodyData = JSON.stringify(req.body);
           proxyReq.setHeader('Content-Type', 'application/json');
           proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
           proxyReq.write(bodyData);
         }
+      },
+      proxyRes: (proxyRes: any, req: any, res: any) => {
+        console.log(`[Proxy] Received response from Java backend: ${proxyRes.statusCode}`);
       },
       error: (err: any, req: any, res: any) => {
         console.error("[Proxy Error]", err.message);
@@ -81,45 +86,6 @@ async function startServer() {
     }
     next(err);
   });
-
-  // 尝试启动 Java 后端 (后台静默启动)
-  try {
-    console.log("Starting Java backend with mvn spring-boot:run...");
-    // 清空旧日志
-    fs.writeFileSync(LOG_FILE, `[${new Date().toLocaleString()}] 正在启动 Java 后端...\n`);
-    
-    const javaBackend = spawn("mvn", ["spring-boot:run"], {
-      cwd: path.join(process.cwd(), "backend-java"),
-      shell: true,
-      stdio: ['inherit', 'pipe', 'pipe'] // 捕获 stdout 和 stderr
-    });
-    
-    javaBackend.stdout?.on('data', (data) => {
-      const output = data.toString();
-      process.stdout.write(output); // 同时输出到控制台
-      fs.appendFileSync(LOG_FILE, output);
-    });
-
-    javaBackend.stderr?.on('data', (data) => {
-      const output = data.toString();
-      process.stderr.write(output); // 同时输出到控制台
-      fs.appendFileSync(LOG_FILE, `[ERROR] ${output}`);
-    });
-
-    javaBackend.on('spawn', () => {
-      console.log("Java backend process spawned successfully.");
-    });
-
-    javaBackend.on('error', (err) => {
-      console.error("Failed to start Java backend:", err);
-    });
-
-    javaBackend.on('exit', (code) => {
-      console.log(`Java backend process exited with code ${code}`);
-    });
-  } catch (e) {
-    console.error("Error spawning Java:", e);
-  }
 
   // Vite 中介软件
   if (process.env.NODE_ENV !== "production") {
