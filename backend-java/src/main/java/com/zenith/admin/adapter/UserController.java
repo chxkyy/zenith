@@ -42,4 +42,16 @@ public class UserController {
     public com.alibaba.cola.dto.SingleResponse<UserDTO> get(@PathVariable Long id) {
         return com.alibaba.cola.dto.SingleResponse.of(userService.getById(id));
     }
+
+    @PostMapping("/reset-password/{id}")
+    public com.alibaba.cola.dto.Response resetPassword(@PathVariable Long id) {
+        userService.resetPassword(id);
+        return com.alibaba.cola.dto.Response.buildSuccess();
+    }
+
+    @PutMapping("/status/{id}")
+    public com.alibaba.cola.dto.Response changeStatus(@PathVariable Long id, @RequestParam Integer status) {
+        userService.changeStatus(id, status);
+        return com.alibaba.cola.dto.Response.buildSuccess();
+    }
 }

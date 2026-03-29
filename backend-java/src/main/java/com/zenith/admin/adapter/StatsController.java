@@ -7,6 +7,7 @@ import com.zenith.admin.domain.gateway.NoticeGateway;
 import com.zenith.admin.domain.gateway.OperLogGateway;
 import com.zenith.admin.domain.gateway.LoginLogGateway;
 import com.zenith.admin.domain.gateway.ErrorLogGateway;
+import com.zenith.admin.dto.UserPageQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,8 +47,17 @@ public class StatsController {
     public SingleResponse<Map<String, Object>> getStats() {
         Map<String, Object> stats = new HashMap<>();
         // In a real app, we'd have count methods in gateways
-        stats.put("totalUsers", userGateway.listByPage(1, 1).getTotal());
-        stats.put("activeUsers", userGateway.listByPage(1, 1).getTotal()); // Mock active
+        UserPageQuery query = new UserPageQuery();
+        query.setPageIndex(1);
+        query.setPageSize(1);
+        stats.put("totalUsers", userGateway.listByPage(query).getTotal());
+        
+        UserPageQuery activeQuery = new UserPageQuery();
+        activeQuery.setPageIndex(1);
+        activeQuery.setPageSize(1);
+        activeQuery.setStatus(1); // 1 for active
+        stats.put("activeUsers", userGateway.listByPage(activeQuery).getTotal());
+        
         stats.put("totalRoles", roleGateway.listAll().size());
         stats.put("pendingNotices", noticeGateway.listAll().size());
         stats.put("operLogs", operLogGateway.listByPage(1, 1, null, null, null).getTotal());

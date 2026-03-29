@@ -9,11 +9,16 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class UserPageQuery extends PageQuery {
-    private String username;
+    private String keyword; // 关键词搜索（用户名、昵称、手机号、邮箱）
+    private String orgName; // 部门筛选
+    private String role; // 角色筛选
     
     @Min(value = 0, message = "状态值不合法")
     @Max(value = 1, message = "状态值不合法")
-    private Integer status;
+    private Integer status; // 状态筛选
+    
+    private String sortField; // 排序字段
+    private String sortOrder; // 排序方向（asc/desc）
 
     @Min(value = 1, message = "页码必须大于0")
     @Override

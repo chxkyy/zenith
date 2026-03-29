@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -6,10 +6,13 @@ interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (user: any) => void;
+  user?: any; // 编辑模式下的用户数据
+  mode?: 'add' | 'edit'; // 模式：新增或编辑
 }
 
-export default function UserModal({ isOpen, onClose, onSave }: UserModalProps) {
+export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' }: UserModalProps) {
   const [formData, setFormData] = useState({
+    id: undefined,
     username: '',
     email: '',
     role: 'USER',
@@ -17,10 +20,32 @@ export default function UserModal({ isOpen, onClose, onSave }: UserModalProps) {
     status: 1
   });
 
+  // 当用户数据变化时，更新表单数据
+  useEffect(() => {
+    if (user && mode === 'edit') {
+      setFormData({
+        id: user.id,
+        username: user.username || '',
+        email: user.email || '',
+        role: user.role || 'USER',
+        orgName: user.orgName || '',
+        status: user.status || 1
+      });
+    } else if (mode === 'add') {
+      setFormData({
+        id: undefined,
+        username: '',
+        email: '',
+        role: 'USER',
+        orgName: '',
+        status: 1
+      });
+    }
+  }, [user, mode]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
-    setFormData({ username: '', email: '', role: 'USER', orgName: '', status: 1 });
     onClose();
   };
 
@@ -35,7 +60,9 @@ export default function UserModal({ isOpen, onClose, onSave }: UserModalProps) {
             className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-lg font-bold text-slate-900">添加新用户</h3>
+              <h3 className="text-lg font-bold text-slate-900">
+                {mode === 'add' ? '添加新用户' : '编辑用户'}
+              </h3>
               <button onClick={onClose} className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
@@ -51,6 +78,7 @@ export default function UserModal({ isOpen, onClose, onSave }: UserModalProps) {
                   placeholder="请输入用户名"
                   value={formData.username}
                   onChange={e => setFormData({ ...formData, username: e.target.value })}
+                  disabled={mode === 'edit'} // 编辑模式下用户名不可修改
                 />
               </div>
 
@@ -115,7 +143,7 @@ export default function UserModal({ isOpen, onClose, onSave }: UserModalProps) {
                   type="submit"
                   className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
                 >
-                  保存用户
+                  {mode === 'add' ? '保存用户' : '更新用户'}
                 </button>
               </div>
             </form>

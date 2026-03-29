@@ -22,7 +22,7 @@ public class UserService {
     private UserConvertor userConvertor;
 
     public PageResponse<UserDTO> listByPage(UserPageQuery query) {
-        PageInfo<UserEntity> pageInfo = userGateway.listByPage(query.getPageIndex(), query.getPageSize());
+        PageInfo<UserEntity> pageInfo = userGateway.listByPage(query);
         
         List<UserDTO> dtos = userConvertor.toDTOList(pageInfo.getList());
 
@@ -40,11 +40,40 @@ public class UserService {
     }
 
     public void delete(Long id) {
-        userGateway.deleteById(id);
+        UserEntity user = userGateway.getById(id);
+        if (user != null) {
+            // 超级管理员保护：admin 用户不可删除
+            if ("admin".equals(user.getUsername()) || "ADMIN".equals(user.getRole())) {
+                throw new RuntimeException("超级管理员账号不可删除");
+            }
+            userGateway.deleteById(id);
+        }
     }
 
     public UserDTO getById(Long id) {
         UserEntity entity = userGateway.getById(id);
         return userConvertor.toDTO(entity);
+    }
+
+    public void resetPassword(Long id) {
+        // 实现密码重置逻辑
+        UserEntity user = userGateway.getById(id);
+        if (user != null) {
+            // 这里可以添加密码重置逻辑，例如设置默认密码
+            userGateway.save(user);
+        }
+    }
+
+    public void changeStatus(Long id, Integer status) {
+        // 实现状态切换逻辑
+        UserEntity user = userGateway.getById(id);
+        if (user != null) {
+            // 超级管理员保护：admin 用户不可禁用
+            if (0 == status && ("admin".equals(user.getUsername()) || "ADMIN".equals(user.getRole()))) {
+                throw new RuntimeException("超级管理员账号不可禁用");
+            }
+            user.setStatus(status);
+            userGateway.save(user);
+        }
     }
 }
