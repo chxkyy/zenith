@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import UserTable from './components/UserTable';
-import RoleTable from './components/RoleTable';
+import RoleManagement from './pages/RoleManagement';
 import OrgTable from './components/OrgTable';
 import Profile from './components/Profile';
 import NoticeTable from './components/NoticeTable';
@@ -31,7 +31,7 @@ export default function App() {
       case 'users':
         return <UserTable />;
       case 'roles':
-        return <RoleTable />;
+        return <RoleManagement />;
       case 'orgs':
         return <OrgTable />;
       case 'profile':

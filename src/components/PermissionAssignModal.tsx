@@ -10,6 +10,122 @@ interface Permission {
   children?: Permission[];
 }
 
+// 模拟权限数据
+const mockPermissions: Permission[] = [
+  {
+    id: '1',
+    name: '系统管理',
+    code: 'SYSTEM_MANAGE',
+    type: 'menu',
+    children: [
+      {
+        id: '1-1',
+        name: '用户管理',
+        code: 'USER_MANAGE',
+        type: 'menu',
+        children: [
+          {
+            id: '1-1-1',
+            name: '查看用户',
+            code: 'USER_VIEW',
+            type: 'button'
+          },
+          {
+            id: '1-1-2',
+            name: '添加用户',
+            code: 'USER_ADD',
+            type: 'button'
+          },
+          {
+            id: '1-1-3',
+            name: '编辑用户',
+            code: 'USER_EDIT',
+            type: 'button'
+          },
+          {
+            id: '1-1-4',
+            name: '删除用户',
+            code: 'USER_DELETE',
+            type: 'button'
+          }
+        ]
+      },
+      {
+        id: '1-2',
+        name: '角色管理',
+        code: 'ROLE_MANAGE',
+        type: 'menu',
+        children: [
+          {
+            id: '1-2-1',
+            name: '查看角色',
+            code: 'ROLE_VIEW',
+            type: 'button'
+          },
+          {
+            id: '1-2-2',
+            name: '添加角色',
+            code: 'ROLE_ADD',
+            type: 'button'
+          },
+          {
+            id: '1-2-3',
+            name: '编辑角色',
+            code: 'ROLE_EDIT',
+            type: 'button'
+          },
+          {
+            id: '1-2-4',
+            name: '删除角色',
+            code: 'ROLE_DELETE',
+            type: 'button'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: '2',
+    name: '内容管理',
+    code: 'CONTENT_MANAGE',
+    type: 'menu',
+    children: [
+      {
+        id: '2-1',
+        name: '文章管理',
+        code: 'ARTICLE_MANAGE',
+        type: 'menu',
+        children: [
+          {
+            id: '2-1-1',
+            name: '查看文章',
+            code: 'ARTICLE_VIEW',
+            type: 'button'
+          },
+          {
+            id: '2-1-2',
+            name: '添加文章',
+            code: 'ARTICLE_ADD',
+            type: 'button'
+          },
+          {
+            id: '2-1-3',
+            name: '编辑文章',
+            code: 'ARTICLE_EDIT',
+            type: 'button'
+          },
+          {
+            id: '2-1-4',
+            name: '删除文章',
+            code: 'ARTICLE_DELETE',
+            type: 'button'
+          }
+        ]
+      }
+    ]
+  }
+];
+
 interface PermissionAssignModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -22,127 +138,10 @@ export default function PermissionAssignModal({ isOpen, onClose, onSave, roleId,
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>(assignedPermissions);
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>(mockPermissions);
   const [loading, setLoading] = useState(false);
 
-  // 模拟权限数据
-  const mockPermissions: Permission[] = [
-    {
-      id: '1',
-      name: '系统管理',
-      code: 'SYSTEM_MANAGE',
-      type: 'menu',
-      children: [
-        {
-          id: '1-1',
-          name: '用户管理',
-          code: 'USER_MANAGE',
-          type: 'menu',
-          children: [
-            {
-              id: '1-1-1',
-              name: '查看用户',
-              code: 'USER_VIEW',
-              type: 'button'
-            },
-            {
-              id: '1-1-2',
-              name: '添加用户',
-              code: 'USER_ADD',
-              type: 'button'
-            },
-            {
-              id: '1-1-3',
-              name: '编辑用户',
-              code: 'USER_EDIT',
-              type: 'button'
-            },
-            {
-              id: '1-1-4',
-              name: '删除用户',
-              code: 'USER_DELETE',
-              type: 'button'
-            }
-          ]
-        },
-        {
-          id: '1-2',
-          name: '角色管理',
-          code: 'ROLE_MANAGE',
-          type: 'menu',
-          children: [
-            {
-              id: '1-2-1',
-              name: '查看角色',
-              code: 'ROLE_VIEW',
-              type: 'button'
-            },
-            {
-              id: '1-2-2',
-              name: '添加角色',
-              code: 'ROLE_ADD',
-              type: 'button'
-            },
-            {
-              id: '1-2-3',
-              name: '编辑角色',
-              code: 'ROLE_EDIT',
-              type: 'button'
-            },
-            {
-              id: '1-2-4',
-              name: '删除角色',
-              code: 'ROLE_DELETE',
-              type: 'button'
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: '内容管理',
-      code: 'CONTENT_MANAGE',
-      type: 'menu',
-      children: [
-        {
-          id: '2-1',
-          name: '文章管理',
-          code: 'ARTICLE_MANAGE',
-          type: 'menu',
-          children: [
-            {
-              id: '2-1-1',
-              name: '查看文章',
-              code: 'ARTICLE_VIEW',
-              type: 'button'
-            },
-            {
-              id: '2-1-2',
-              name: '添加文章',
-              code: 'ARTICLE_ADD',
-              type: 'button'
-            },
-            {
-              id: '2-1-3',
-              name: '编辑文章',
-              code: 'ARTICLE_EDIT',
-              type: 'button'
-            },
-            {
-              id: '2-1-4',
-              name: '删除文章',
-              code: 'ARTICLE_DELETE',
-              type: 'button'
-            }
-          ]
-        }
-      ]
-    }
-  ];
-
   useEffect(() => {
-    setPermissions(mockPermissions);
     setSelectedPermissions(assignedPermissions);
   }, [assignedPermissions]);
 

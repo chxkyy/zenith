@@ -70,6 +70,16 @@ export default function Dashboard() {
 
   const data = stats.data;
 
+  // 确保 chartData 存在并且不是空数组
+  const chartData = data.chartData && data.chartData.length > 0 ? data.chartData : [
+    { name: '1月', value: 0 },
+    { name: '2月', value: 0 },
+    { name: '3月', value: 0 },
+    { name: '4月', value: 0 },
+    { name: '5月', value: 0 },
+    { name: '6月', value: 0 }
+  ];
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex items-end justify-between">
@@ -122,9 +132,9 @@ export default function Dashboard() {
               <option>最近 12 个月</option>
             </select>
           </div>
-          <div className="h-[300px] w-full">
+          <div style={{ height: '300px', width: '100%', minWidth: '200px', minHeight: '200px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.chartData}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>

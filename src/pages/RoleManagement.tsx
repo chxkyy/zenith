@@ -26,6 +26,7 @@ export default function RoleManagement() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [expandedMenu, setExpandedMenu] = useState<number | null>(null);
 
   const fetchRoles = (pageIndex = 1) => {
     setLoading(true);
@@ -125,15 +126,17 @@ export default function RoleManagement() {
   };
 
   const handleEditRole = (role: any) => {
+    console.log('Editing role:', role);
     setSelectedRole(role);
     setModalMode('edit');
     setIsModalOpen(true);
+    console.log('Modal should be open now');
   };
 
   const handleDeleteRole = (id: number) => {
     if (window.confirm('删除后，该角色关联的用户权限将全部解除，是否确认删除？')) {
       setLoading(true);
-      fetch(`/api/roles/${id}`, {
+      fetch(`/api/roles?roleId=${id}`, {
         method: 'DELETE'
       })
         .then(res => {
@@ -163,7 +166,7 @@ export default function RoleManagement() {
     const newStatus = currentStatus === 1 ? 0 : 1;
     if (window.confirm(`确定要将角色状态切换为${newStatus === 1 ? '启用' : '禁用'}吗？`)) {
       setLoading(true);
-      fetch(`/api/roles/status/${id}?status=${newStatus}`, {
+      fetch(`/api/roles/status?roleId=${id}&status=${newStatus}`, {
         method: 'PUT'
       })
         .then(res => {
@@ -238,6 +241,10 @@ export default function RoleManagement() {
     }, 500);
   };
 
+  const toggleMenu = (roleId: number) => {
+    setExpandedMenu(expandedMenu === roleId ? null : roleId);
+  };
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -247,7 +254,6 @@ export default function RoleManagement() {
         </div>
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => fetchRoles()}
             disabled={loading}
             className="flex items-center gap-2 bg-white text-slate-600 border border-slate-200 px-4 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
           >
@@ -255,9 +261,11 @@ export default function RoleManagement() {
           </button>
           <button 
             onClick={() => {
+              console.log('Adding new role');
               setModalMode('add');
               setSelectedRole(null);
               setIsModalOpen(true);
+              console.log('Modal should be open now');
             }}
             className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
           >
@@ -395,7 +403,6 @@ export default function RoleManagement() {
                   <div className="flex flex-col items-center gap-3">
                     <p className="text-red-500 text-sm font-medium">{error}</p>
                     <button 
-                      onClick={() => fetchRoles()}
                       className="text-blue-600 text-sm hover:underline"
                     >
                       点击重试
@@ -411,7 +418,7 @@ export default function RoleManagement() {
               </tr>
             ) : (
               roles.map((role) => (
-                <tr key={role.id} className="hover:bg-slate-50 transition-colors group">
+                <tr key={role.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
                     <p className="text-sm font-semibold text-slate-900">{role.name}</p>
                     <p className="text-xs text-slate-500">{role.remark || '-'}</p>
@@ -432,50 +439,70 @@ export default function RoleManagement() {
                     <span className="text-sm text-slate-600">{role.createTime || '-'}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="relative group">
-                      <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
+                    <div className="relative">
+                      <button 
+                        onClick={() => toggleMenu(role.id)}
+                        className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                      >
                         <MoreHorizontal size={18} />
                       </button>
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                        <div className="py-1">
-                          <button 
-                            onClick={() => handleEditRole(role)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <Edit size={14} />
-                            编辑
-                          </button>
-                          <button 
-                            onClick={() => handleChangeStatus(role.id, role.status)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <UserPlus size={14} />
-                            {role.status === 1 ? '禁用' : '启用'}
-                          </button>
-                          <button 
-                            onClick={() => handleAssignPermissions(role)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <Shield size={14} />
-                            分配权限
-                          </button>
-                          <button 
-                            onClick={() => handleAssignUsers(role)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <UserPlus size={14} />
-                            分配用户
-                          </button>
-                          <div className="border-t border-slate-100 my-1"></div>
-                          <button 
-                            onClick={() => handleDeleteRole(role.id)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            <Trash2 size={14} />
-                            删除
-                          </button>
+                      {expandedMenu === role.id && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                          <div className="py-1">
+                            <button 
+                              onClick={() => {
+                                handleEditRole(role);
+                                setExpandedMenu(null);
+                              }}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            >
+                              <Edit size={14} />
+                              编辑
+                            </button>
+                            <button 
+                              onClick={() => {
+                                handleChangeStatus(role.id, role.status);
+                                setExpandedMenu(null);
+                              }}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            >
+                              <UserPlus size={14} />
+                              {role.status === 1 ? '禁用' : '启用'}
+                            </button>
+                            <button 
+                              onClick={() => {
+                                handleAssignPermissions(role);
+                                setExpandedMenu(null);
+                              }}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            >
+                              <Shield size={14} />
+                              分配权限
+                            </button>
+                            <button 
+                              onClick={() => {
+                                handleAssignUsers(role);
+                                setExpandedMenu(null);
+                              }}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            >
+                              <UserPlus size={14} />
+                              分配用户
+                            </button>
+                            <div className="border-t border-slate-100 my-1"></div>
+                            <button 
+                              onClick={() => {
+                                handleDeleteRole(role.id);
+                                setExpandedMenu(null);
+                              }}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 size={14} />
+                              删除
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </td>
                 </tr>

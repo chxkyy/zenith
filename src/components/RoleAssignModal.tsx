@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { X, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+// 默认可用角色
+const DEFAULT_AVAILABLE_ROLES = ['ADMIN', 'EDITOR', 'USER'];
+
 interface RoleAssignModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,7 +13,7 @@ interface RoleAssignModalProps {
   availableRoles?: string[]; // 所有可用角色
 }
 
-export default function RoleAssignModal({ isOpen, onClose, onSave, userRoles = [], availableRoles = ['ADMIN', 'EDITOR', 'USER'] }: RoleAssignModalProps) {
+export default function RoleAssignModal({ isOpen, onClose, onSave, userRoles = [], availableRoles = DEFAULT_AVAILABLE_ROLES }: RoleAssignModalProps) {
   const [selectedRoles, setSelectedRoles] = useState<string[]>(userRoles);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRoles, setFilteredRoles] = useState<string[]>(availableRoles);
