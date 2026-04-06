@@ -1,16 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Bell, Eye, Trash2, Edit, Send, RotateCcw, Pin } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 
-const mockNotices = [
-  { id: 1, title: '关于2026年清明节放假安排的通知', type: '系统通知', author: 'admin', time: '2026-03-20 09:00:00', status: '已发布', isPinned: true, readCount: 124 },
-  { id: 2, title: '系统升级维护公告 (2026-03-25)', type: '业务公告', author: 'admin', time: '2026-03-22 14:30:00', status: '待发布', isPinned: false, readCount: 0 },
-  { id: 3, title: '新版员工手册发布', type: '规则通知', author: 'editor', time: '2026-03-15 11:00:00', status: '已撤回', isPinned: false, readCount: 45 },
-];
+interface Notice {
+  id: number;
+  title: string;
+  type: string;
+  author: string;
+  time: string;
+  status: string;
+  isPinned: boolean;
+  readCount: number;
+}
 
 export default function NoticeTable() {
-  const [notices, setNotices] = useState(mockNotices);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 从后端获取通知数据
+  useEffect(() => {
+    const fetchNotices = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/notices');
+        if (!response.ok) {
+          throw new Error('Failed to fetch notices');
+        }
+        const data = await response.json();
+        if (data.success && data.data) {
+          // 转换后端返回的数据格式
+          const formattedNotices = data.data.map((notice: any) => ({
+            id: notice.id,
+            title: notice.title,
+            type: notice.type,
+            author: notice.author,
+            time: notice.createdAt || notice.time,
+            status: notice.status,
+            isPinned: notice.isPinned || false,
+            readCount: notice.readCount || 0
+          }));
+          setNotices(formattedNotices);
+        }
+      } catch (error) {
+        console.error('Error fetching notices:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchNotices();
+  }, []);
 
   return (
     <div className="p-8 space-y-6">
@@ -65,58 +105,72 @@ export default function NoticeTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {notices.map((notice) => (
-                <tr key={notice.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      {notice.isPinned && <Pin size={14} className="text-orange-500 fill-orange-500" />}
-                      <span className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer">
-                        {notice.title}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-md">
-                      {notice.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{notice.author}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{notice.time}</td>
-                  <td className="px-6 py-4">
-                    <span className={cn(
-                      "px-2.5 py-1 text-xs font-bold rounded-md",
-                      notice.status === '已发布' ? "bg-emerald-50 text-emerald-600" :
-                      notice.status === '待发布' ? "bg-blue-50 text-blue-600" :
-                      "bg-slate-100 text-slate-500"
-                    )}>
-                      {notice.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{notice.readCount}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-blue-600" title="查看详情">
-                        <Eye size={18} />
-                      </button>
-                      <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-blue-600" title="编辑">
-                        <Edit size={18} />
-                      </button>
-                      {notice.status === '已发布' ? (
-                        <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-orange-600" title="撤回">
-                          <RotateCcw size={18} />
-                        </button>
-                      ) : (
-                        <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-emerald-600" title="发布">
-                          <Send size={18} />
-                        </button>
-                      )}
-                      <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-red-600" title="删除">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center">
+                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                   </td>
                 </tr>
-              ))}
+              ) : notices.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                    暂无通知数据
+                  </td>
+                </tr>
+              ) : (
+                notices.map((notice) => (
+                  <tr key={notice.id} className="hover:bg-slate-50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        {notice.isPinned && <Pin size={14} className="text-orange-500 fill-orange-500" />}
+                        <span className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer">
+                          {notice.title}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-md">
+                        {notice.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{notice.author}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{notice.time}</td>
+                    <td className="px-6 py-4">
+                      <span className={cn(
+                        "px-2.5 py-1 text-xs font-bold rounded-md",
+                        notice.status === '已发布' ? "bg-emerald-50 text-emerald-600" :
+                        notice.status === '待发布' ? "bg-blue-50 text-blue-600" :
+                        "bg-slate-100 text-slate-500"
+                      )}>
+                        {notice.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{notice.readCount}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-blue-600" title="查看详情">
+                          <Eye size={18} />
+                        </button>
+                        <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-blue-600" title="编辑">
+                          <Edit size={18} />
+                        </button>
+                        {notice.status === '已发布' ? (
+                          <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-orange-600" title="撤回">
+                            <RotateCcw size={18} />
+                          </button>
+                        ) : (
+                          <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-emerald-600" title="发布">
+                            <Send size={18} />
+                          </button>
+                        )}
+                        <button className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-red-600" title="删除">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

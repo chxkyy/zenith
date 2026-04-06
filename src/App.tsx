@@ -4,11 +4,11 @@ import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import UserTable from './components/UserTable';
 import RoleManagement from './pages/RoleManagement';
+import MenuManagement from './pages/MenuManagement';
 import OrgTable from './components/OrgTable';
 import Profile from './components/Profile';
 import NoticeTable from './components/NoticeTable';
 import PermissionTable from './components/PermissionTable';
-import MenuTable from './components/MenuTable';
 import LogOper from './components/LogOper';
 import LogLogin from './components/LogLogin';
 import LogError from './components/LogError';
@@ -41,7 +41,7 @@ export default function App() {
       case 'permissions':
         return <PermissionTable />;
       case 'menus':
-        return <MenuTable />;
+        return <MenuManagement />;
       case 'logs_oper':
         return <LogOper />;
       case 'logs_login':

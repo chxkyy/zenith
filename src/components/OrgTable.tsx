@@ -1,42 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MoreHorizontal, Search, Building2, Plus, ChevronDown, ChevronRight, Users2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-const mockOrgs = [
-  { 
-    id: 1, 
-    name: 'Zenith 集团总部', 
-    code: 'ZENITH_HQ', 
-    type: '集团', 
-    leader: '张建国',
-    memberCount: 45,
-    children: [
-      { 
-        id: 2, 
-        name: '研发中心', 
-        code: 'RD_CENTER', 
-        type: '部门', 
-        leader: '李明',
-        memberCount: 120,
-        children: [
-          { id: 4, name: '前端开发组', code: 'FE_TEAM', type: '小组', leader: '王小二', memberCount: 24 },
-          { id: 5, name: '后端开发组', code: 'BE_TEAM', type: '小组', leader: '赵六', memberCount: 36 },
-        ]
-      },
-      { 
-        id: 3, 
-        name: '市场部', 
-        code: 'MARKET_DEPT', 
-        type: '部门', 
-        leader: '孙美美',
-        memberCount: 30 
-      },
-    ]
-  },
-];
+interface Org {
+  id: number;
+  name: string;
+  code: string;
+  type: string;
+  leader: string;
+  memberCount: number;
+  parentId?: number;
+  children?: Org[];
+}
 
 interface OrgItemProps {
-  org: any;
+  org: Org;
   level: number;
   key?: React.Key;
 }
@@ -93,7 +71,7 @@ function OrgRow({ org, level }: OrgItemProps) {
           </button>
         </td>
       </tr>
-      {isExpanded && hasChildren && org.children.map((child: any) => (
+      {isExpanded && hasChildren && org.children.map((child) => (
         <OrgRow key={child.id} org={child} level={level + 1} />
       ))}
     </>
@@ -101,6 +79,66 @@ function OrgRow({ org, level }: OrgItemProps) {
 }
 
 export default function OrgTable() {
+  const [orgs, setOrgs] = useState<Org[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 从后端获取组织数据
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/orgs');
+        if (!response.ok) {
+          throw new Error('Failed to fetch orgs');
+        }
+        const data = await response.json();
+        if (data.success && data.data) {
+          // 将扁平的组织列表转换为树形结构
+          const buildOrgTree = (orgList: any[]): Org[] => {
+            const orgMap = new Map<number, Org>();
+            
+            // 首先创建所有组织的映射
+            orgList.forEach(org => {
+              orgMap.set(org.id, {
+                id: org.id,
+                name: org.name,
+                code: org.code || '',
+                type: org.type || '部门',
+                leader: org.leader || '',
+                memberCount: org.memberCount || 0,
+                parentId: org.parentId,
+                children: []
+              });
+            });
+            
+            // 构建树形结构
+            const rootOrgs: Org[] = [];
+            orgMap.forEach(org => {
+              if (!org.parentId) {
+                rootOrgs.push(org);
+              } else {
+                const parentOrg = orgMap.get(org.parentId);
+                if (parentOrg) {
+                  parentOrg.children?.push(org);
+                }
+              }
+            });
+            
+            return rootOrgs;
+          };
+          
+          setOrgs(buildOrgTree(data.data));
+        }
+      } catch (error) {
+        console.error('Error fetching orgs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchOrgs();
+  }, []);
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -134,9 +172,23 @@ export default function OrgTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {mockOrgs.map((org) => (
-              <OrgRow key={org.id} org={org} level={0} />
-            ))}
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center">
+                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                </td>
+              </tr>
+            ) : orgs.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  暂无组织数据
+                </td>
+              </tr>
+            ) : (
+              orgs.map((org) => (
+                <OrgRow key={org.id} org={org} level={0} />
+              ))
+            )}
           </tbody>
         </table>
       </div>

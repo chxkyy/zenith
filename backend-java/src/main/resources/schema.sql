@@ -59,6 +59,13 @@ INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permis
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '用户管理', '/system/user', 'UserTable', 'Users', 1, 'MENU', 'sys:user:list');
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '角色管理', '/system/role', 'RoleTable', 'Shield', 2, 'MENU', 'sys:role:list');
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '菜单管理', '/system/menu', 'MenuTable', 'Menu', 3, 'MENU', 'sys:menu:list');
+INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '部门管理', '/system/dept', 'DeptTable', 'Building', 4, 'MENU', 'sys:dept:list');
+INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (0, '核心管理', '/core', NULL, 'Home', 2, 'DIR', NULL);
+INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (6, '权限管理', '/core/permission', 'PermissionTable', 'Lock', 1, 'MENU', 'core:permission:list');
+INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (0, '系统运维', '/ops', NULL, 'Server', 3, 'DIR', NULL);
+INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (8, '制定管理', '/ops/plan', 'PlanTable', 'Calendar', 1, 'MENU', 'ops:plan:list');
+INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (8, '操作日志', '/ops/oper-log', 'OperLogTable', 'FileText', 2, 'MENU', 'ops:oper-log:list');
+INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (8, '登录日志', '/ops/login-log', 'LoginLogTable', 'LogIn', 3, 'MENU', 'ops:login-log:list');
 
 CREATE TABLE IF NOT EXISTS sys_org (
     id BIGSERIAL PRIMARY KEY,

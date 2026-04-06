@@ -1,16 +1,145 @@
-import React, { useState } from 'react';
-import { MoreHorizontal, Search, ShieldCheck, Plus, Lock, Unlock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MoreHorizontal, Search, ShieldCheck, Plus, Lock, Unlock, Edit, Trash2, User, Shield } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-const mockRoles = [
-  { id: 1, name: '超级管理员', code: 'ROLE_ADMIN', description: '拥有系统所有权限', status: 1, memberCount: 2 },
-  { id: 2, name: '运营编辑', code: 'ROLE_EDITOR', description: '负责内容发布与审核', status: 1, memberCount: 5 },
-  { id: 3, name: '普通用户', code: 'ROLE_USER', description: '仅拥有基础查看权限', status: 1, memberCount: 1240 },
-  { id: 4, name: '访客', code: 'ROLE_GUEST', description: '只读权限', status: 0, memberCount: 0 },
-];
+interface Role {
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  status: number;
+  memberCount: number;
+}
 
 export default function RoleTable() {
-  const [roles] = useState(mockRoles);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 从后端获取角色数据
+  useEffect(() => {
+    const fetchRoles = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/roles');
+        if (!response.ok) {
+          throw new Error('Failed to fetch roles');
+        }
+        const data = await response.json();
+        if (data.success && data.data) {
+          setRoles(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRoles();
+  }, []);
+
+  const handleEditRole = (role: Role) => {
+    console.log('编辑角色:', role);
+    // 这里可以添加编辑角色的逻辑
+  };
+
+  const handleDeleteRole = (id: number) => {
+    if (window.confirm('删除后角色数据不可恢复，关联用户自动解除该角色，是否确认删除？')) {
+      setLoading(true);
+      fetch('/api/roles', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ roleId: id })
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.text().then(text => text ? JSON.parse(text) : { success: true });
+        })
+        .then(res => {
+          if (res.success) {
+            // 重新加载角色列表
+            const fetchRoles = async () => {
+              try {
+                const response = await fetch('/api/roles');
+                if (!response.ok) {
+                  throw new Error('Failed to fetch roles');
+                }
+                const data = await response.json();
+                if (data.success && data.data) {
+                  setRoles(data.data);
+                }
+              } catch (error) {
+                console.error('Error fetching roles:', error);
+              }
+            };
+            fetchRoles();
+          } else {
+            alert('删除角色失败: ' + res.errMessage);
+          }
+        })
+        .catch(err => {
+          console.error('Error deleting role:', err);
+          alert('删除角色失败，请检查网络');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  };
+
+  const handleChangeStatus = (id: number, currentStatus: number) => {
+    const newStatus = currentStatus === 1 ? 0 : 1;
+    if (window.confirm(`确定要将角色状态切换为${newStatus === 1 ? '启用' : '禁用'}吗？`)) {
+      setLoading(true);
+      fetch(`/api/roles/status?roleId=${id}&status=${newStatus}`, {
+        method: 'PUT'
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.text().then(text => text ? JSON.parse(text) : { success: true });
+        })
+        .then(res => {
+          if (res.success) {
+            // 重新加载角色列表
+            const fetchRoles = async () => {
+              try {
+                const response = await fetch('/api/roles');
+                if (!response.ok) {
+                  throw new Error('Failed to fetch roles');
+                }
+                const data = await response.json();
+                if (data.success && data.data) {
+                  setRoles(data.data);
+                }
+              } catch (error) {
+                console.error('Error fetching roles:', error);
+              }
+            };
+            fetchRoles();
+          } else {
+            alert('状态切换失败: ' + res.errMessage);
+          }
+        })
+        .catch(err => {
+          console.error('Error changing status:', err);
+          alert('状态切换失败，请检查网络');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  };
+
+  const handleAssignPermissions = (role: Role) => {
+    console.log('分配权限:', role);
+    // 这里可以添加分配权限的逻辑
+  };
 
   return (
     <div className="p-8 space-y-6">
@@ -45,43 +174,84 @@ export default function RoleTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {roles.map((role) => (
-              <tr key={role.id} className="hover:bg-slate-50 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                      <ShieldCheck size={16} />
-                    </div>
-                    <span className="text-sm font-semibold text-slate-900">{role.name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <code className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-mono">
-                    {role.code}
-                  </code>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-sm text-slate-500 line-clamp-1">{role.description}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-sm text-slate-600 font-medium">{role.memberCount}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={cn(
-                    "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit",
-                    role.status === 1 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                  )}>
-                    {role.status === 1 ? <Unlock size={10} /> : <Lock size={10} />}
-                    {role.status === 1 ? '启用' : '禁用'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
-                    <MoreHorizontal size={18} />
-                  </button>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center">
+                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </td>
               </tr>
-            ))}
+            ) : roles.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  暂无角色数据
+                </td>
+              </tr>
+            ) : (
+              roles.map((role) => (
+                <tr key={role.id} className="hover:bg-slate-50 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <ShieldCheck size={16} />
+                      </div>
+                      <span className="text-sm font-semibold text-slate-900">{role.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <code className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-mono">
+                      {role.code}
+                    </code>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-slate-500 line-clamp-1">{role.description}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-slate-600 font-medium">{role.memberCount}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={cn(
+                      "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit",
+                      role.status === 1 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                    )}>
+                      {role.status === 1 ? <Unlock size={10} /> : <Lock size={10} />}
+                      {role.status === 1 ? '启用' : '禁用'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button 
+                        onClick={() => handleEditRole(role)}
+                        className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="编辑"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleChangeStatus(role.id, role.status)}
+                        className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        title={role.status === 1 ? '禁用' : '启用'}
+                      >
+                        <User size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleAssignPermissions(role)}
+                        className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        title="分配权限"
+                      >
+                        <Shield size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteRole(role.id)}
+                        className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="删除"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

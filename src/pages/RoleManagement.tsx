@@ -26,7 +26,7 @@ export default function RoleManagement() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [expandedMenu, setExpandedMenu] = useState<number | null>(null);
+
 
   const fetchRoles = (pageIndex = 1) => {
     setLoading(true);
@@ -241,9 +241,7 @@ export default function RoleManagement() {
     }, 500);
   };
 
-  const toggleMenu = (roleId: number) => {
-    setExpandedMenu(expandedMenu === roleId ? null : roleId);
-  };
+
 
   return (
     <div className="p-8 space-y-6">
@@ -439,70 +437,42 @@ export default function RoleManagement() {
                     <span className="text-sm text-slate-600">{role.createTime || '-'}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="relative">
+                    <div className="flex items-center justify-end gap-1">
                       <button 
-                        onClick={() => toggleMenu(role.id)}
-                        className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                        onClick={() => handleEditRole(role)}
+                        className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="编辑"
                       >
-                        <MoreHorizontal size={18} />
+                        <Edit size={16} />
                       </button>
-                      {expandedMenu === role.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
-                          <div className="py-1">
-                            <button 
-                              onClick={() => {
-                                handleEditRole(role);
-                                setExpandedMenu(null);
-                              }}
-                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                            >
-                              <Edit size={14} />
-                              编辑
-                            </button>
-                            <button 
-                              onClick={() => {
-                                handleChangeStatus(role.id, role.status);
-                                setExpandedMenu(null);
-                              }}
-                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                            >
-                              <UserPlus size={14} />
-                              {role.status === 1 ? '禁用' : '启用'}
-                            </button>
-                            <button 
-                              onClick={() => {
-                                handleAssignPermissions(role);
-                                setExpandedMenu(null);
-                              }}
-                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                            >
-                              <Shield size={14} />
-                              分配权限
-                            </button>
-                            <button 
-                              onClick={() => {
-                                handleAssignUsers(role);
-                                setExpandedMenu(null);
-                              }}
-                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                            >
-                              <UserPlus size={14} />
-                              分配用户
-                            </button>
-                            <div className="border-t border-slate-100 my-1"></div>
-                            <button 
-                              onClick={() => {
-                                handleDeleteRole(role.id);
-                                setExpandedMenu(null);
-                              }}
-                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                            >
-                              <Trash2 size={14} />
-                              删除
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                      <button 
+                        onClick={() => handleChangeStatus(role.id, role.status)}
+                        className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        title={role.status === 1 ? '禁用' : '启用'}
+                      >
+                        <UserPlus size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleAssignPermissions(role)}
+                        className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        title="分配权限"
+                      >
+                        <Shield size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleAssignUsers(role)}
+                        className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        title="分配用户"
+                      >
+                        <UserPlus size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteRole(role.id)}
+                        className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="删除"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </td>
                 </tr>
