@@ -13,7 +13,7 @@ public class DictController {
     @Autowired
     private DictService dictService;
 
-    @GetMapping
+    @GetMapping("/list")
     public MultiResponse<DictDTO> list() {
         return dictService.listAll();
     }
@@ -35,14 +35,22 @@ public class DictController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @DeleteMapping("/{id}")
-    public com.alibaba.cola.dto.Response delete(@PathVariable Long id) {
+    @DeleteMapping
+    public com.alibaba.cola.dto.Response delete(@RequestParam Long id) {
         dictService.delete(id);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping("/{id}")
-    public com.alibaba.cola.dto.SingleResponse<DictDTO> get(@PathVariable Long id) {
+    @GetMapping("/get")
+    public com.alibaba.cola.dto.SingleResponse<DictDTO> get(@RequestParam Long id) {
         return com.alibaba.cola.dto.SingleResponse.of(dictService.getById(id));
+    }
+
+    @GetMapping("/page")
+    public com.alibaba.cola.dto.PageResponse<DictDTO> page(
+            @RequestParam Integer pageIndex,
+            @RequestParam Integer pageSize,
+            @RequestParam(required = false) String keyword) {
+        return dictService.page(pageIndex, pageSize, keyword);
     }
 }

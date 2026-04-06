@@ -17,46 +17,46 @@ public class ConvertorConfig {
 
     @Bean
     public DictConvertor dictConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.DictConvertorImpl();
+        return DictConvertor.INSTANCE;
     }
 
     @Bean
     public ErrorLogConvertor errorLogConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.ErrorLogConvertorImpl();
+        return com.zenith.admin.infrastructure.convertor.ErrorLogConvertor.INSTANCE;
     }
 
     @Bean
     public LoginLogConvertor loginLogConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.LoginLogConvertorImpl();
+        return com.zenith.admin.infrastructure.convertor.LoginLogConvertor.INSTANCE;
     }
 
     @Bean
     public MenuConvertor menuConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.MenuConvertorImpl();
+        return com.zenith.admin.infrastructure.convertor.MenuConvertor.INSTANCE;
     }
 
     @Bean
     public NoticeConvertor noticeConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.NoticeConvertorImpl();
+        return com.zenith.admin.infrastructure.convertor.NoticeConvertor.INSTANCE;
     }
 
     @Bean
     public OperLogConvertor operLogConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.OperLogConvertorImpl();
+        return com.zenith.admin.infrastructure.convertor.OperLogConvertor.INSTANCE;
     }
 
     @Bean
     public OrgConvertor orgConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.OrgConvertorImpl();
+        return com.zenith.admin.infrastructure.convertor.OrgConvertor.INSTANCE;
     }
 
     @Bean
     public RoleConvertor roleConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.RoleConvertorImpl();
+        return com.zenith.admin.infrastructure.convertor.RoleConvertor.INSTANCE;
     }
 
     @Bean
     public UserConvertor userConvertor() {
-        return new com.zenith.admin.infrastructure.convertor.UserConvertorImpl();
+        return com.zenith.admin.infrastructure.convertor.UserConvertor.INSTANCE;
     }
 }
