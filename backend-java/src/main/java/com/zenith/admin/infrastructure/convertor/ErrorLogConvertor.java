@@ -13,6 +13,7 @@ public interface ErrorLogConvertor {
     ErrorLogConvertor INSTANCE = Mappers.getMapper(ErrorLogConvertor.class);
 
     ErrorLogEntity toEntity(ErrorLogDO errorLogDO);
+    ErrorLogEntity toEntity(ErrorLogDTO errorLogDTO);
     ErrorLogDO toDataObject(ErrorLogEntity errorLogEntity);
     ErrorLogDTO toDTO(ErrorLogEntity errorLogEntity);
     List<ErrorLogEntity> toEntityList(List<ErrorLogDO> errorLogDOList);

@@ -13,6 +13,7 @@ public interface LoginLogConvertor {
     LoginLogConvertor INSTANCE = Mappers.getMapper(LoginLogConvertor.class);
 
     LoginLogEntity toEntity(LoginLogDO loginLogDO);
+    LoginLogEntity toEntity(LoginLogDTO loginLogDTO);
     LoginLogDO toDataObject(LoginLogEntity loginLogEntity);
     LoginLogDTO toDTO(LoginLogEntity loginLogEntity);
     List<LoginLogEntity> toEntityList(List<LoginLogDO> loginLogDOList);

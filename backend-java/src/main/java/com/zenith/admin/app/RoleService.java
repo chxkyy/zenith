@@ -2,12 +2,16 @@ package com.zenith.admin.app;
 
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.PageResponse;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.domain.gateway.RoleGateway;
 import com.zenith.admin.domain.model.RoleEntity;
 import com.zenith.admin.dto.RoleDTO;
 import com.zenith.admin.dto.RolePageQuery;
 import com.zenith.admin.infrastructure.convertor.RoleConvertor;
+import com.zenith.admin.infrastructure.dataobject.RoleDO;
+import com.zenith.admin.infrastructure.mapper.RoleMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,63 +21,100 @@ import java.util.List;
 public class RoleService {
 
     @Autowired
-    private RoleGateway roleGateway;
+    private RoleMapper roleMapper;
 
     @Autowired
     private RoleConvertor roleConvertor;
 
     public MultiResponse<RoleDTO> listAll() {
-        List<RoleEntity> entities = roleGateway.listAll();
+        List<RoleDO> roleDOS = roleMapper.selectList(null);
+        List<RoleEntity> entities = roleConvertor.toEntityList(roleDOS);
         List<RoleDTO> dtos = roleConvertor.toDTOList(entities);
         return MultiResponse.of(dtos);
     }
 
     public PageResponse<RoleDTO> listByPage(RolePageQuery query) {
-        PageInfo<RoleEntity> pageInfo = roleGateway.listByPage(query);
-        List<RoleDTO> dtos = roleConvertor.toDTOList(pageInfo.getList());
+        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
+        
+        QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
+        
+        // 关键词搜索
+        if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
+            wrapper.like("name", query.getKeyword())
+                   .or().like("code", query.getKeyword());
+        }
+        
+        // 状态筛选
+        if (query.getStatus() != null) {
+            wrapper.eq("status", query.getStatus());
+        }
+        
+        // 排序
+        if (query.getSortField() != null && !query.getSortField().isEmpty()) {
+            String order = query.getSortOrder() != null && "desc".equals(query.getSortOrder()) ? "desc" : "asc";
+            wrapper.orderBy(true, "asc".equals(order), query.getSortField());
+        }
+        
+        List<RoleDO> roleDOS = roleMapper.selectList(wrapper);
+        PageInfo<RoleDO> pageInfo = new PageInfo<>(roleDOS);
+        
+        List<RoleEntity> entities = roleConvertor.toEntityList(roleDOS);
+        List<RoleDTO> dtos = roleConvertor.toDTOList(entities);
         return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
     }
 
     public void save(RoleDTO roleDTO) {
         RoleEntity entity = roleConvertor.toEntity(roleDTO);
-        roleGateway.save(entity);
+        RoleDO roleDO = roleConvertor.toDataObject(entity);
+        if (roleDO.getId() == null) {
+            roleMapper.insert(roleDO);
+        } else {
+            roleMapper.updateById(roleDO);
+        }
     }
 
     public void update(RoleDTO roleDTO) {
         RoleEntity entity = roleConvertor.toEntity(roleDTO);
         // 超级管理员角色保护：ADMIN 角色编码不可修改
-        RoleEntity existingRole = roleGateway.getById(roleDTO.getId());
+        RoleEntity existingRole = getByIdEntity(roleDTO.getId());
         if (existingRole != null && "ADMIN".equals(existingRole.getCode())) {
             entity.setCode(existingRole.getCode()); // 保持原编码不变
         }
-        roleGateway.save(entity);
+        RoleDO roleDO = roleConvertor.toDataObject(entity);
+        roleMapper.updateById(roleDO);
     }
 
     public void delete(Long id) {
-        RoleEntity role = roleGateway.getById(id);
+        RoleEntity role = getByIdEntity(id);
         if (role != null) {
             // 超级管理员角色保护：ADMIN 角色不可删除
             if ("ADMIN".equals(role.getCode())) {
                 throw new RuntimeException("超级管理员角色不可删除");
             }
-            roleGateway.deleteById(id);
+            roleMapper.deleteById(id);
         }
     }
 
     public RoleDTO getById(Long id) {
-        RoleEntity entity = roleGateway.getById(id);
+        RoleEntity entity = getByIdEntity(id);
         return roleConvertor.toDTO(entity);
     }
 
+    private RoleEntity getByIdEntity(Long id) {
+        RoleDO roleDO = roleMapper.selectById(id);
+        return roleConvertor.toEntity(roleDO);
+    }
+
     public void changeStatus(Long id, Integer status) {
-        RoleEntity role = roleGateway.getById(id);
+        RoleEntity role = getByIdEntity(id);
         if (role != null) {
             // 超级管理员角色保护：ADMIN 角色不可禁用
             if (0 == status && "ADMIN".equals(role.getCode())) {
                 throw new RuntimeException("超级管理员角色不可禁用");
             }
             role.setStatus(status);
-            roleGateway.save(role);
+            RoleDO roleDO = roleConvertor.toDataObject(role);
+            roleMapper.updateById(roleDO);
         }
     }
 }

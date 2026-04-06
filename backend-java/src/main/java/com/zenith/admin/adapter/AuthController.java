@@ -1,8 +1,7 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.SingleResponse;
-import com.zenith.admin.domain.gateway.UserGateway;
-import com.zenith.admin.domain.model.UserEntity;
+import com.zenith.admin.app.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +13,7 @@ import java.util.Map;
 public class AuthController {
 
     @Autowired
-    private UserGateway userGateway;
+    private UserService userService;
 
     @PostMapping("/login")
     public SingleResponse<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {

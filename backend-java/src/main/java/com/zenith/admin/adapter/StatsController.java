@@ -1,12 +1,12 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.SingleResponse;
-import com.zenith.admin.domain.gateway.UserGateway;
-import com.zenith.admin.domain.gateway.RoleGateway;
-import com.zenith.admin.domain.gateway.NoticeGateway;
-import com.zenith.admin.domain.gateway.OperLogGateway;
-import com.zenith.admin.domain.gateway.LoginLogGateway;
-import com.zenith.admin.domain.gateway.ErrorLogGateway;
+import com.zenith.admin.app.UserService;
+import com.zenith.admin.app.RoleService;
+import com.zenith.admin.app.NoticeService;
+import com.zenith.admin.app.OperLogService;
+import com.zenith.admin.app.LoginLogService;
+import com.zenith.admin.app.ErrorLogService;
 import com.zenith.admin.dto.UserPageQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,22 +21,22 @@ import java.util.Map;
 public class StatsController {
 
     @Autowired
-    private UserGateway userGateway;
+    private UserService userService;
 
     @Autowired
-    private RoleGateway roleGateway;
+    private RoleService roleService;
 
     @Autowired
-    private NoticeGateway noticeGateway;
+    private NoticeService noticeService;
 
     @Autowired
-    private OperLogGateway operLogGateway;
+    private OperLogService operLogService;
 
     @Autowired
-    private LoginLogGateway loginLogGateway;
+    private LoginLogService loginLogService;
 
     @Autowired
-    private ErrorLogGateway errorLogGateway;
+    private ErrorLogService errorLogService;
 
     @GetMapping("/health")
     public SingleResponse<String> health() {
@@ -46,23 +46,23 @@ public class StatsController {
     @GetMapping
     public SingleResponse<Map<String, Object>> getStats() {
         Map<String, Object> stats = new HashMap<>();
-        // In a real app, we'd have count methods in gateways
+        // In a real app, we'd have count methods in services
         UserPageQuery query = new UserPageQuery();
         query.setPageIndex(1);
         query.setPageSize(1);
-        stats.put("totalUsers", userGateway.listByPage(query).getTotal());
+        stats.put("totalUsers", userService.listByPage(query).getTotalCount());
         
         UserPageQuery activeQuery = new UserPageQuery();
         activeQuery.setPageIndex(1);
         activeQuery.setPageSize(1);
         activeQuery.setStatus(1); // 1 for active
-        stats.put("activeUsers", userGateway.listByPage(activeQuery).getTotal());
+        stats.put("activeUsers", userService.listByPage(activeQuery).getTotalCount());
         
-        stats.put("totalRoles", roleGateway.listAll().size());
-        stats.put("pendingNotices", noticeGateway.listAll().size());
-        stats.put("operLogs", operLogGateway.listByPage(1, 1, null, null, null).getTotal());
-        stats.put("loginLogs", loginLogGateway.listByPage(1, 1, null, null, null).getTotal());
-        stats.put("errorLogs", errorLogGateway.listByPage(1, 1, null, null).getTotal());
+        stats.put("totalRoles", roleService.listAll().getData().size());
+        stats.put("pendingNotices", noticeService.listAll().getData().size());
+        stats.put("operLogs", operLogService.listByPage(1, 1, null, null, null).getTotalCount());
+        stats.put("loginLogs", loginLogService.listByPage(1, 1, null, null, null).getTotalCount());
+        stats.put("errorLogs", errorLogService.listByPage(1, 1, null, null).getTotalCount());
         
         // Mock chart data
         java.util.List<Map<String, Object>> chartData = new java.util.ArrayList<>();

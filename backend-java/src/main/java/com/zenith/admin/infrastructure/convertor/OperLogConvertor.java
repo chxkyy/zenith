@@ -13,6 +13,7 @@ public interface OperLogConvertor {
     OperLogConvertor INSTANCE = Mappers.getMapper(OperLogConvertor.class);
 
     OperLogEntity toEntity(OperLogDO operLogDO);
+    OperLogEntity toEntity(OperLogDTO operLogDTO);
     OperLogDO toDataObject(OperLogEntity operLogEntity);
     OperLogDTO toDTO(OperLogEntity operLogEntity);
     List<OperLogEntity> toEntityList(List<OperLogDO> operLogDOList);
