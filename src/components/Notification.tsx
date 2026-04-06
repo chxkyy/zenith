@@ -12,12 +12,15 @@ export default function Notification({ message, type = 'success', duration = 300
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    // 当 props 变化时，重新显示通知
+    setIsVisible(true);
+    
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [duration]);
+  }, [message, type, duration]);
 
   return (
     <AnimatePresence>

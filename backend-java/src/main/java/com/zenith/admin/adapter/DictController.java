@@ -1,8 +1,11 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.MultiResponse;
+import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.DictService;
 import com.zenith.admin.dto.DictDTO;
+import com.zenith.admin.dto.DictPageQuery;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,11 +49,8 @@ public class DictController {
         return com.alibaba.cola.dto.SingleResponse.of(dictService.getById(id));
     }
 
-    @GetMapping("/page")
-    public com.alibaba.cola.dto.PageResponse<DictDTO> page(
-            @RequestParam Integer pageIndex,
-            @RequestParam Integer pageSize,
-            @RequestParam(required = false) String keyword) {
-        return dictService.page(pageIndex, pageSize, keyword);
+    @PostMapping("/page")
+    public PageResponse<DictDTO> page(@RequestBody @Valid DictPageQuery query) {
+        return dictService.page(query);
     }
 }

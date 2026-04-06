@@ -8,6 +8,8 @@ import com.zenith.admin.domain.model.DictEntity;
 import com.zenith.admin.domain.model.DictItemEntity;
 import com.zenith.admin.dto.DictDTO;
 import com.zenith.admin.dto.DictItemDTO;
+import com.zenith.admin.dto.DictPageQuery;
+import com.zenith.admin.dto.DictItemPageQuery;
 import com.zenith.admin.infrastructure.convertor.DictConvertor;
 import com.zenith.admin.infrastructure.dataobject.DictDO;
 import com.zenith.admin.infrastructure.dataobject.DictItemDO;
@@ -58,18 +60,20 @@ public class DictService {
         return dictConvertor.toDTO(entity);
     }
 
-    public PageResponse<DictDTO> page(Integer pageIndex, Integer pageSize, String keyword) {
-        Page<DictDO> page = new Page<>(pageIndex, pageSize);
+    public PageResponse<DictDTO> page(DictPageQuery query) {
+        // 使用 PageHelper 实现分页
+        com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
-        if (keyword != null && !keyword.isEmpty()) {
+        if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
             queryWrapper.and(wrapper -> {
-                wrapper.like(DictDO::getName, keyword).or().like(DictDO::getType, keyword);
+                wrapper.like(DictDO::getName, query.getKeyword()).or().like(DictDO::getType, query.getKeyword());
             });
         }
-        Page<DictDO> result = dictMapper.selectPage(page, queryWrapper);
-        List<DictEntity> entities = dictConvertor.toEntityList(result.getRecords());
+        List<DictDO> dictDOS = dictMapper.selectList(queryWrapper);
+        com.github.pagehelper.PageInfo<DictDO> pageInfo = new com.github.pagehelper.PageInfo<>(dictDOS);
+        List<DictEntity> entities = dictConvertor.toEntityList(pageInfo.getList());
         List<DictDTO> dtos = dictConvertor.toDTOList(entities);
-        return PageResponse.of(dtos, (int) result.getTotal(), pageSize, pageIndex);
+        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
     }
 
     public void delete(Long id) {
@@ -116,20 +120,22 @@ public class DictService {
         return MultiResponse.of(dtos);
     }
 
-    public PageResponse<DictItemDTO> pageItems(String type, Integer pageIndex, Integer pageSize, String keyword) {
-        Page<DictItemDO> page = new Page<>(pageIndex, pageSize);
+    public PageResponse<DictItemDTO> pageItems(DictItemPageQuery query) {
+        // 使用 PageHelper 实现分页
+        com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(DictItemDO::getType, type);
-        if (keyword != null && !keyword.isEmpty()) {
+        queryWrapper.eq(DictItemDO::getType, query.getType());
+        if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
             queryWrapper.and(wrapper -> {
-                wrapper.like(DictItemDO::getLabel, keyword).or().like(DictItemDO::getDictValue, keyword);
+                wrapper.like(DictItemDO::getLabel, query.getKeyword()).or().like(DictItemDO::getDictValue, query.getKeyword());
             });
         }
         queryWrapper.orderByAsc(DictItemDO::getSort);
-        Page<DictItemDO> result = dictItemMapper.selectPage(page, queryWrapper);
-        List<DictItemEntity> entities = dictConvertor.toItemEntityList(result.getRecords());
+        List<DictItemDO> dictItemDOS = dictItemMapper.selectList(queryWrapper);
+        com.github.pagehelper.PageInfo<DictItemDO> pageInfo = new com.github.pagehelper.PageInfo<>(dictItemDOS);
+        List<DictItemEntity> entities = dictConvertor.toItemEntityList(pageInfo.getList());
         List<DictItemDTO> dtos = dictConvertor.toItemDTOList(entities);
-        return PageResponse.of(dtos, (int) result.getTotal(), pageSize, pageIndex);
+        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
     }
 
     public void saveItem(DictItemDTO dictItemDTO) {
@@ -154,9 +160,14 @@ public class DictService {
     }
 
     public void updateItem(DictItemDTO dictItemDTO) {
+        System.out.println("=== updateItem ===");
+        System.out.println("dictItemDTO: " + dictItemDTO);
         DictItemEntity entity = dictConvertor.toItemEntity(dictItemDTO);
+        System.out.println("entity: " + entity);
         DictItemDO dictItemDO = dictConvertor.toItemDataObject(entity);
+        System.out.println("dictItemDO: " + dictItemDO);
         dictItemMapper.updateById(dictItemDO);
+        System.out.println("=== updateItem done ===");
     }
 
     public void deleteItem(Long id) {

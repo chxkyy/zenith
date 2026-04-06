@@ -4,6 +4,8 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.DictService;
 import com.zenith.admin.dto.DictItemDTO;
+import com.zenith.admin.dto.DictItemPageQuery;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,13 +21,9 @@ public class DictItemController {
         return dictService.listItemsByType(type);
     }
 
-    @GetMapping("/page")
-    public PageResponse<DictItemDTO> page(
-            @RequestParam String type,
-            @RequestParam Integer pageIndex,
-            @RequestParam Integer pageSize,
-            @RequestParam(required = false) String keyword) {
-        return dictService.pageItems(type, pageIndex, pageSize, keyword);
+    @PostMapping("/page")
+    public PageResponse<DictItemDTO> page(@RequestBody @Valid DictItemPageQuery query) {
+        return dictService.pageItems(query);
     }
 
     @PostMapping

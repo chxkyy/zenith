@@ -1,5 +1,6 @@
 package com.zenith.admin.infrastructure.dataobject;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 @TableName("sys_dict_item")
 public class DictItemDO {
 
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private String type;

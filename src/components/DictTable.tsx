@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Book, Trash2, Edit, List, ChevronLeft, ChevronRight, X, Check, AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/utils';
+import Notification from './Notification';
 
 // 字典类型接口
 interface DictType {
@@ -42,7 +43,7 @@ export default function DictTable() {
   const [selectedDictType, setSelectedDictType] = useState<DictType | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [totalCount, setTotalCount] = useState(0);
 
   // 字典项相关状态
@@ -68,6 +69,13 @@ export default function DictTable() {
     type: 'add'
   });
 
+  // 通知状态
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    key: number;
+  } | null>(null);
+
   // 表单数据状态
   const [dictTypeForm, setDictTypeForm] = useState({
     name: '',
@@ -85,33 +93,38 @@ export default function DictTable() {
   });
 
   // 从后端获取字典类型数据（带分页和搜索）
-  useEffect(() => {
-    const fetchDictTypes = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          pageIndex: currentPage.toString(),
-          pageSize: pageSize.toString()
-        });
-        if (searchParams.keyword) {
-          params.append('keyword', searchParams.keyword);
-        }
-        const response = await fetch(`/api/dicts/page?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch dict types');
-        }
-        const data = await response.json();
-        if (data.success && data.data) {
-          setDictTypes(data.data);
-          setTotalCount(data.totalCount || 0);
-        }
-      } catch (error) {
-        console.error('Error fetching dict types:', error);
-      } finally {
-        setLoading(false);
+  const fetchDictTypes = async () => {
+    setLoading(true);
+    try {
+      const query = {
+        pageIndex: currentPage,
+        pageSize: pageSize,
+        keyword: searchParams.keyword
+      };
+      const response = await fetch('/api/dicts/page', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(query)
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch dict types');
       }
-    };
-    
+      const data = await response.json();
+      if (data.success && data.data) {
+        setDictTypes(data.data);
+        setTotalCount(data.totalCount || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching dict types:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 当分页、搜索参数变化时，重新获取字典类型列表
+  useEffect(() => {
     fetchDictTypes();
   }, [currentPage, pageSize, searchParams]);
 
@@ -127,7 +140,11 @@ export default function DictTable() {
       const data = await response.json();
       if (data.success && data.data && data.data.length > 0) {
         // 有字典项，提示用户
-        alert('该字典类型下存在字典项，请先删除所有字典项后再删除类型');
+        setNotification({
+          message: '该字典类型下存在字典项，请先删除所有字典项后再删除类型',
+          type: 'error',
+          key: Date.now()
+        });
         return false;
       }
       // 没有字典项，执行删除
@@ -142,26 +159,31 @@ export default function DictTable() {
   // 当选择字典类型时，获取字典项数据
   useEffect(() => {
     if (selectedDictType) {
-      setSearchParams(prev => ({
-        ...prev,
-        dictType: selectedDictType.type
-      }));
+      // 直接调用 fetchDictItems，不依赖 searchParams.dictType
       fetchDictItems(selectedDictType.type, itemsCurrentPage, itemsPageSize);
     } else {
       setDictItems([]);
       setItemsTotalCount(0);
     }
-  }, [selectedDictType, itemsCurrentPage, itemsPageSize]);
+  }, [selectedDictType, itemsCurrentPage, itemsPageSize, searchParams.keyword]);
 
   // 从后端获取字典项数据（带分页和搜索）
   const fetchDictItems = async (type: string, pageIndex: number, pageSize: number) => {
     setItemsLoading(true);
     try {
-      const url = new URL(`/api/dict/items/page?type=${type}&pageIndex=${pageIndex}&pageSize=${pageSize}`);
-      if (searchParams.keyword) {
-        url.searchParams.append('keyword', searchParams.keyword);
-      }
-      const response = await fetch(url.toString());
+      const query = {
+        type: type,
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+        keyword: searchParams.keyword
+      };
+      const response = await fetch('/api/dict/items/page', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(query)
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch dict items');
       }
@@ -180,6 +202,8 @@ export default function DictTable() {
   // 处理字典类型选择
   const handleDictTypeSelect = (dictType: DictType) => {
     setSelectedDictType(dictType);
+    // 直接调用 fetchDictItems，确保能够加载对应的字典项
+    fetchDictItems(dictType.type, itemsCurrentPage, itemsPageSize);
   };
 
   // 处理分页变化
@@ -324,9 +348,28 @@ export default function DictTable() {
         handleDictTypeModalClose();
         // 重新获取字典类型列表
         setCurrentPage(1);
+        // 直接调用 fetchDictTypes，确保列表能够及时更新
+        fetchDictTypes();
+        setNotification({
+          message: dictTypeModal.type === 'add' ? '字典类型新增成功' : '字典类型编辑成功',
+          type: 'success',
+          key: Date.now()
+        });
+      } else {
+        // 显示后端返回的错误信息
+        setNotification({
+          message: data.errMessage || '保存失败',
+          type: 'error',
+          key: Date.now()
+        });
       }
     } catch (error) {
       console.error('Error saving dict type:', error);
+      setNotification({
+        message: '保存失败，请重试',
+        type: 'error',
+        key: Date.now()
+      });
     }
   };
 
@@ -345,14 +388,30 @@ export default function DictTable() {
         handleDictTypeModalClose();
         // 重新获取字典类型列表
         setCurrentPage(1);
+        // 直接调用 fetchDictTypes，确保列表能够及时更新
+        fetchDictTypes();
         if (selectedDictType && selectedDictType.id === dictTypeModal.data?.id) {
           setSelectedDictType(null);
         }
+        setNotification({
+          message: '字典类型删除成功',
+          type: 'success',
+          key: Date.now()
+        });
       } else {
-        alert(data.errMessage || '删除失败');
+        setNotification({
+          message: data.errMessage || '删除失败',
+          type: 'error',
+          key: Date.now()
+        });
       }
     } catch (error) {
       console.error('Error deleting dict type:', error);
+      setNotification({
+        message: '删除失败，请重试',
+        type: 'error',
+        key: Date.now()
+      });
     }
   };
 
@@ -381,9 +440,26 @@ export default function DictTable() {
         if (selectedDictType) {
           fetchDictItems(selectedDictType.type, itemsCurrentPage, itemsPageSize);
         }
+        setNotification({
+          message: dictItemModal.type === 'add' ? '字典项新增成功' : '字典项编辑成功',
+          type: 'success',
+          key: Date.now()
+        });
+      } else {
+        // 显示后端返回的错误信息
+        setNotification({
+          message: data.errMessage || '保存失败',
+          type: 'error',
+          key: Date.now()
+        });
       }
     } catch (error) {
       console.error('Error saving dict item:', error);
+      setNotification({
+        message: '保存失败，请重试',
+        type: 'error',
+        key: Date.now()
+      });
     }
   };
 
@@ -404,11 +480,25 @@ export default function DictTable() {
         if (selectedDictType) {
           fetchDictItems(selectedDictType.type, itemsCurrentPage, itemsPageSize);
         }
+        setNotification({
+          message: '字典项删除成功',
+          type: 'success',
+          key: Date.now()
+        });
       } else {
-        alert(data.errMessage || '删除失败');
+        setNotification({
+          message: data.errMessage || '删除失败',
+          type: 'error',
+          key: Date.now()
+        });
       }
     } catch (error) {
       console.error('Error deleting dict item:', error);
+      setNotification({
+        message: '删除失败，请重试',
+        type: 'error',
+        key: Date.now()
+      });
     }
   };
 
@@ -494,12 +584,11 @@ export default function DictTable() {
                       "hover:bg-slate-50 transition-colors cursor-pointer",
                       selectedDictType?.id === dictType.id && "bg-blue-50"
                     )}
-                    onClick={() => handleDictTypeSelect(dictType)}
                   >
-                    <td className="px-6 py-4 text-sm text-slate-600">{dictType.id}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-slate-900">{dictType.name}</td>
-                    <td className="px-6 py-4 text-sm font-mono text-slate-600">{dictType.type}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.id}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-slate-900" onClick={() => handleDictTypeSelect(dictType)}>{dictType.name}</td>
+                    <td className="px-6 py-4 text-sm font-mono text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.type}</td>
+                    <td className="px-6 py-4" onClick={() => handleDictTypeSelect(dictType)}>
                       <span className={cn(
                         "px-2 py-1 text-xs font-bold rounded-md",
                         dictType.status === 1 ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
@@ -507,8 +596,8 @@ export default function DictTable() {
                         {dictType.status === 1 ? '正常' : '禁用'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{dictType.createdAt}</td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{dictType.remark}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.createdAt}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500" onClick={() => handleDictTypeSelect(dictType)}>{dictType.remark}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
@@ -598,7 +687,6 @@ export default function DictTable() {
             <table className="w-full text-left">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ID</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">类型</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">标签</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">值</th>
@@ -611,20 +699,19 @@ export default function DictTable() {
               <tbody className="divide-y divide-slate-100">
                 {itemsLoading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center">
+                    <td colSpan={7} className="px-6 py-12 text-center">
                       <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                     </td>
                   </tr>
                 ) : dictItems.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                       暂无字典项数据
                     </td>
                   </tr>
                 ) : (
                   dictItems.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 text-sm text-slate-600">{item.id}</td>
                       <td className="px-6 py-4 text-sm font-mono text-slate-600">{item.type}</td>
                       <td className="px-6 py-4 text-sm font-semibold text-slate-900">{item.label}</td>
                       <td className="px-6 py-4 text-sm font-mono text-slate-600">{item.dictValue}</td>
@@ -983,6 +1070,14 @@ export default function DictTable() {
             )}
           </div>
         </div>
+      )}
+
+      {notification && (
+        <Notification 
+          key={notification.key}
+          message={notification.message} 
+          type={notification.type} 
+        />
       )}
     </div>
   );
