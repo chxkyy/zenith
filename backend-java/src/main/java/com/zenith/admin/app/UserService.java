@@ -8,7 +8,9 @@ import com.zenith.admin.domain.model.UserEntity;
 import com.zenith.admin.dto.UserDTO;
 import com.zenith.admin.dto.UserPageQuery;
 import com.zenith.admin.infrastructure.convertor.UserConvertor;
+import com.zenith.admin.infrastructure.dataobject.OrgDO;
 import com.zenith.admin.infrastructure.dataobject.UserDO;
+import com.zenith.admin.infrastructure.mapper.OrgMapper;
 import com.zenith.admin.infrastructure.mapper.UserMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,9 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private OrgMapper orgMapper;
 
     @Autowired
     private UserConvertor userConvertor;
@@ -37,9 +42,17 @@ public class UserService {
                    .or().like("email", query.getKeyword());
         }
         
-        // 部门筛选
+        // 部门筛选（通过名称）
         if (query.getOrgName() != null && !query.getOrgName().isEmpty()) {
             wrapper.eq("org_name", query.getOrgName());
+        }
+        
+        // 部门筛选（通过ID）
+        if (query.getOrgId() != null) {
+            OrgDO orgDO = orgMapper.selectById(query.getOrgId());
+            if (orgDO != null) {
+                wrapper.eq("org_name", orgDO.getName());
+            }
         }
         
         // 角色筛选

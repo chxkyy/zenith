@@ -10,7 +10,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class UserPageQuery extends PageQuery {
     private String keyword; // 关键词搜索（用户名、昵称、手机号、邮箱）
-    private String orgName; // 部门筛选
+    private String orgName; // 部门名称筛选
+    private Long orgId; // 部门ID筛选
     private String role; // 角色筛选
     
     @Min(value = 0, message = "状态值不合法")

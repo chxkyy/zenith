@@ -10,9 +10,34 @@ CREATE TABLE IF NOT EXISTS sys_user (
 );
 
 INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('admin', '超级管理员', 'admin@example.com', 1, 'ADMIN', 'Zenith 集团总部');
-INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('editor', '运营编辑', 'editor@example.com', 1, 'EDITOR', '研发中心');
-INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('user1', '普通用户1', 'user1@example.com', 1, 'USER', '前端开发组');
-INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('user2', '普通用户2', 'user2@example.com', 0, 'USER', '后端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('ceo', 'CEO', 'ceo@example.com', 1, 'ADMIN', 'Zenith 集团总部');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('cto', '技术总监', 'cto@example.com', 1, 'ADMIN', '研发中心');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('fe1', '前端开发工程师1', 'fe1@example.com', 1, 'USER', '前端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('fe2', '前端开发工程师2', 'fe2@example.com', 1, 'USER', '前端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('fe3', '前端开发工程师3', 'fe3@example.com', 1, 'USER', '前端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('fe4', '前端开发工程师4', 'fe4@example.com', 0, 'USER', '前端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('be1', '后端开发工程师1', 'be1@example.com', 1, 'USER', '后端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('be2', '后端开发工程师2', 'be2@example.com', 1, 'USER', '后端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('be3', '后端开发工程师3', 'be3@example.com', 1, 'USER', '后端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('be4', '后端开发工程师4', 'be4@example.com', 1, 'USER', '后端开发组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('test1', '测试工程师1', 'test1@example.com', 1, 'USER', '测试组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('test2', '测试工程师2', 'test2@example.com', 1, 'USER', '测试组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('ops1', '运维工程师1', 'ops1@example.com', 1, 'USER', '运维组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('ops2', '运维工程师2', 'ops2@example.com', 1, 'USER', '运维组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('marketing1', '市场策划专员1', 'marketing1@example.com', 1, 'USER', '市场策划组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('marketing2', '市场策划专员2', 'marketing2@example.com', 1, 'USER', '市场策划组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('brand1', '品牌推广专员1', 'brand1@example.com', 1, 'USER', '品牌推广组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('brand2', '品牌推广专员2', 'brand2@example.com', 1, 'USER', '品牌推广组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('sales1', '国内销售专员1', 'sales1@example.com', 1, 'USER', '国内销售组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('sales2', '国内销售专员2', 'sales2@example.com', 1, 'USER', '国内销售组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('sales3', '国际销售专员1', 'sales3@example.com', 1, 'USER', '国际销售组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('sales4', '国际销售专员2', 'sales4@example.com', 1, 'USER', '国际销售组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('hr1', '招聘专员1', 'hr1@example.com', 1, 'USER', '招聘组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('hr2', '招聘专员2', 'hr2@example.com', 1, 'USER', '招聘组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('hr3', '培训专员1', 'hr3@example.com', 1, 'USER', '培训组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('finance1', '会计1', 'finance1@example.com', 1, 'USER', '会计组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('finance2', '会计2', 'finance2@example.com', 1, 'USER', '会计组');
+INSERT INTO sys_user (username, nickname, email, status, role, org_name) VALUES ('finance3', '出纳1', 'finance3@example.com', 1, 'USER', '出纳组');
 
 CREATE TABLE IF NOT EXISTS sys_role (
     id BIGSERIAL PRIMARY KEY,
@@ -59,7 +84,7 @@ INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permis
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '用户管理', '/system/user', 'UserTable', 'Users', 1, 'MENU', 'sys:user:list');
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '角色管理', '/system/role', 'RoleTable', 'Shield', 2, 'MENU', 'sys:role:list');
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '菜单管理', '/system/menu', 'MenuTable', 'Menu', 3, 'MENU', 'sys:menu:list');
-INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '部门管理', '/system/dept', 'DeptTable', 'Building', 4, 'MENU', 'sys:dept:list');
+INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (1, '组织管理', '/system/dept', 'DeptTable', 'Building', 4, 'MENU', 'sys:dept:list');
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (0, '核心管理', '/core', NULL, 'Home', 2, 'DIR', NULL);
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (6, '权限管理', '/core/permission', 'PermissionTable', 'Lock', 1, 'MENU', 'core:permission:list');
 INSERT INTO sys_menu (parent_id, name, path, component, icon, sort, type, permission) VALUES (0, '系统运维', '/ops', NULL, 'Server', 3, 'DIR', NULL);
@@ -80,6 +105,20 @@ INSERT INTO sys_org (parent_id, name, sort, status) VALUES (0, 'Zenith 集团总
 INSERT INTO sys_org (parent_id, name, sort, status) VALUES (1, '研发中心', 1, 1);
 INSERT INTO sys_org (parent_id, name, sort, status) VALUES (2, '前端开发组', 1, 1);
 INSERT INTO sys_org (parent_id, name, sort, status) VALUES (2, '后端开发组', 2, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (2, '测试组', 3, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (2, '运维组', 4, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (1, '市场部', 2, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (7, '市场策划组', 1, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (7, '品牌推广组', 2, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (1, '销售部', 3, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (10, '国内销售组', 1, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (10, '国际销售组', 2, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (1, '人力资源部', 4, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (13, '招聘组', 1, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (13, '培训组', 2, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (1, '财务部', 5, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (16, '会计组', 1, 1);
+INSERT INTO sys_org (parent_id, name, sort, status) VALUES (16, '出纳组', 2, 1);
 
 CREATE TABLE IF NOT EXISTS sys_dict (
     id BIGSERIAL PRIMARY KEY,

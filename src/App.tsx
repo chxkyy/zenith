@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
-import UserTable from './components/UserTable';
 import RoleManagement from './pages/RoleManagement';
 import MenuManagement from './pages/MenuManagement';
-import OrgTable from './components/OrgTable';
+import OrgUserManagement from './components/OrgUserManagement';
 import Profile from './components/Profile';
 import NoticeTable from './components/NoticeTable';
 import PermissionTable from './components/PermissionTable';
@@ -28,12 +27,10 @@ export default function App() {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
-      case 'users':
-        return <UserTable />;
       case 'roles':
         return <RoleManagement />;
       case 'orgs':
-        return <OrgTable />;
+        return <OrgUserManagement />;
       case 'profile':
         return <Profile />;
       case 'notices':

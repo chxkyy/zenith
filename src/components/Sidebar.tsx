@@ -34,11 +34,9 @@ const menuGroups = [
   {
     title: '核心管理',
     items: [
-      { icon: Users, label: '用户管理', id: 'users' },
       { icon: ShieldCheck, label: '角色管理', id: 'roles' },
-      { icon: Key, label: '权限管理', id: 'permissions' },
       { icon: MenuIcon, label: '菜单管理', id: 'menus' },
-      { icon: Building2, label: '部门管理', id: 'orgs' },
+      { icon: Building2, label: '组织管理', id: 'orgs' },
     ]
   },
   {
