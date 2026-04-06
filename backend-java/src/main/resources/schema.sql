@@ -130,10 +130,226 @@ CREATE TABLE IF NOT EXISTS sys_dict (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 用户状态
 INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('user_status', '正常', '1', 1);
 INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('user_status', '禁用', '0', 2);
+
+-- 通知类型
 INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('notice_type', '通知', '1', 1);
 INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('notice_type', '公告', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('notice_type', '警告', '3', 3);
+
+-- 性别
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('gender', '男', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('gender', '女', '0', 2);
+
+-- 部门类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('dept_type', '集团', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('dept_type', '部门', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('dept_type', '小组', '3', 3);
+
+-- 角色类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('role_type', '管理员', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('role_type', '运营编辑', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('role_type', '普通用户', '3', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('role_type', '访客', '4', 4);
+
+-- 菜单类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('menu_type', '目录', 'DIR', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('menu_type', '菜单', 'MENU', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('menu_type', '按钮', 'BUTTON', 3);
+
+-- 操作类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('oper_type', '新增', 'ADD', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('oper_type', '修改', 'UPDATE', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('oper_type', '删除', 'DELETE', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('oper_type', '查询', 'SELECT', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('oper_type', '登录', 'LOGIN', 5);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('oper_type', '退出', 'LOGOUT', 6);
+
+-- 操作结果
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('oper_result', '成功', 'SUCCESS', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('oper_result', '失败', 'FAILED', 2);
+
+-- 日志级别
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('log_level', 'DEBUG', 'DEBUG', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('log_level', 'INFO', 'INFO', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('log_level', 'WARN', 'WARN', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('log_level', 'ERROR', 'ERROR', 4);
+
+-- 缓存类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('cache_type', '本地缓存', 'LOCAL', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('cache_type', 'Redis', 'REDIS', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('cache_type', 'Memcached', 'MEMCACHED', 3);
+
+-- 文件类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('file_type', '图片', 'IMAGE', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('file_type', '文档', 'DOCUMENT', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('file_type', '视频', 'VIDEO', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('file_type', '音频', 'AUDIO', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('file_type', '其他', 'OTHER', 5);
+
+-- 图片类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('image_type', 'JPG', 'jpg', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('image_type', 'PNG', 'png', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('image_type', 'GIF', 'gif', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('image_type', 'WebP', 'webp', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('image_type', 'SVG', 'svg', 5);
+
+-- 文档类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('document_type', 'Word', 'doc', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('document_type', 'Excel', 'xls', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('document_type', 'PDF', 'pdf', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('document_type', 'PPT', 'ppt', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('document_type', 'TXT', 'txt', 5);
+
+-- 国家/地区
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('country', '中国', 'CN', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('country', '美国', 'US', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('country', '日本', 'JP', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('country', '德国', 'DE', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('country', '英国', 'GB', 5);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('country', '法国', 'FR', 6);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('country', '加拿大', 'CA', 7);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('country', '澳大利亚', 'AU', 8);
+
+-- 省份
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '北京', '110000', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '上海', '310000', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '广东', '440000', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '浙江', '330000', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '江苏', '320000', 5);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '山东', '370000', 6);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '河南', '410000', 7);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '湖北', '420000', 8);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '四川', '510000', 9);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('province', '河北', '130000', 10);
+
+-- 城市
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '北京市', '110100', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '上海市', '310100', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '广州市', '440100', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '深圳市', '440300', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '杭州市', '330100', 5);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '南京市', '320100', 6);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '济南市', '370100', 7);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '郑州市', '410100', 8);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '武汉市', '420100', 9);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('city', '成都市', '510100', 10);
+
+-- 学历
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('education', '小学', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('education', '初中', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('education', '高中', '3', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('education', '大专', '4', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('education', '本科', '5', 5);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('education', '硕士', '6', 6);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('education', '博士', '7', 7);
+
+-- 婚姻状况
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('marital_status', '未婚', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('marital_status', '已婚', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('marital_status', '离异', '3', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('marital_status', '丧偶', '4', 4);
+
+-- 工作状态
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('work_status', '在职', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('work_status', '离职', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('work_status', '休假', '3', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('work_status', '退休', '4', 4);
+
+-- 员工类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('employee_type', '正式员工', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('employee_type', '试用期', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('employee_type', '临时工', '3', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('employee_type', '实习生', '4', 4);
+
+-- 合同类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('contract_type', '固定期限', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('contract_type', '无固定期限', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('contract_type', '临时合同', '3', 3);
+
+-- 薪酬类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('salary_type', '月薪', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('salary_type', '日薪', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('salary_type', '时薪', '3', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('salary_type', '计件', '4', 4);
+
+-- 货币类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('currency', '人民币', 'CNY', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('currency', '美元', 'USD', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('currency', '欧元', 'EUR', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('currency', '英镑', 'GBP', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('currency', '日元', 'JPY', 5);
+
+-- 语言
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('language', '中文', 'zh', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('language', '英文', 'en', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('language', '日语', 'ja', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('language', '德语', 'de', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('language', '法语', 'fr', 5);
+
+-- 操作系统
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('os', 'Windows', 'windows', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('os', 'macOS', 'macos', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('os', 'Linux', 'linux', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('os', 'iOS', 'ios', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('os', 'Android', 'android', 5);
+
+-- 浏览器
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('browser', 'Chrome', 'chrome', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('browser', 'Firefox', 'firefox', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('browser', 'Safari', 'safari', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('browser', 'Edge', 'edge', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('browser', 'IE', 'ie', 5);
+
+-- 设备类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('device_type', 'PC', 'pc', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('device_type', '手机', 'mobile', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('device_type', '平板', 'tablet', 3);
+
+-- 网络类型
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('network_type', '有线', 'wired', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('network_type', 'WiFi', 'wifi', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('network_type', '4G', '4g', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('network_type', '5G', '5g', 4);
+
+-- 天气状况
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('weather', '晴', 'sunny', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('weather', '多云', 'cloudy', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('weather', '阴', 'overcast', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('weather', '雨', 'rainy', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('weather', '雪', 'snowy', 5);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('weather', '雾', 'foggy', 6);
+
+-- 季节
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('season', '春季', 'spring', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('season', '夏季', 'summer', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('season', '秋季', 'autumn', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('season', '冬季', 'winter', 4);
+
+-- 月份
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '1月', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '2月', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '3月', '3', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '4月', '4', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '5月', '5', 5);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '6月', '6', 6);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '7月', '7', 7);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '8月', '8', 8);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '9月', '9', 9);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '10月', '10', 10);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '11月', '11', 11);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('month', '12月', '12', 12);
+
+-- 星期
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('week', '周一', '1', 1);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('week', '周二', '2', 2);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('week', '周三', '3', 3);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('week', '周四', '4', 4);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('week', '周五', '5', 5);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('week', '周六', '6', 6);
+INSERT INTO sys_dict (type, label, dict_value, sort) VALUES ('week', '周日', '7', 7);
 
 CREATE TABLE IF NOT EXISTS sys_oper_log (
     id BIGSERIAL PRIMARY KEY,
