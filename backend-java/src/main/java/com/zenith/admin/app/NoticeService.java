@@ -1,14 +1,17 @@
 package com.zenith.admin.app;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.zenith.admin.domain.model.NoticeEntity;
+import com.alibaba.cola.dto.PageResponse;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.dto.NoticeDTO;
+import com.zenith.admin.dto.NoticePageQuery;
 import com.zenith.admin.infrastructure.convertor.NoticeConvertor;
 import com.zenith.admin.infrastructure.dataobject.NoticeDO;
 import com.zenith.admin.infrastructure.mapper.NoticeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,25 +25,52 @@ public class NoticeService {
 
     public MultiResponse<NoticeDTO> listAll() {
         List<NoticeDO> noticeDOS = noticeMapper.selectList(null);
-        List<NoticeEntity> entities = noticeConvertor.toEntityList(noticeDOS);
-        List<NoticeDTO> dtos = noticeConvertor.toDTOList(entities);
-        return MultiResponse.of(dtos);
+        List<NoticeDTO> noticeDTOS = noticeConvertor.toDTOList(noticeDOS);
+        return MultiResponse.of(noticeDTOS);
+    }
+
+    public PageResponse<NoticeDTO> page(NoticePageQuery query) {
+        // 使用 PageHelper 实现分页
+        com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
+        LambdaQueryWrapper<NoticeDO> queryWrapper = new LambdaQueryWrapper<>();
+        
+        if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
+            queryWrapper.like(NoticeDO::getTitle, query.getKeyword());
+        }
+        
+        if (query.getType() != null && !query.getType().isEmpty()) {
+            queryWrapper.eq(NoticeDO::getType, query.getType());
+        }
+        
+        if (query.getStatus() != null && !query.getStatus().isEmpty()) {
+            queryWrapper.eq(NoticeDO::getStatus, query.getStatus());
+        }
+        
+        // 按创建时间倒序排序
+        queryWrapper.orderByDesc(NoticeDO::getCreatedAt);
+        
+        List<NoticeDO> noticeDOS = noticeMapper.selectList(queryWrapper);
+        com.github.pagehelper.PageInfo<NoticeDO> pageInfo = new com.github.pagehelper.PageInfo<>(noticeDOS);
+        List<NoticeDTO> noticeDTOS = noticeConvertor.toDTOList(pageInfo.getList());
+        
+        return PageResponse.of(noticeDTOS, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
     }
 
     public void save(NoticeDTO noticeDTO) {
-        NoticeEntity entity = noticeConvertor.toEntity(noticeDTO);
-        NoticeDO noticeDO = noticeConvertor.toDataObject(entity);
+        NoticeDO noticeDO = noticeConvertor.toDataObject(noticeDTO);
+        
         if (noticeDO.getId() == null) {
+            // 新增
+            noticeDO.setReadCount(0);
+            noticeDO.setIsPinned(false);
+            noticeDO.setCreatedAt(LocalDateTime.now());
+            noticeDO.setUpdatedAt(LocalDateTime.now());
             noticeMapper.insert(noticeDO);
         } else {
+            // 更新
+            noticeDO.setUpdatedAt(LocalDateTime.now());
             noticeMapper.updateById(noticeDO);
         }
-    }
-
-    public void update(NoticeDTO noticeDTO) {
-        NoticeEntity entity = noticeConvertor.toEntity(noticeDTO);
-        NoticeDO noticeDO = noticeConvertor.toDataObject(entity);
-        noticeMapper.updateById(noticeDO);
     }
 
     public void delete(Long id) {
@@ -49,7 +79,15 @@ public class NoticeService {
 
     public NoticeDTO getById(Long id) {
         NoticeDO noticeDO = noticeMapper.selectById(id);
-        NoticeEntity entity = noticeConvertor.toEntity(noticeDO);
-        return noticeConvertor.toDTO(entity);
+        return noticeConvertor.toDTO(noticeDO);
+    }
+
+    public void updateStatus(Long id, String status) {
+        NoticeDO noticeDO = noticeMapper.selectById(id);
+        if (noticeDO != null) {
+            noticeDO.setStatus(status);
+            noticeDO.setUpdatedAt(LocalDateTime.now());
+            noticeMapper.updateById(noticeDO);
+        }
     }
 }

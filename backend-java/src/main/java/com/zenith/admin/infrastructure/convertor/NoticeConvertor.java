@@ -1,6 +1,5 @@
 package com.zenith.admin.infrastructure.convertor;
 
-import com.zenith.admin.domain.model.NoticeEntity;
 import com.zenith.admin.dto.NoticeDTO;
 import com.zenith.admin.infrastructure.dataobject.NoticeDO;
 import org.mapstruct.Mapper;
@@ -12,15 +11,11 @@ import java.util.List;
 public interface NoticeConvertor {
     NoticeConvertor INSTANCE = Mappers.getMapper(NoticeConvertor.class);
 
-    NoticeEntity toEntity(NoticeDO noticeDO);
+    NoticeDO toDataObject(NoticeDTO noticeDTO);
 
-    NoticeEntity toEntity(NoticeDTO noticeDTO);
+    NoticeDTO toDTO(NoticeDO noticeDO);
 
-    NoticeDO toDataObject(NoticeEntity noticeEntity);
+    List<NoticeDTO> toDTOList(List<NoticeDO> noticeDOList);
 
-    NoticeDTO toDTO(NoticeEntity noticeEntity);
-
-    List<NoticeEntity> toEntityList(List<NoticeDO> noticeDOList);
-
-    List<NoticeDTO> toDTOList(List<NoticeEntity> noticeEntityList);
+    List<NoticeDO> toDataObjectList(List<NoticeDTO> noticeDTOList);
 }

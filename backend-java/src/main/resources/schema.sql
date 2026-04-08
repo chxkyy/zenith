@@ -59,13 +59,18 @@ CREATE TABLE IF NOT EXISTS sys_notice (
     title VARCHAR(200) NOT NULL,
     type VARCHAR(50) NOT NULL,
     author VARCHAR(50) NOT NULL,
+    content TEXT,
     status VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    remark VARCHAR(255),
+    is_pinned BOOLEAN DEFAULT false,
+    read_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-INSERT INTO sys_notice (title, type, author, status) VALUES ('关于2024年春节放假安排的通知', '公告', '行政部', '已发布');
-INSERT INTO sys_notice (title, type, author, status) VALUES ('系统升级维护公告', '通知', '技术部', '已发布');
-INSERT INTO sys_notice (title, type, author, status) VALUES ('新员工入职培训指南', '通知', '人力资源部', '草稿');
+INSERT INTO sys_notice (title, type, author, content, status, remark) VALUES ('关于2024年春节放假安排的通知', 'system', '行政部', '根据国家法定节假日安排，2024年春节放假时间为2月10日至2月17日，共8天。请各部门做好工作安排。', '已发布', '春节放假通知');
+INSERT INTO sys_notice (title, type, author, content, status, remark) VALUES ('系统升级维护公告', 'system', '技术部', '为了提供更好的服务，系统将于2024年1月20日凌晨2:00-4:00进行升级维护，期间系统将暂时无法访问。', '已发布', '系统维护通知');
+INSERT INTO sys_notice (title, type, author, content, status, remark) VALUES ('新员工入职培训指南', 'business', '人力资源部', '新员工入职培训包括公司文化、规章制度、业务流程等内容，请按时参加。', '草稿', '入职培训指南');
 
 CREATE TABLE IF NOT EXISTS sys_menu (
     id BIGSERIAL PRIMARY KEY,
