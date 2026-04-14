@@ -107,6 +107,9 @@ public class NotificationService {
 
 ## REST Controller Pattern
 
+**【强制】仅使用 GET 和 POST 方法，禁止使用 PUT、PATCH、DELETE**
+**【强制】必须返回 COLA Response 类（Response/SingleResponse/MultiResponse/PageResponse）**
+
 ```java
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -116,19 +119,32 @@ public class OrderController {
     private final OrderService orderService;
     private final OrderMapper orderMapper;
 
-    @PostMapping
-    public ResponseEntity<OrderResponse> create(@Valid @RequestBody OrderRequest request) {
-        log.info("Creating order: {}", request);
-        Order order = orderService.create(request);
-        return ResponseEntity.ok(orderMapper.toResponse(order));
+    @GetMapping
+    public MultiResponse<OrderDTO> list() {
+        return MultiResponse.of(orderService.list());
+    }
+
+    @PostMapping("/page")
+    public PageResponse<OrderDTO> findPage(@RequestBody @Valid OrderPageQry qry) {
+        return PageResponseUtils.of(orderService.findPage(qry));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponse> findById(@PathVariable Long id) {
-        return orderService.findById(id)
-            .map(orderMapper::toResponse)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+    public SingleResponse<OrderDTO> findById(@PathVariable Long id) {
+        return SingleResponse.of(orderService.findById(id));
+    }
+
+    @PostMapping
+    public SingleResponse<OrderDTO> create(@Valid @RequestBody CreateOrderCmd cmd) {
+        log.info("Creating order: {}", cmd);
+        return SingleResponse.of(orderService.create(cmd));
+    }
+
+    @PostMapping("/{id}")
+    public SingleResponse<OrderDTO> update(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateOrderCmd cmd) {
+        return SingleResponse.of(orderService.update(id, cmd));
     }
 }
 ```

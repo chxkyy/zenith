@@ -273,7 +273,15 @@ public PageResponse<SysUserDTO> search(@RequestBody @Validated SysUserQry qry) {
 public PageInfo<SysUserDTO> search(SysUserQry qry) {
     PageInfo<SysUserDO> pageInfo = PageHelper.startPage(qry.getPageIndex(), qry.getPageSize())
             .doSelectPageInfo(() -> sysUserMapper.selectByCondition(qry));
-    return SysUserConverter.INSTANCE.toDTOPage(pageInfo);
+
+    // DO → DTO 转换
+    PageInfo<SysUserDTO> result = new PageInfo<>();
+    result.setTotal(pageInfo.getTotal());
+    result.setPageNum(pageInfo.getPageNum());
+    result.setPageSize(pageInfo.getPageSize());
+    result.setPages(pageInfo.getPages());
+    result.setList(sysUserConverter.toDTOList(pageInfo.getList()));
+    return result;
 }
 ```
 

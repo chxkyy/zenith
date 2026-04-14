@@ -2,6 +2,9 @@
 
 > **Knowledge Base:** Read `knowledge/spring-boot/basics.md` for complete documentation.
 
+> **【强制】仅使用 GET 和 POST 方法，禁止使用 PUT、PATCH、DELETE**
+> **【强制】必须返回 COLA Response 类（Response/SingleResponse/MultiResponse/PageResponse）**
+
 ## REST Controller
 
 ```java
@@ -14,44 +17,36 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<Page<UserResponse>> findAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return ResponseEntity.ok(userService.findAll(pageable));
+    public MultiResponse<UserDTO> list() {
+        return MultiResponse.of(userService.list());
+    }
+
+    @PostMapping("/page")
+    public PageResponse<UserDTO> findPage(@RequestBody @Valid UserPageQry qry) {
+        return PageResponseUtils.of(userService.findPage(qry));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.findById(id));
+    public SingleResponse<UserDTO> findById(@PathVariable Long id) {
+        return SingleResponse.of(userService.findById(id));
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<UserResponse> create(
-            @Valid @RequestBody CreateUserRequest request) {
-        UserResponse user = userService.create(request);
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(user.getId())
-                .toUri();
-        return ResponseEntity.created(location).body(user);
+    public SingleResponse<UserDTO> create(@Valid @RequestBody CreateUserCmd cmd) {
+        return SingleResponse.of(userService.create(cmd));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> update(
+    @PostMapping("/{id}")
+    public SingleResponse<UserDTO> update(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateUserRequest request) {
-        return ResponseEntity.ok(userService.update(id, request));
+            @Valid @RequestBody UpdateUserCmd cmd) {
+        return SingleResponse.of(userService.update(id, cmd));
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PostMapping("/{id}/delete")
+    public Response delete(@PathVariable Long id) {
         userService.delete(id);
-        return ResponseEntity.noContent().build();
+        return Response.buildSuccess();
     }
 }
 ```
@@ -59,61 +54,53 @@ public class UserController {
 ## Request Mapping
 
 ```java
-// HTTP Methods
+// HTTP Methods - 【强制】仅使用 GET 和 POST
 @GetMapping
 @PostMapping
-@PutMapping
-@PatchMapping
-@DeleteMapping
 
 // Path Variables
 @GetMapping("/{id}")
-public User findById(@PathVariable Long id) {}
-
-@GetMapping("/{userId}/posts/{postId}")
-public Post findPost(@PathVariable Long userId, @PathVariable Long postId) {}
+public SingleResponse<UserDTO> findById(@PathVariable Long id) {}
 
 // Query Parameters
 @GetMapping
-public List<User> search(
-    @RequestParam String name,
-    @RequestParam(required = false) String email,
+public MultiResponse<UserDTO> search(
+    @RequestParam(required = false) String keyword,
     @RequestParam(defaultValue = "10") int limit) {}
 
 // Request Body
 @PostMapping
-public User create(@RequestBody @Valid CreateUserRequest request) {}
-
-// Request Headers
-@GetMapping
-public User getUser(@RequestHeader("Authorization") String token) {}
+public SingleResponse<UserDTO> create(@RequestBody @Valid CreateUserCmd cmd) {}
 ```
 
 ## Response Handling
 
+**【强制】返回 COLA Response**
+
 ```java
-// Return entity directly (200 OK)
+// SingleResponse - 单个对象
 @GetMapping("/{id}")
-public User findById(@PathVariable Long id) {
-    return userService.findById(id);
+public SingleResponse<UserDTO> findById(@PathVariable Long id) {
+    return SingleResponse.of(userService.findById(id));
 }
 
-// With ResponseEntity
-@GetMapping("/{id}")
-public ResponseEntity<User> findById(@PathVariable Long id) {
-    return userService.findById(id)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+// MultiResponse - 列表
+@GetMapping
+public MultiResponse<UserDTO> list() {
+    return MultiResponse.of(userService.list());
 }
 
-// Custom status
-@PostMapping
-public ResponseEntity<User> create(@RequestBody User user) {
-    User created = userService.create(user);
-    return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .header("X-Custom-Header", "value")
-        .body(created);
+// PageResponse - 分页
+@PostMapping("/page")
+public PageResponse<UserDTO> findPage(@RequestBody @Valid UserPageQry qry) {
+    return PageResponseUtils.of(userService.findPage(qry));
+}
+
+// Response - 无数据返回
+@PostMapping("/{id}/delete")
+public Response delete(@PathVariable Long id) {
+    userService.delete(id);
+    return Response.buildSuccess();
 }
 ```
 
@@ -121,23 +108,20 @@ public ResponseEntity<User> create(@RequestBody User user) {
 
 ```java
 @PostMapping
-public ResponseEntity<User> create(@Valid @RequestBody CreateUserRequest request) {
-    // Validation errors handled by @ControllerAdvice
+public SingleResponse<UserDTO> create(@Valid @RequestBody CreateUserCmd cmd) {
+    // Validation errors handled by GlobalExceptionHandler
 }
 
 // DTO
-public class CreateUserRequest {
-    @NotBlank(message = "Name is required")
+@Data
+public class CreateUserCmd {
+    @NotBlank(message = "用户名不能为空")
     @Size(min = 2, max = 100)
     private String name;
 
     @NotBlank
-    @Email(message = "Invalid email")
+    @Email(message = "邮箱格式不正确")
     private String email;
-
-    @NotBlank
-    @Size(min = 8, message = "Password must be at least 8 characters")
-    private String password;
 }
 ```
 
@@ -147,12 +131,12 @@ public class CreateUserRequest {
 @Operation(summary = "Get user by ID")
 @ApiResponses({
     @ApiResponse(responseCode = "200", description = "User found"),
-    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "400", description = "User not found")
 })
 @GetMapping("/{id}")
-public ResponseEntity<UserResponse> findById(
+public SingleResponse<UserDTO> findById(
         @Parameter(description = "User ID") @PathVariable Long id) {
-    return ResponseEntity.ok(userService.findById(id));
+    return SingleResponse.of(userService.findById(id));
 }
 ```
 
@@ -160,10 +144,29 @@ public ResponseEntity<UserResponse> findById(
 
 ```java
 @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-public ResponseEntity<String> uploadFile(
+public SingleResponse<String> uploadFile(
         @RequestParam("file") MultipartFile file) {
     String filename = storageService.store(file);
-    return ResponseEntity.ok(filename);
+    return SingleResponse.of(filename);
+}
+```
+
+## PageResponseUtils
+
+**位置**：`com.zenith.admin.common.utils.PageResponseUtils`
+
+```java
+public final class PageResponseUtils {
+    private PageResponseUtils() {}
+
+    public static <T> PageResponse<T> of(PageInfo<?> pageInfo) {
+        return PageResponse.of(
+            (List<T>) pageInfo.getList(),
+            (int) pageInfo.getTotal(),
+            pageInfo.getPageSize(),
+            pageInfo.getPageNum()
+        );
+    }
 }
 ```
 

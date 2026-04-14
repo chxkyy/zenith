@@ -335,7 +335,15 @@ public class UserSearchQryExe {
         PageHelper.startPage(qry.getPageIndex(), qry.getPageSize());
         List<UserDO> list = userMapper.selectByCondition(qry);
         PageInfo<UserDO> pageInfo = new PageInfo<>(list);
-        return userConverter.toDTOPage(pageInfo);
+
+        // DO → DTO 转换
+        PageInfo<UserDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(userConverter.toDTOList(pageInfo.getList()));
+        return result;
     }
 }
 ```

@@ -141,6 +141,9 @@ public class ReportService {
 
 ## Spring Boot Integration
 
+**【强制】仅使用 GET 和 POST 方法，禁止使用 PUT、PATCH、DELETE**
+**【强制】必须返回 COLA Response 类（Response/SingleResponse/MultiResponse/PageResponse）**
+
 ```java
 @RestController
 @RequestMapping("/api/orders")
@@ -149,12 +152,15 @@ public class ReportService {
 public class OrderController {
     private final OrderService orderService;
 
+    @GetMapping
+    public MultiResponse<OrderDTO> list() {
+        return MultiResponse.of(orderService.list());
+    }
+
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest request) {
-        log.info("Received order request: {}", request);
-        Order order = orderService.create(request);
-        log.info("Order created: {}", order.getId());
-        return ResponseEntity.ok(order);
+    public SingleResponse<OrderDTO> createOrder(@RequestBody @Valid CreateOrderCmd cmd) {
+        log.info("Received order request: {}", cmd);
+        return SingleResponse.of(orderService.create(cmd));
     }
 }
 ```
