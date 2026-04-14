@@ -19,6 +19,17 @@ public class MenuController {
 
     private final MenuService menuService;
 
+    @PostMapping("/delete")
+    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+        menuService.delete(query.getId());
+        return com.alibaba.cola.dto.Response.buildSuccess();
+    }
+
+    @GetMapping("/get")
+    public SingleResponse<MenuDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(menuService.getById(id));
+    }
+
     @GetMapping
     public MultiResponse<MenuDTO> list() {
         return menuService.listAll();
@@ -40,16 +51,5 @@ public class MenuController {
     public com.alibaba.cola.dto.Response update(@RequestBody MenuDTO menuDTO) {
         menuService.update(menuDTO);
         return com.alibaba.cola.dto.Response.buildSuccess();
-    }
-
-    @PostMapping("/delete")
-    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
-        menuService.delete(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
-    }
-
-    @GetMapping
-    public SingleResponse<MenuDTO> get(@RequestParam Long id) {
-        return SingleResponse.of(menuService.getById(id));
     }
 }

@@ -42,7 +42,7 @@ public class OrgController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping
+    @GetMapping("/get")
     public SingleResponse<OrgDTO> get(@RequestParam Long id) {
         return SingleResponse.of(orgService.getById(id));
     }

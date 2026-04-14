@@ -19,7 +19,7 @@ public class RoleController {
 
     private final RoleService roleService;
 
-    @GetMapping
+    @GetMapping("/list")
     public MultiResponse<RoleDTO> list() {
         return roleService.listAll();
     }
@@ -48,7 +48,7 @@ public class RoleController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping
+    @GetMapping("/get")
     public SingleResponse<RoleDTO> get(@RequestParam Long id) {
         return SingleResponse.of(roleService.getById(id));
     }

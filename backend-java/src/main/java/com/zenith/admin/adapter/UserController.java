@@ -42,7 +42,7 @@ public class UserController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping
+    @GetMapping("/get")
     public SingleResponse<UserDTO> get(@RequestParam Long id) {
         return SingleResponse.of(userService.getById(id));
     }
