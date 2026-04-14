@@ -97,7 +97,16 @@ export default function OrgUserManagement() {
     const fetchOrgs = async () => {
       setOrgLoading(true);
       try {
-        const response = await fetch('/api/orgs');
+        const response = await fetch('/api/orgs/page', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pageIndex: 1,
+            pageSize: 1000
+          })
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch orgs');
         }

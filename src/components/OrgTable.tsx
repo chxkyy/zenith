@@ -28,7 +28,7 @@ function OrgRow({ org, level }: OrgItemProps) {
       <tr className="hover:bg-slate-50 transition-colors group">
         <td className="px-6 py-4">
           <div className="flex items-center gap-2" style={{ paddingLeft: `${level * 24}px` }}>
-            <button 
+            <button
               onClick={() => setIsExpanded(!isExpanded)}
               className={cn(
                 "p-1 hover:bg-slate-200 rounded transition-colors",
@@ -87,7 +87,16 @@ export default function OrgTable() {
     const fetchOrgs = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/api/orgs');
+        const response = await fetch('/api/orgs/page', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pageIndex: 1,
+            pageSize: 1000
+          })
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch orgs');
         }
@@ -96,7 +105,7 @@ export default function OrgTable() {
           // 将扁平的组织列表转换为树形结构
           const buildOrgTree = (orgList: any[]): Org[] => {
             const orgMap = new Map<number, Org>();
-            
+
             // 首先创建所有组织的映射
             orgList.forEach(org => {
               orgMap.set(org.id, {
@@ -110,7 +119,7 @@ export default function OrgTable() {
                 children: []
               });
             });
-            
+
             // 构建树形结构
             const rootOrgs: Org[] = [];
             orgMap.forEach(org => {
@@ -123,10 +132,10 @@ export default function OrgTable() {
                 }
               }
             });
-            
+
             return rootOrgs;
           };
-          
+
           setOrgs(buildOrgTree(data.data));
         }
       } catch (error) {
@@ -135,7 +144,7 @@ export default function OrgTable() {
         setLoading(false);
       }
     };
-    
+
     fetchOrgs();
   }, []);
 

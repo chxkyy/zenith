@@ -1,36 +1,37 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.PageResponse;
-import com.alibaba.cola.dto.Response;
 import com.zenith.admin.app.ErrorLogService;
+import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.ErrorLogDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/logs/error")
+@RequestMapping("/api/error-logs")
+@RequiredArgsConstructor
 public class ErrorLogController {
 
-    @Autowired
-    private ErrorLogService errorLogService;
+    private final ErrorLogService errorLogService;
 
     @GetMapping
-    public PageResponse<ErrorLogDTO> list(@RequestParam(defaultValue = "1") int pageIndex,
-                                          @RequestParam(defaultValue = "10") int pageSize,
-                                          @RequestParam(required = false) String module,
-                                          @RequestParam(required = false) String ip) {
+    public PageResponse<ErrorLogDTO> list(
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String module,
+            @RequestParam(required = false) String ip) {
         return errorLogService.listByPage(pageIndex, pageSize, module, ip);
     }
 
-    @DeleteMapping("/{id}")
-    public Response delete(@PathVariable Long id) {
-        errorLogService.delete(id);
-        return Response.buildSuccess();
+    @PostMapping("/delete")
+    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+        errorLogService.delete(query.getId());
+        return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
     @PostMapping("/clear")
-    public Response clear(@RequestParam(defaultValue = "3") int months) {
+    public com.alibaba.cola.dto.Response clear(@RequestParam(defaultValue = "3") int months) {
         errorLogService.clear(months);
-        return Response.buildSuccess();
+        return com.alibaba.cola.dto.Response.buildSuccess();
     }
 }

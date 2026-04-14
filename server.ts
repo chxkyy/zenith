@@ -39,12 +39,14 @@ async function startServer() {
 
         console.log(`[Proxy] Final URL: http://127.0.0.1:8080${proxyReq.path}`);
 
-        // 重新写入 Body
         if (req.body && (req.method === 'POST' || req.method === 'PUT')) {
-          const bodyData = JSON.stringify(req.body);
-          proxyReq.setHeader('Content-Type', 'application/json');
-          proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-          proxyReq.write(bodyData);
+          const contentType = req.headers['content-type'] || '';
+          if (contentType.includes('application/json')) {
+            const bodyData = JSON.stringify(req.body);
+            proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+            proxyReq.write(bodyData);
+          }
         }
       },
       proxyRes: (proxyRes: any) => {

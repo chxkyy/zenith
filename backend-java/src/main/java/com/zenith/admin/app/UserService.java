@@ -12,68 +12,57 @@ import com.zenith.admin.infrastructure.dataobject.OrgDO;
 import com.zenith.admin.infrastructure.dataobject.UserDO;
 import com.zenith.admin.infrastructure.mapper.OrgMapper;
 import com.zenith.admin.infrastructure.mapper.UserMapper;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
-    private OrgMapper orgMapper;
-
-    @Autowired
-    private UserConvertor userConvertor;
+    private final UserMapper userMapper;
+    private final OrgMapper orgMapper;
+    private final UserConvertor userConvertor;
 
     public PageResponse<UserDTO> listByPage(UserPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
-        
+
         QueryWrapper<UserDO> wrapper = new QueryWrapper<>();
-        
-        // 关键词搜索
+
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
             wrapper.like("username", query.getKeyword())
                    .or().like("nickname", query.getKeyword())
                    .or().like("email", query.getKeyword());
         }
-        
-        // 部门筛选（通过名称）
+
         if (query.getOrgName() != null && !query.getOrgName().isEmpty()) {
             wrapper.eq("org_name", query.getOrgName());
         }
-        
-        // 部门筛选（通过ID）
+
         if (query.getOrgId() != null) {
             OrgDO orgDO = orgMapper.selectById(query.getOrgId());
             if (orgDO != null) {
                 wrapper.eq("org_name", orgDO.getName());
             }
         }
-        
-        // 角色筛选
+
         if (query.getRole() != null && !query.getRole().isEmpty()) {
             wrapper.eq("role", query.getRole());
         }
-        
-        // 状态筛选
+
         if (query.getStatus() != null) {
             wrapper.eq("status", query.getStatus());
         }
-        
-        // 排序
+
         if (query.getSortField() != null && !query.getSortField().isEmpty()) {
             String order = query.getSortOrder() != null && "desc".equals(query.getSortOrder()) ? "desc" : "asc";
             wrapper.orderBy(true, "asc".equals(order), query.getSortField());
         }
-        
+
         List<UserDO> userDOS = userMapper.selectList(wrapper);
         PageInfo<UserDO> pageInfo = new PageInfo<>(userDOS);
-        
+
         List<UserEntity> entities = userConvertor.toEntityList(userDOS);
 
         List<UserDTO> dtos = userConvertor.toDTOList(entities);
@@ -100,7 +89,6 @@ public class UserService {
     public void delete(Long id) {
         UserEntity user = getByIdEntity(id);
         if (user != null) {
-            // 超级管理员保护：admin 用户不可删除
             if ("admin".equals(user.getUsername()) || "ADMIN".equals(user.getRole())) {
                 throw new RuntimeException("超级管理员账号不可删除");
             }
@@ -119,20 +107,16 @@ public class UserService {
     }
 
     public void resetPassword(Long id) {
-        // 实现密码重置逻辑
         UserEntity user = getByIdEntity(id);
         if (user != null) {
-            // 这里可以添加密码重置逻辑，例如设置默认密码
             UserDO userDO = userConvertor.toDataObject(user);
             userMapper.updateById(userDO);
         }
     }
 
     public void changeStatus(Long id, Integer status) {
-        // 实现状态切换逻辑
         UserEntity user = getByIdEntity(id);
         if (user != null) {
-            // 超级管理员保护：admin 用户不可禁用
             if (0 == status && ("admin".equals(user.getUsername()) || "ADMIN".equals(user.getRole()))) {
                 throw new RuntimeException("超级管理员账号不可禁用");
             }

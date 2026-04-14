@@ -210,7 +210,8 @@ com.zenith.admin
 
 ### 9.3 API 优化
 - 减少 API 调用次数，合并相关操作
-- 使用适当的 HTTP 方法，如 GET、POST、PUT、DELETE
+- **【强制】仅使用 GET 和 POST 方法，禁止使用 PUT、PATCH、DELETE 等其他HTTP方法**
+- 所有操作均通过 POST 请求体传递参数（即使删除操作也使用 POST）
 - 使用缓存，减少重复计算
 - 合理设置 HTTP 缓存头，减少重复请求
 

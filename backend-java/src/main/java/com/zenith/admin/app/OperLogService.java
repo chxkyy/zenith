@@ -9,20 +9,18 @@ import com.zenith.admin.dto.OperLogDTO;
 import com.zenith.admin.infrastructure.convertor.OperLogConvertor;
 import com.zenith.admin.infrastructure.dataobject.OperLogDO;
 import com.zenith.admin.infrastructure.mapper.OperLogMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class OperLogService {
 
-    @Autowired
-    private OperLogMapper operLogMapper;
-
-    @Autowired
-    private OperLogConvertor operLogConvertor;
+    private final OperLogMapper operLogMapper;
+    private final OperLogConvertor operLogConvertor;
 
     public PageResponse<OperLogDTO> listByPage(int pageIndex, int pageSize, String operator, String module, String result) {
         PageHelper.startPage(pageIndex, pageSize);
@@ -39,7 +37,7 @@ public class OperLogService {
         queryWrapper.orderByDesc(OperLogDO::getCreatedAt);
         List<OperLogDO> operLogDOS = operLogMapper.selectList(queryWrapper);
         PageInfo<OperLogDO> pageInfo = new PageInfo<>(operLogDOS);
-        
+
         List<OperLogEntity> entities = operLogConvertor.toEntityList(pageInfo.getList());
         List<OperLogDTO> dtos = operLogConvertor.toDTOList(entities);
         return PageResponse.of(dtos, (int) pageInfo.getTotal(), pageSize, pageIndex);

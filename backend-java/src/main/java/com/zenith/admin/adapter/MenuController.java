@@ -1,21 +1,30 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.MultiResponse;
+import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.MenuService;
+import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.MenuDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.zenith.admin.dto.MenuPageQuery;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/menus")
+@RequiredArgsConstructor
 public class MenuController {
 
-    @Autowired
-    private MenuService menuService;
+    private final MenuService menuService;
 
     @GetMapping
     public MultiResponse<MenuDTO> list() {
         return menuService.listAll();
+    }
+
+    @PostMapping("/page")
+    public PageResponse<MenuDTO> page(@RequestBody @Valid MenuPageQuery query) {
+        return menuService.page(query);
     }
 
     @PostMapping
@@ -24,15 +33,15 @@ public class MenuController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @PutMapping
+    @PostMapping("/update")
     public com.alibaba.cola.dto.Response update(@RequestBody MenuDTO menuDTO) {
         menuService.update(menuDTO);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @DeleteMapping("/{id}")
-    public com.alibaba.cola.dto.Response delete(@PathVariable Long id) {
-        menuService.delete(id);
+    @PostMapping("/delete")
+    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+        menuService.delete(query.getId());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 

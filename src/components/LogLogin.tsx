@@ -30,7 +30,7 @@ const LogLogin: React.FC = () => {
       if (searchParams.status) params.append('status', searchParams.status);
       if (searchParams.ip) params.append('ip', searchParams.ip);
       
-      const response = await fetch(`/api/logs/login?${params.toString()}`);
+      const response = await fetch(`/api/login-logs?${params.toString()}`);
       const text = await response.text();
       if (response.status === 503) {
         throw new Error('Java 后端正在启动，请稍候...');
@@ -73,7 +73,7 @@ const LogLogin: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!confirm('确定删除该日志吗？')) return;
     try {
-      const response = await fetch(`/api/logs/login/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/login-logs/${id}`, { method: 'DELETE' });
       const data = await response.json();
       if (data.success) {
         fetchLogs();

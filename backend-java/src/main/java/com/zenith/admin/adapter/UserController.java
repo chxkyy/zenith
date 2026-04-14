@@ -2,18 +2,19 @@ package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.UserService;
+import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.UserDTO;
 import com.zenith.admin.dto.UserPageQuery;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @PostMapping("/page")
     public PageResponse<UserDTO> page(@RequestBody @Valid UserPageQuery query) {
@@ -26,15 +27,15 @@ public class UserController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @PutMapping
+    @PostMapping("/update")
     public com.alibaba.cola.dto.Response update(@RequestBody UserDTO userDTO) {
         userService.update(userDTO);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @DeleteMapping("/{id}")
-    public com.alibaba.cola.dto.Response delete(@PathVariable Long id) {
-        userService.delete(id);
+    @PostMapping("/delete")
+    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+        userService.delete(query.getId());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
@@ -43,15 +44,15 @@ public class UserController {
         return com.alibaba.cola.dto.SingleResponse.of(userService.getById(id));
     }
 
-    @PostMapping("/reset-password/{id}")
-    public com.alibaba.cola.dto.Response resetPassword(@PathVariable Long id) {
-        userService.resetPassword(id);
+    @PostMapping("/password")
+    public com.alibaba.cola.dto.Response resetPassword(@RequestBody IdQuery query) {
+        userService.resetPassword(query.getId());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @PutMapping("/status/{id}")
-    public com.alibaba.cola.dto.Response changeStatus(@PathVariable Long id, @RequestParam Integer status) {
-        userService.changeStatus(id, status);
+    @PostMapping("/status")
+    public com.alibaba.cola.dto.Response changeStatus(@RequestBody IdQuery query, @RequestParam Integer status) {
+        userService.changeStatus(query.getId(), status);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 }

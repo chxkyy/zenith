@@ -433,6 +433,17 @@ CREATE TABLE IF NOT EXISTS sys_login_log (
 INSERT INTO sys_login_log (username, ip, status, msg) VALUES ('admin', '192.168.1.1', '成功', '登录成功');
 INSERT INTO sys_login_log (username, ip, status, msg) VALUES ('editor', '192.168.1.2', '失败', '密码错误');
 
+CREATE TABLE IF NOT EXISTS sys_file (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    path VARCHAR(500) NOT NULL,
+    type VARCHAR(50),
+    size BIGINT DEFAULT 0,
+    uploader VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS sys_error_log (
     id BIGSERIAL PRIMARY KEY,
     module VARCHAR(100),

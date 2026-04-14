@@ -9,7 +9,7 @@ import com.zenith.admin.dto.ErrorLogDTO;
 import com.zenith.admin.infrastructure.convertor.ErrorLogConvertor;
 import com.zenith.admin.infrastructure.dataobject.ErrorLogDO;
 import com.zenith.admin.infrastructure.mapper.ErrorLogMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -17,13 +17,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ErrorLogService {
 
-    @Autowired
-    private ErrorLogMapper errorLogMapper;
-
-    @Autowired
-    private ErrorLogConvertor errorLogConvertor;
+    private final ErrorLogMapper errorLogMapper;
+    private final ErrorLogConvertor errorLogConvertor;
 
     public PageResponse<ErrorLogDTO> listByPage(int pageIndex, int pageSize, String module, String ip) {
         PageHelper.startPage(pageIndex, pageSize);
@@ -37,7 +35,7 @@ public class ErrorLogService {
         queryWrapper.orderByDesc(ErrorLogDO::getCreatedAt);
         List<ErrorLogDO> errorLogDOS = errorLogMapper.selectList(queryWrapper);
         PageInfo<ErrorLogDO> pageInfo = new PageInfo<>(errorLogDOS);
-        
+
         List<ErrorLogEntity> entities = errorLogConvertor.toEntityList(pageInfo.getList());
         List<ErrorLogDTO> dtos = errorLogConvertor.toDTOList(entities);
         return PageResponse.of(dtos, (int) pageInfo.getTotal(), pageSize, pageIndex);

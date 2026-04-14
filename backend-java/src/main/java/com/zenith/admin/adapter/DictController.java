@@ -3,18 +3,19 @@ package com.zenith.admin.adapter;
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.DictService;
+import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.DictDTO;
 import com.zenith.admin.dto.DictPageQuery;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/dicts")
+@RequiredArgsConstructor
 public class DictController {
 
-    @Autowired
-    private DictService dictService;
+    private final DictService dictService;
 
     @GetMapping("/list")
     public MultiResponse<DictDTO> list() {
@@ -32,15 +33,15 @@ public class DictController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @PutMapping
+    @PostMapping("/update")
     public com.alibaba.cola.dto.Response update(@RequestBody DictDTO dictDTO) {
         dictService.update(dictDTO);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @DeleteMapping
-    public com.alibaba.cola.dto.Response delete(@RequestParam Long id) {
-        dictService.delete(id);
+    @PostMapping("/delete")
+    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+        dictService.delete(query.getId());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 

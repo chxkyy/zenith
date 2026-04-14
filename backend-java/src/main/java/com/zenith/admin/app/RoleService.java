@@ -11,20 +11,17 @@ import com.zenith.admin.dto.RolePageQuery;
 import com.zenith.admin.infrastructure.convertor.RoleConvertor;
 import com.zenith.admin.infrastructure.dataobject.RoleDO;
 import com.zenith.admin.infrastructure.mapper.RoleMapper;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class RoleService {
 
-    @Autowired
-    private RoleMapper roleMapper;
-
-    @Autowired
-    private RoleConvertor roleConvertor;
+    private final RoleMapper roleMapper;
+    private final RoleConvertor roleConvertor;
 
     public MultiResponse<RoleDTO> listAll() {
         List<RoleDO> roleDOS = roleMapper.selectList(null);
@@ -35,29 +32,26 @@ public class RoleService {
 
     public PageResponse<RoleDTO> listByPage(RolePageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
-        
+
         QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
-        
-        // 关键词搜索
+
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
             wrapper.like("name", query.getKeyword())
                    .or().like("code", query.getKeyword());
         }
-        
-        // 状态筛选
+
         if (query.getStatus() != null) {
             wrapper.eq("status", query.getStatus());
         }
-        
-        // 排序
+
         if (query.getSortField() != null && !query.getSortField().isEmpty()) {
             String order = query.getSortOrder() != null && "desc".equals(query.getSortOrder()) ? "desc" : "asc";
             wrapper.orderBy(true, "asc".equals(order), query.getSortField());
         }
-        
+
         List<RoleDO> roleDOS = roleMapper.selectList(wrapper);
         PageInfo<RoleDO> pageInfo = new PageInfo<>(roleDOS);
-        
+
         List<RoleEntity> entities = roleConvertor.toEntityList(roleDOS);
         List<RoleDTO> dtos = roleConvertor.toDTOList(entities);
         return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
@@ -75,10 +69,9 @@ public class RoleService {
 
     public void update(RoleDTO roleDTO) {
         RoleEntity entity = roleConvertor.toEntity(roleDTO);
-        // 超级管理员角色保护：ADMIN 角色编码不可修改
         RoleEntity existingRole = getByIdEntity(roleDTO.getId());
         if (existingRole != null && "ADMIN".equals(existingRole.getCode())) {
-            entity.setCode(existingRole.getCode()); // 保持原编码不变
+            entity.setCode(existingRole.getCode());
         }
         RoleDO roleDO = roleConvertor.toDataObject(entity);
         roleMapper.updateById(roleDO);
@@ -87,7 +80,6 @@ public class RoleService {
     public void delete(Long id) {
         RoleEntity role = getByIdEntity(id);
         if (role != null) {
-            // 超级管理员角色保护：ADMIN 角色不可删除
             if ("ADMIN".equals(role.getCode())) {
                 throw new RuntimeException("超级管理员角色不可删除");
             }
@@ -108,7 +100,6 @@ public class RoleService {
     public void changeStatus(Long id, Integer status) {
         RoleEntity role = getByIdEntity(id);
         if (role != null) {
-            // 超级管理员角色保护：ADMIN 角色不可禁用
             if (0 == status && "ADMIN".equals(role.getCode())) {
                 throw new RuntimeException("超级管理员角色不可禁用");
             }

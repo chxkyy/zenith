@@ -3,7 +3,6 @@ package com.zenith.admin.app;
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zenith.admin.domain.model.DictEntity;
 import com.zenith.admin.domain.model.DictItemEntity;
 import com.zenith.admin.dto.DictDTO;
@@ -13,24 +12,20 @@ import com.zenith.admin.dto.DictItemPageQuery;
 import com.zenith.admin.infrastructure.convertor.DictConvertor;
 import com.zenith.admin.infrastructure.dataobject.DictDO;
 import com.zenith.admin.infrastructure.dataobject.DictItemDO;
-import com.zenith.admin.infrastructure.mapper.DictMapper;
 import com.zenith.admin.infrastructure.mapper.DictItemMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.zenith.admin.infrastructure.mapper.DictMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class DictService {
 
-    @Autowired
-    private DictMapper dictMapper;
-
-    @Autowired
-    private DictItemMapper dictItemMapper;
-
-    @Autowired
-    private DictConvertor dictConvertor;
+    private final DictMapper dictMapper;
+    private final DictItemMapper dictItemMapper;
+    private final DictConvertor dictConvertor;
 
     public MultiResponse<DictDTO> listAll() {
         List<DictDO> dictDOS = dictMapper.selectList(null);
@@ -61,7 +56,6 @@ public class DictService {
     }
 
     public PageResponse<DictDTO> page(DictPageQuery query) {
-        // 使用 PageHelper 实现分页
         com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -77,7 +71,6 @@ public class DictService {
     }
 
     public void delete(Long id) {
-        // 检查是否有字典项
         DictDO dictDO = dictMapper.selectById(id);
         if (dictDO != null) {
             LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -91,7 +84,6 @@ public class DictService {
     }
 
     public void save(DictDTO dictDTO) {
-        // 检查编码唯一性
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictDO::getType, dictDTO.getType());
         if (dictDTO.getId() != null) {
@@ -110,7 +102,6 @@ public class DictService {
         }
     }
 
-    // 字典项相关方法
     public MultiResponse<DictItemDTO> listItemsByType(String type) {
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, type).orderByAsc(DictItemDO::getSort);
@@ -121,7 +112,6 @@ public class DictService {
     }
 
     public PageResponse<DictItemDTO> pageItems(DictItemPageQuery query) {
-        // 使用 PageHelper 实现分页
         com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, query.getType());
@@ -139,7 +129,6 @@ public class DictService {
     }
 
     public void saveItem(DictItemDTO dictItemDTO) {
-        // 检查同类型下值的唯一性
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, dictItemDTO.getType());
         queryWrapper.eq(DictItemDO::getDictValue, dictItemDTO.getDictValue());
@@ -160,14 +149,9 @@ public class DictService {
     }
 
     public void updateItem(DictItemDTO dictItemDTO) {
-        System.out.println("=== updateItem ===");
-        System.out.println("dictItemDTO: " + dictItemDTO);
         DictItemEntity entity = dictConvertor.toItemEntity(dictItemDTO);
-        System.out.println("entity: " + entity);
         DictItemDO dictItemDO = dictConvertor.toItemDataObject(entity);
-        System.out.println("dictItemDO: " + dictItemDO);
         dictItemMapper.updateById(dictItemDO);
-        System.out.println("=== updateItem done ===");
     }
 
     public void deleteItem(Long id) {

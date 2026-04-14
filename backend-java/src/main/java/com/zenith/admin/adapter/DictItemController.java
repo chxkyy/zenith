@@ -3,18 +3,19 @@ package com.zenith.admin.adapter;
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.DictService;
+import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.DictItemDTO;
 import com.zenith.admin.dto.DictItemPageQuery;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/dict/items")
+@RequiredArgsConstructor
 public class DictItemController {
 
-    @Autowired
-    private DictService dictService;
+    private final DictService dictService;
 
     @GetMapping("/list")
     public MultiResponse<DictItemDTO> list(@RequestParam String type) {
@@ -32,15 +33,15 @@ public class DictItemController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @PutMapping
+    @PostMapping("/update")
     public com.alibaba.cola.dto.Response update(@RequestBody DictItemDTO dictItemDTO) {
         dictService.updateItem(dictItemDTO);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @DeleteMapping
-    public com.alibaba.cola.dto.Response delete(@RequestParam Long id) {
-        dictService.deleteItem(id);
+    @PostMapping("/delete")
+    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+        dictService.deleteItem(query.getId());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 

@@ -3,18 +3,19 @@ package com.zenith.admin.adapter;
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.RoleService;
+import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.RoleDTO;
 import com.zenith.admin.dto.RolePageQuery;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/roles")
+@RequiredArgsConstructor
 public class RoleController {
 
-    @Autowired
-    private RoleService roleService;
+    private final RoleService roleService;
 
     @GetMapping
     public MultiResponse<RoleDTO> list() {
@@ -32,26 +33,26 @@ public class RoleController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @PutMapping
+    @PostMapping("/update")
     public com.alibaba.cola.dto.Response update(@RequestBody RoleDTO roleDTO) {
         roleService.update(roleDTO);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @DeleteMapping
-    public com.alibaba.cola.dto.Response delete(@RequestParam Long roleId) {
-        roleService.delete(roleId);
+    @PostMapping("/delete")
+    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+        roleService.delete(query.getId());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping("/detail")
-    public com.alibaba.cola.dto.SingleResponse<RoleDTO> get(@RequestParam Long roleId) {
-        return com.alibaba.cola.dto.SingleResponse.of(roleService.getById(roleId));
+    @GetMapping("/{id}")
+    public com.alibaba.cola.dto.SingleResponse<RoleDTO> get(@PathVariable Long id) {
+        return com.alibaba.cola.dto.SingleResponse.of(roleService.getById(id));
     }
 
-    @PutMapping("/status")
-    public com.alibaba.cola.dto.Response changeStatus(@RequestParam Long roleId, @RequestParam Integer status) {
-        roleService.changeStatus(roleId, status);
+    @PostMapping("/status")
+    public com.alibaba.cola.dto.Response changeStatus(@RequestBody IdQuery query, @RequestParam Integer status) {
+        roleService.changeStatus(query.getId(), status);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 }

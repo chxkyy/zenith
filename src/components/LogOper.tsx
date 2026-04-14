@@ -31,7 +31,7 @@ const LogOper: React.FC = () => {
       if (searchParams.module) params.append('module', searchParams.module);
       if (searchParams.result) params.append('result', searchParams.result);
       
-      const response = await fetch(`/api/logs/oper?${params.toString()}`);
+      const response = await fetch(`/api/oper-logs?${params.toString()}`);
       const text = await response.text();
       if (response.status === 503) {
         throw new Error('Java 后端正在启动，请稍候...');
@@ -75,7 +75,7 @@ const LogOper: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!confirm('确定删除该日志吗？')) return;
     try {
-      const response = await fetch(`/api/logs/oper/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/oper-logs/${id}`, { method: 'DELETE' });
       const data = await response.json();
       if (data.success) {
         fetchLogs();

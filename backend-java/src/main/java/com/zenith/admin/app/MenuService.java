@@ -1,30 +1,60 @@
 package com.zenith.admin.app;
 
 import com.alibaba.cola.dto.MultiResponse;
+import com.alibaba.cola.dto.PageResponse;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.zenith.admin.domain.model.MenuEntity;
 import com.zenith.admin.dto.MenuDTO;
+import com.zenith.admin.dto.MenuPageQuery;
 import com.zenith.admin.infrastructure.convertor.MenuConvertor;
 import com.zenith.admin.infrastructure.dataobject.MenuDO;
 import com.zenith.admin.infrastructure.mapper.MenuMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class MenuService {
 
-    @Autowired
-    private MenuMapper menuMapper;
-
-    @Autowired
-    private MenuConvertor menuConvertor;
+    private final MenuMapper menuMapper;
+    private final MenuConvertor menuConvertor;
 
     public MultiResponse<MenuDTO> listAll() {
         List<MenuDO> menuDOS = menuMapper.selectList(null);
         List<MenuEntity> entities = menuConvertor.toEntityList(menuDOS);
         List<MenuDTO> dtos = menuConvertor.toDTOList(entities);
         return MultiResponse.of(dtos);
+    }
+
+    public PageResponse<MenuDTO> page(MenuPageQuery query) {
+        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
+        LambdaQueryWrapper<MenuDO> queryWrapper = new LambdaQueryWrapper<>();
+
+        if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
+            queryWrapper.and(wrapper -> {
+                wrapper.like(MenuDO::getName, query.getKeyword())
+                       .or().like(MenuDO::getPath, query.getKeyword());
+            });
+        }
+
+        if (query.getType() != null && !query.getType().isEmpty()) {
+            queryWrapper.eq(MenuDO::getType, query.getType());
+        }
+
+        if (query.getParentId() != null) {
+            queryWrapper.eq(MenuDO::getParentId, query.getParentId());
+        }
+
+        queryWrapper.orderByAsc(MenuDO::getSort);
+        List<MenuDO> menuDOS = menuMapper.selectList(queryWrapper);
+        PageInfo<MenuDO> pageInfo = new PageInfo<>(menuDOS);
+        List<MenuEntity> entities = menuConvertor.toEntityList(pageInfo.getList());
+        List<MenuDTO> dtos = menuConvertor.toDTOList(entities);
+        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
     }
 
     public void save(MenuDTO menuDTO) {

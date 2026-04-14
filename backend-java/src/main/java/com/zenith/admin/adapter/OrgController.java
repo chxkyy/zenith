@@ -1,21 +1,24 @@
 package com.zenith.admin.adapter;
 
-import com.alibaba.cola.dto.MultiResponse;
+import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.OrgService;
+import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.OrgDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.zenith.admin.dto.OrgPageQuery;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/orgs")
+@RequiredArgsConstructor
 public class OrgController {
 
-    @Autowired
-    private OrgService orgService;
+    private final OrgService orgService;
 
-    @GetMapping
-    public MultiResponse<OrgDTO> list() {
-        return orgService.listAll();
+    @PostMapping("/page")
+    public PageResponse<OrgDTO> page(@RequestBody @Valid OrgPageQuery query) {
+        return orgService.page(query);
     }
 
     @PostMapping
@@ -24,15 +27,15 @@ public class OrgController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @PutMapping
+    @PostMapping("/update")
     public com.alibaba.cola.dto.Response update(@RequestBody OrgDTO orgDTO) {
         orgService.update(orgDTO);
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @DeleteMapping("/{id}")
-    public com.alibaba.cola.dto.Response delete(@PathVariable Long id) {
-        orgService.delete(id);
+    @PostMapping("/delete")
+    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+        orgService.delete(query.getId());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
