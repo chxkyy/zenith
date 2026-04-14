@@ -17,6 +17,7 @@ allowed-tools: Read, Grep, Glob, Write, Edit
 ## Controller with DTOs
 
 **【强制】仅使用 GET 和 POST 方法，禁止使用 PUT、PATCH、DELETE 等其他HTTP方法**
+**【强制】必须返回 COLA Response 类（Response/SingleResponse/MultiResponse/PageResponse）**
 
 ```java
 @RestController
@@ -28,39 +29,42 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<UserResponse>> findAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(userService.findAll(page, size));
+    public MultiResponse<UserDTO> list() {
+        return MultiResponse.of(userService.list());
+    }
+
+    @PostMapping("/page")  // 分页查询使用 POST
+    public PageResponse<UserDTO> findPage(@RequestBody UserPageQry qry) {
+        return PageResponseUtils.of(userService.findPage(qry));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.findById(id));
+    public SingleResponse<UserDTO> findById(@PathVariable Long id) {
+        return SingleResponse.of(userService.findById(id));
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<UserResponse> create(@Valid @RequestBody CreateUserRequest dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
+    public SingleResponse<UserDTO> create(@Valid @RequestBody CreateUserCmd cmd) {
+        return SingleResponse.of(userService.create(cmd));
     }
 
     @PostMapping("/{id}")  // 更新使用 POST
-    public ResponseEntity<UserResponse> update(
-            @PathVariable Long id, @Valid @RequestBody UpdateUserRequest dto) {
-        return ResponseEntity.ok(userService.update(id, dto));
+    public SingleResponse<UserDTO> update(
+            @PathVariable Long id, @Valid @RequestBody UpdateUserCmd cmd) {
+        return SingleResponse.of(userService.update(id, cmd));
     }
 
     @PostMapping("/{id}/delete")  // 删除使用 POST
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public Response delete(@PathVariable Long id) {
         userService.delete(id);
-        return ResponseEntity.noContent().build();
+        return Response.buildSuccess();
     }
 }
 ```
 
 ## Service with MapStruct
+
+**【强制】使用 COLA 规范命名：DTO / Cmd / DO**
 
 ```java
 @Service
@@ -73,46 +77,62 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public List<UserResponse> findAll(int page, int size) {
-        return userRepository.findAll(PageRequest.of(page, size))
-            .map(userMapper::toResponse).getContent();
+    public List<UserDTO> list() {
+        return userRepository.findAll().stream()
+            .map(userMapper::toDTO)
+            .toList();
     }
 
     @Override
-    public UserResponse findById(Long id) {
+    public PageInfo<UserDTO> findPage(UserPageQry qry) {
+        Page<User> page = userRepository.findAll(PageRequest.of(qry.getPageIndex(), qry.getPageSize()));
+        PageInfo<User> pageInfo = new PageInfo<>(page.getContent());
+        PageInfo<UserDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(page.getContent().stream().map(userMapper::toDTO).toList());
+        return result;
+    }
+
+    @Override
+    public UserDTO findById(Long id) {
         return userRepository.findById(id)
-            .map(userMapper::toResponse)
-            .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+            .map(userMapper::toDTO)
+            .orElseThrow(() -> new BizException("USER_NOT_FOUND", "用户不存在"));
     }
 
     @Override
     @Transactional
-    public UserResponse create(CreateUserRequest dto) {
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new BadRequestException("Email already registered");
+    public UserDTO create(CreateUserCmd cmd) {
+        if (userRepository.existsByEmail(cmd.getEmail())) {
+            throw new BizException("USER_EMAIL_EXISTS", "邮箱已被注册");
         }
-        User user = userMapper.toEntity(dto);
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        return userMapper.toResponse(userRepository.save(user));
+        UserDO userDO = userMapper.toDO(cmd);
+        userDO.setPassword(passwordEncoder.encode(cmd.getPassword()));
+        return userMapper.toDTO(userRepository.save(userDO));
     }
 }
 ```
 
 ## MapStruct Mapper
 
+**【强制】转换方法命名：toDTO / toDO / toDTOList**
+
 ```java
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
-    UserResponse toResponse(User user);
+    UserDTO toDTO(UserDO entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "password", ignore = true)
-    User toEntity(CreateUserRequest dto);
+    UserDO toDO(CreateUserCmd cmd);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEntity(UpdateUserRequest dto, @MappingTarget User user);
+    void updateFromDTO(UpdateUserCmd cmd, @MappingTarget UserDO entity);
 }
 ```
 
@@ -156,25 +176,34 @@ public class User {
 
 ## DTOs with Validation
 
+**【强制】使用 COLA 命名规范：Cmd / Qry / DTO**
+
 ```java
 @Data
-public class CreateUserRequest {
-    @NotBlank(message = "Name is required")
+public class CreateUserCmd {
+    @NotBlank(message = "用户名不能为空")
     @Size(min = 2, max = 100)
     private String name;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "邮箱不能为空")
+    @Email(message = "邮箱格式不正确")
     private String email;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    @NotBlank(message = "密码不能为空")
+    @Size(min = 8, message = "密码至少8位")
     private String password;
 }
 
 @Data
+public class UpdateUserCmd {
+    @NotBlank(message = "用户名不能为空")
+    @Size(min = 2, max = 100)
+    private String name;
+}
+
+@Data
 @Builder
-public class UserResponse {
+public class UserDTO {
     private Long id;
     private String name;
     private String email;
@@ -185,26 +214,37 @@ public class UserResponse {
 
 ## Global Exception Handler
 
+**【强制】返回 COLA Response，禁止使用 ResponseEntity**
+
 ```java
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse.of(ex.getMessage()));
+    @ExceptionHandler(BizException.class)
+    public Response handleBizException(BizException ex) {
+        log.warn("业务异常: errCode={}, errMessage={}", ex.getErrCode(), ex.getMessage());
+        return Response.buildFailure(ex.getErrCode(), ex.getMessage());
     }
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
-        return ResponseEntity.badRequest().body(ErrorResponse.of(ex.getMessage()));
+    @ExceptionHandler(SysException.class)
+    public Response handleSysException(SysException ex) {
+        log.error("系统异常: errCode={}, errMessage={}", ex.getErrCode(), ex.getMessage(), ex);
+        return Response.buildFailure(ex.getErrCode(), ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+    public Response handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
             .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage, (a, b) -> a));
-        return ResponseEntity.badRequest().body(ErrorResponse.of("Validation failed", errors));
+        log.warn("参数校验失败: {}", errors);
+        return Response.buildFailure("PARAM_ERROR", "参数校验失败");
+    }
+
+    @ExceptionHandler(Exception.class)
+    public Response handleUnexpected(Exception ex) {
+        log.error("未知异常", ex);
+        return Response.buildFailure("UNKNOWN_ERROR", "系统繁忙，请稍后重试");
     }
 }
 ```

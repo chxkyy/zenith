@@ -215,7 +215,7 @@ public Optional<User> findById(Long id) {
 // Never return null from Optional
 public User getById(Long id) {
     return findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("User", id));
+        .orElseThrow(() -> new BizException("USER_NOT_FOUND", "用户不存在"));
 }
 
 // Use @Nullable and @NonNull annotations
@@ -305,8 +305,8 @@ class UserServiceTest {
 
         // When/Then
         assertThatThrownBy(() -> service.getById(1L))
-            .isInstanceOf(EntityNotFoundException.class)
-            .hasMessageContaining("User not found");
+            .isInstanceOf(BizException.class)
+            .hasMessageContaining("用户不存在");
     }
 }
 

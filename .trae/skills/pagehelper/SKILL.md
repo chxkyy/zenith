@@ -254,6 +254,8 @@ public interface UserConverter {
 
 ## 七、Controller 层规范
 
+**【强制】使用 PageResponseUtils 工具类转换 PageInfo 为 PageResponse**
+
 ```java
 @RestController
 @RequestMapping("/api/system/user")
@@ -266,7 +268,35 @@ public class UserController {
     @PostMapping("/search")
     public PageResponse<UserDTO> search(@RequestBody @Validated UserQry qry) {
         PageInfo<UserDTO> pageInfo = userService.search(qry);
-        return PageResponse.of(pageInfo.getList(), pageInfo.getTotal());
+        return PageResponseUtils.of(pageInfo);
+    }
+}
+```
+
+### PageResponseUtils 工具类
+
+**位置**：`com.zenith.admin.common.utils.PageResponseUtils`
+
+```java
+package com.zenith.admin.common.utils;
+
+import com.alibaba.cola.dto.PageResponse;
+import com.github.pagehelper.PageInfo;
+
+import java.util.List;
+
+public final class PageResponseUtils {
+
+    private PageResponseUtils() {
+    }
+
+    public static <T> PageResponse<T> of(PageInfo<?> pageInfo) {
+        return PageResponse.of(
+            (List<T>) pageInfo.getList(),
+            (int) pageInfo.getTotal(),
+            pageInfo.getPageSize(),
+            pageInfo.getPageNum()
+        );
     }
 }
 ```

@@ -68,7 +68,7 @@ DELETE /api/v1/users?userId=123
 
 GET /api/v1/orders?orderId=789&includeItems=true&startTime=2024-01-01
 
-## 3.3 POST/PUT/PATCH请求参数传递
+## 3.3 POST 请求参数传递
 
 1. 简单参数（单个ID、状态等）可通过查询字符串传递；
 
@@ -92,7 +92,7 @@ POST /api/v1/users
 
 }
 
-PUT /api/v1/users?userId=123
+POST /api/v1/users?userId=123
 
 {
 

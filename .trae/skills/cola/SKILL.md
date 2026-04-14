@@ -244,7 +244,7 @@ public class UserController {
     @PostMapping("/search")
     public PageResponse<UserDTO> searchUsers(@RequestBody UserPageQry qry) {
         PageInfo<UserDTO> pageInfo = userService.searchUsers(qry);
-        return PageResponse.of(pageInfo.getList(), pageInfo.getTotal());
+        return PageResponseUtils.of(pageInfo);
     }
 }
 ```
@@ -596,3 +596,13 @@ mvn archetype:generate \
 - **Controller 层负责将业务数据转换为 Response**
 - **DTO 用于 API 响应，DO 用于数据库映射**
 - **自定义异常类，不依赖 COLA 异常组件**
+
+**PageResponseUtils 工具类**：`com.zenith.admin.common.utils.PageResponseUtils`
+
+```java
+// Controller 层使用示例
+public PageResponse<UserDTO> searchUsers(@RequestBody UserPageQry qry) {
+    PageInfo<UserDTO> pageInfo = userService.searchUsers(qry);
+    return PageResponseUtils.of(pageInfo);
+}
+```

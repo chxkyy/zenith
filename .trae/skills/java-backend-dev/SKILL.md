@@ -199,6 +199,10 @@ public class XxxController {
 ```
 
 ### 5. Service 层实现
+
+**【强制】Service 层不返回 Response，只返回业务数据**
+**【强制】分页查询使用 PageInfo 返回，由 Controller 层使用 PageResponseUtils 转换**
+
 ```java
 @Service
 @RequiredArgsConstructor
@@ -206,8 +210,10 @@ public class XxxService {
     private final XxxMapper xxxMapper;
     private final XxxConvertor xxxConvertor;
 
-    public PageResponse<XxxDTO> page(XxxPageQuery query) {
-        // 使用 PageHelper 实现分页
+    /**
+     * 分页查询 - 返回 PageInfo<DTO>，由 Controller 层转换为 PageResponse
+     */
+    public PageInfo<XxxDTO> page(XxxPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<XxxDO> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -226,17 +232,44 @@ public class XxxService {
 
         List<XxxDO> xxxDOS = xxxMapper.selectList(queryWrapper);
         PageInfo<XxxDO> pageInfo = new PageInfo<>(xxxDOS);
-        List<XxxDTO> xxxDTOS = xxxConvertor.toDTOList(pageInfo.getList());
 
-        return PageResponse.of(
-            xxxDTOS,
-            (int) pageInfo.getTotal(),
-            query.getPageSize(),
-            query.getPageIndex()
-        );
+        // DO → DTO 转换
+        PageInfo<XxxDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(xxxConvertor.toDTOList(pageInfo.getList()));
+        return result;
     }
 }
 ```
+
+### 6. Controller 层实现
+
+**【强制】使用 PageResponseUtils 工具类转换 PageInfo 为 PageResponse**
+
+```java
+@RestController
+@RequestMapping("/api/xxx")
+@RequiredArgsConstructor
+public class XxxController {
+    private final XxxService xxxService;
+
+    @PostMapping("/page")
+    public PageResponse<XxxDTO> page(@RequestBody @Valid XxxPageQuery query) {
+        return PageResponseUtils.of(xxxService.page(query));
+    }
+}
+```
+
+**分层原则**：
+| 层 | 返回类型 | 说明 |
+|---|---------|------|
+| Controller | `Response` / `SingleResponse<T>` / `MultiResponse<T>` / `PageResponse<T>` | 负责转换为 COLA Response |
+| Service | 业务数据（void / DTO / List / PageInfo） | **不返回 Response** |
+
+**PageResponseUtils 工具类**：`com.zenith.admin.common.utils.PageResponseUtils`
 
 ### 6. 已实现分页的模块 (参考)
 | 模块 | Controller | Service | PageQuery |
@@ -300,6 +333,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 - Service 层封装业务逻辑，不在 Controller 直接调用 Mapper
 
 ### 4. 分页查询
+
+**【强制】Service 层返回 PageInfo，不返回 PageResponse**
+
 ```java
 @Service
 @RequiredArgsConstructor
@@ -307,7 +343,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final UserConvertor userConvertor;
 
-    public PageResponse<UserDTO> page(UserPageQuery query) {
+    public PageInfo<UserDTO> page(UserPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<UserDO> wrapper = new LambdaQueryWrapper<>();
 
@@ -318,12 +354,14 @@ public class UserService {
         List<UserDO> userDOS = userMapper.selectList(wrapper);
         PageInfo<UserDO> pageInfo = new PageInfo<>(userDOS);
 
-        return PageResponse.of(
-            userConvertor.toDTOList(pageInfo.getList()),
-            (int) pageInfo.getTotal(),
-            query.getPageSize(),
-            query.getPageIndex()
-        );
+        // 转换为 PageInfo<DTO>，不返回 PageResponse
+        PageInfo<UserDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(userConvertor.toDTOList(pageInfo.getList()));
+        return result;
     }
 }
 ```
