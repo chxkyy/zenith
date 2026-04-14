@@ -1,11 +1,13 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
+import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.app.DictService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.DictDTO;
 import com.zenith.admin.dto.DictPageQuery;
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +24,8 @@ public class DictController {
         return dictService.listAll();
     }
 
-    @GetMapping("/type/{type}")
-    public MultiResponse<DictDTO> listByType(@PathVariable String type) {
+    @GetMapping("/list-by-type")
+    public MultiResponse<DictDTO> listByType(@RequestParam String type) {
         return dictService.listByType(type);
     }
 
@@ -46,12 +48,13 @@ public class DictController {
     }
 
     @GetMapping("/get")
-    public com.alibaba.cola.dto.SingleResponse<DictDTO> get(@RequestParam Long id) {
-        return com.alibaba.cola.dto.SingleResponse.of(dictService.getById(id));
+    public SingleResponse<DictDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(dictService.getById(id));
     }
 
     @PostMapping("/page")
-    public PageResponse<DictDTO> page(@RequestBody @Valid DictPageQuery query) {
-        return dictService.page(query);
+    public com.alibaba.cola.dto.PageResponse<DictDTO> page(@RequestBody @Valid DictPageQuery query) {
+        PageInfo<DictDTO> pageInfo = dictService.page(query);
+        return PageResponseUtils.of(pageInfo);
     }
 }

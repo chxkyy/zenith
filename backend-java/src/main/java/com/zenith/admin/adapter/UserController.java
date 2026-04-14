@@ -1,10 +1,12 @@
 package com.zenith.admin.adapter;
 
-import com.alibaba.cola.dto.PageResponse;
+import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.app.UserService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.UserDTO;
 import com.zenith.admin.dto.UserPageQuery;
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +19,9 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/page")
-    public PageResponse<UserDTO> page(@RequestBody @Valid UserPageQuery query) {
-        return userService.listByPage(query);
+    public com.alibaba.cola.dto.PageResponse<UserDTO> page(@RequestBody @Valid UserPageQuery query) {
+        PageInfo<UserDTO> pageInfo = userService.listByPage(query);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping
@@ -39,9 +42,9 @@ public class UserController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping("/{id}")
-    public com.alibaba.cola.dto.SingleResponse<UserDTO> get(@PathVariable Long id) {
-        return com.alibaba.cola.dto.SingleResponse.of(userService.getById(id));
+    @GetMapping
+    public SingleResponse<UserDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(userService.getById(id));
     }
 
     @PostMapping("/password")

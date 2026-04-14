@@ -1,9 +1,10 @@
 package com.zenith.admin.adapter;
 
-import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.ErrorLogService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.ErrorLogDTO;
+import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,12 +16,13 @@ public class ErrorLogController {
     private final ErrorLogService errorLogService;
 
     @GetMapping
-    public PageResponse<ErrorLogDTO> list(
+    public com.alibaba.cola.dto.PageResponse<ErrorLogDTO> list(
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String module,
             @RequestParam(required = false) String ip) {
-        return errorLogService.listByPage(pageIndex, pageSize, module, ip);
+        PageInfo<ErrorLogDTO> pageInfo = errorLogService.listByPage(pageIndex, pageSize, module, ip);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping("/delete")

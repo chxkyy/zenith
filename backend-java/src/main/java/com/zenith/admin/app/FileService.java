@@ -1,6 +1,5 @@
 package com.zenith.admin.app;
 
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -31,7 +30,7 @@ public class FileService {
         return userDir + File.separator + "uploads" + File.separator;
     }
 
-    public PageResponse<FileDTO> page(FilePageQuery query) {
+    public PageInfo<FileDTO> page(FilePageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<FileDO> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -43,7 +42,14 @@ public class FileService {
         List<FileDO> fileDOS = fileMapper.selectList(queryWrapper);
         PageInfo<FileDO> pageInfo = new PageInfo<>(fileDOS);
         List<FileDTO> fileDTOS = fileConvertor.toDTOList(pageInfo.getList());
-        return PageResponse.of(fileDTOS, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
+
+        PageInfo<FileDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(fileDTOS);
+        return result;
     }
 
     public FileDTO upload(MultipartFile file) throws IOException {

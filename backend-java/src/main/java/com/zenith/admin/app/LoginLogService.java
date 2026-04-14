@@ -1,6 +1,5 @@
 package com.zenith.admin.app;
 
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -22,7 +21,7 @@ public class LoginLogService {
     private final LoginLogMapper loginLogMapper;
     private final LoginLogConvertor loginLogConvertor;
 
-    public PageResponse<LoginLogDTO> listByPage(int pageIndex, int pageSize, String username, String status, String ip) {
+    public PageInfo<LoginLogDTO> listByPage(int pageIndex, int pageSize, String username, String status, String ip) {
         PageHelper.startPage(pageIndex, pageSize);
         LambdaQueryWrapper<LoginLogDO> queryWrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(username)) {
@@ -40,7 +39,14 @@ public class LoginLogService {
 
         List<LoginLogEntity> entities = loginLogConvertor.toEntityList(pageInfo.getList());
         List<LoginLogDTO> dtos = loginLogConvertor.toDTOList(entities);
-        return PageResponse.of(dtos, (int) pageInfo.getTotal(), pageSize, pageIndex);
+
+        PageInfo<LoginLogDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(dtos);
+        return result;
     }
 
     public void delete(Long id) {

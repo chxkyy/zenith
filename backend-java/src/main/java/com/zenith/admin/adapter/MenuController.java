@@ -1,11 +1,13 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
+import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.app.MenuService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.MenuDTO;
 import com.zenith.admin.dto.MenuPageQuery;
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +25,9 @@ public class MenuController {
     }
 
     @PostMapping("/page")
-    public PageResponse<MenuDTO> page(@RequestBody @Valid MenuPageQuery query) {
-        return menuService.page(query);
+    public com.alibaba.cola.dto.PageResponse<MenuDTO> page(@RequestBody @Valid MenuPageQuery query) {
+        PageInfo<MenuDTO> pageInfo = menuService.page(query);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping
@@ -45,8 +48,8 @@ public class MenuController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping("/{id}")
-    public com.alibaba.cola.dto.SingleResponse<MenuDTO> get(@PathVariable Long id) {
-        return com.alibaba.cola.dto.SingleResponse.of(menuService.getById(id));
+    @GetMapping
+    public SingleResponse<MenuDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(menuService.getById(id));
     }
 }

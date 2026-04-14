@@ -1,6 +1,5 @@
 package com.zenith.admin.app;
 
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -25,7 +24,7 @@ public class UserService {
     private final OrgMapper orgMapper;
     private final UserConvertor userConvertor;
 
-    public PageResponse<UserDTO> listByPage(UserPageQuery query) {
+    public PageInfo<UserDTO> listByPage(UserPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
 
         QueryWrapper<UserDO> wrapper = new QueryWrapper<>();
@@ -64,10 +63,15 @@ public class UserService {
         PageInfo<UserDO> pageInfo = new PageInfo<>(userDOS);
 
         List<UserEntity> entities = userConvertor.toEntityList(userDOS);
-
         List<UserDTO> dtos = userConvertor.toDTOList(entities);
 
-        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
+        PageInfo<UserDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(dtos);
+        return result;
     }
 
     public void save(UserDTO userDTO) {

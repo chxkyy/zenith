@@ -1,10 +1,11 @@
 package com.zenith.admin.adapter;
 
-import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.FileService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.FileDTO;
 import com.zenith.admin.dto.FilePageQuery;
 import com.zenith.admin.dto.IdQuery;
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -28,8 +29,9 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping("/page")
-    public PageResponse<FileDTO> page(@RequestBody @Valid FilePageQuery query) {
-        return fileService.page(query);
+    public com.alibaba.cola.dto.PageResponse<FileDTO> page(@RequestBody @Valid FilePageQuery query) {
+        PageInfo<FileDTO> pageInfo = fileService.page(query);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping("/upload")
@@ -38,8 +40,8 @@ public class FileController {
         return com.alibaba.cola.dto.SingleResponse.of(fileDTO);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Resource> download(@PathVariable Long id) throws MalformedURLException {
+    @GetMapping
+    public ResponseEntity<Resource> download(@RequestParam Long id) throws MalformedURLException {
         FileDTO fileDTO = fileService.getById(id);
         if (fileDTO == null) {
             return ResponseEntity.notFound().build();

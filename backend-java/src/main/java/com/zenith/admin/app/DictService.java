@@ -1,8 +1,8 @@
 package com.zenith.admin.app;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.github.pagehelper.PageInfo;
 import com.zenith.admin.domain.model.DictEntity;
 import com.zenith.admin.domain.model.DictItemEntity;
 import com.zenith.admin.dto.DictDTO;
@@ -55,7 +55,7 @@ public class DictService {
         return dictConvertor.toDTO(entity);
     }
 
-    public PageResponse<DictDTO> page(DictPageQuery query) {
+    public PageInfo<DictDTO> page(DictPageQuery query) {
         com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -67,7 +67,14 @@ public class DictService {
         com.github.pagehelper.PageInfo<DictDO> pageInfo = new com.github.pagehelper.PageInfo<>(dictDOS);
         List<DictEntity> entities = dictConvertor.toEntityList(pageInfo.getList());
         List<DictDTO> dtos = dictConvertor.toDTOList(entities);
-        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
+
+        PageInfo<DictDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(dtos);
+        return result;
     }
 
     public void delete(Long id) {
@@ -111,7 +118,7 @@ public class DictService {
         return MultiResponse.of(dtos);
     }
 
-    public PageResponse<DictItemDTO> pageItems(DictItemPageQuery query) {
+    public PageInfo<DictItemDTO> pageItems(DictItemPageQuery query) {
         com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, query.getType());
@@ -125,7 +132,14 @@ public class DictService {
         com.github.pagehelper.PageInfo<DictItemDO> pageInfo = new com.github.pagehelper.PageInfo<>(dictItemDOS);
         List<DictItemEntity> entities = dictConvertor.toItemEntityList(pageInfo.getList());
         List<DictItemDTO> dtos = dictConvertor.toItemDTOList(entities);
-        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
+
+        PageInfo<DictItemDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(dtos);
+        return result;
     }
 
     public void saveItem(DictItemDTO dictItemDTO) {

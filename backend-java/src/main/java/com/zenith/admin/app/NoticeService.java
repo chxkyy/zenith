@@ -1,8 +1,8 @@
 package com.zenith.admin.app;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.NoticeDTO;
 import com.zenith.admin.dto.NoticePageQuery;
 import com.zenith.admin.infrastructure.convertor.NoticeConvertor;
@@ -27,7 +27,7 @@ public class NoticeService {
         return MultiResponse.of(noticeDTOS);
     }
 
-    public PageResponse<NoticeDTO> page(NoticePageQuery query) {
+    public PageInfo<NoticeDTO> page(NoticePageQuery query) {
         com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<NoticeDO> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -49,7 +49,13 @@ public class NoticeService {
         com.github.pagehelper.PageInfo<NoticeDO> pageInfo = new com.github.pagehelper.PageInfo<>(noticeDOS);
         List<NoticeDTO> noticeDTOS = noticeConvertor.toDTOList(pageInfo.getList());
 
-        return PageResponse.of(noticeDTOS, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
+        PageInfo<NoticeDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(noticeDTOS);
+        return result;
     }
 
     public void save(NoticeDTO noticeDTO) {

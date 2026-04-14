@@ -1,7 +1,6 @@
 package com.zenith.admin.app;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -30,7 +29,7 @@ public class MenuService {
         return MultiResponse.of(dtos);
     }
 
-    public PageResponse<MenuDTO> page(MenuPageQuery query) {
+    public PageInfo<MenuDTO> page(MenuPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<MenuDO> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -54,7 +53,14 @@ public class MenuService {
         PageInfo<MenuDO> pageInfo = new PageInfo<>(menuDOS);
         List<MenuEntity> entities = menuConvertor.toEntityList(pageInfo.getList());
         List<MenuDTO> dtos = menuConvertor.toDTOList(entities);
-        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
+
+        PageInfo<MenuDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(dtos);
+        return result;
     }
 
     public void save(MenuDTO menuDTO) {

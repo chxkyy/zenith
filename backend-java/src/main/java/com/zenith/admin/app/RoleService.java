@@ -1,7 +1,6 @@
 package com.zenith.admin.app;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -30,7 +29,7 @@ public class RoleService {
         return MultiResponse.of(dtos);
     }
 
-    public PageResponse<RoleDTO> listByPage(RolePageQuery query) {
+    public PageInfo<RoleDTO> listByPage(RolePageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
 
         QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
@@ -54,7 +53,14 @@ public class RoleService {
 
         List<RoleEntity> entities = roleConvertor.toEntityList(roleDOS);
         List<RoleDTO> dtos = roleConvertor.toDTOList(entities);
-        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
+
+        PageInfo<RoleDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(dtos);
+        return result;
     }
 
     public void save(RoleDTO roleDTO) {

@@ -1,11 +1,13 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
+import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.app.RoleService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.RoleDTO;
 import com.zenith.admin.dto.RolePageQuery;
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +25,9 @@ public class RoleController {
     }
 
     @PostMapping("/page")
-    public PageResponse<RoleDTO> page(@RequestBody @Valid RolePageQuery query) {
-        return roleService.listByPage(query);
+    public com.alibaba.cola.dto.PageResponse<RoleDTO> page(@RequestBody @Valid RolePageQuery query) {
+        PageInfo<RoleDTO> pageInfo = roleService.listByPage(query);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping
@@ -45,9 +48,9 @@ public class RoleController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping("/{id}")
-    public com.alibaba.cola.dto.SingleResponse<RoleDTO> get(@PathVariable Long id) {
-        return com.alibaba.cola.dto.SingleResponse.of(roleService.getById(id));
+    @GetMapping
+    public SingleResponse<RoleDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(roleService.getById(id));
     }
 
     @PostMapping("/status")

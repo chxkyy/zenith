@@ -1,11 +1,13 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
+import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.app.DictService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.DictItemDTO;
 import com.zenith.admin.dto.DictItemPageQuery;
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +25,9 @@ public class DictItemController {
     }
 
     @PostMapping("/page")
-    public PageResponse<DictItemDTO> page(@RequestBody @Valid DictItemPageQuery query) {
-        return dictService.pageItems(query);
+    public com.alibaba.cola.dto.PageResponse<DictItemDTO> page(@RequestBody @Valid DictItemPageQuery query) {
+        PageInfo<DictItemDTO> pageInfo = dictService.pageItems(query);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping
@@ -46,7 +49,7 @@ public class DictItemController {
     }
 
     @GetMapping("/get")
-    public com.alibaba.cola.dto.SingleResponse<DictItemDTO> get(@RequestParam Long id) {
-        return com.alibaba.cola.dto.SingleResponse.of(dictService.getItemById(id));
+    public SingleResponse<DictItemDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(dictService.getItemById(id));
     }
 }

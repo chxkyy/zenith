@@ -1,11 +1,13 @@
 package com.zenith.admin.adapter;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
+import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.app.NoticeService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.NoticeDTO;
 import com.zenith.admin.dto.NoticePageQuery;
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +25,9 @@ public class NoticeController {
     }
 
     @PostMapping("/page")
-    public PageResponse<NoticeDTO> page(@RequestBody @Valid NoticePageQuery query) {
-        return noticeService.page(query);
+    public com.alibaba.cola.dto.PageResponse<NoticeDTO> page(@RequestBody @Valid NoticePageQuery query) {
+        PageInfo<NoticeDTO> pageInfo = noticeService.page(query);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping
@@ -46,8 +49,8 @@ public class NoticeController {
     }
 
     @GetMapping("/get")
-    public com.alibaba.cola.dto.SingleResponse<NoticeDTO> get(@RequestParam Long id) {
-        return com.alibaba.cola.dto.SingleResponse.of(noticeService.getById(id));
+    public SingleResponse<NoticeDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(noticeService.getById(id));
     }
 
     @PostMapping("/status")

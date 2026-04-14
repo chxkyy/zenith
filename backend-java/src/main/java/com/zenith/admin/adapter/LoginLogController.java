@@ -1,9 +1,10 @@
 package com.zenith.admin.adapter;
 
-import com.alibaba.cola.dto.PageResponse;
 import com.zenith.admin.app.LoginLogService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.LoginLogDTO;
+import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,13 +16,14 @@ public class LoginLogController {
     private final LoginLogService loginLogService;
 
     @GetMapping
-    public PageResponse<LoginLogDTO> list(
+    public com.alibaba.cola.dto.PageResponse<LoginLogDTO> list(
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String ip) {
-        return loginLogService.listByPage(pageIndex, pageSize, username, status, ip);
+        PageInfo<LoginLogDTO> pageInfo = loginLogService.listByPage(pageIndex, pageSize, username, status, ip);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping("/delete")

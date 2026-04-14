@@ -1,6 +1,5 @@
 package com.zenith.admin.app;
 
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -22,7 +21,7 @@ public class OperLogService {
     private final OperLogMapper operLogMapper;
     private final OperLogConvertor operLogConvertor;
 
-    public PageResponse<OperLogDTO> listByPage(int pageIndex, int pageSize, String operator, String module, String result) {
+    public PageInfo<OperLogDTO> listByPage(int pageIndex, int pageSize, String operator, String module, String result) {
         PageHelper.startPage(pageIndex, pageSize);
         LambdaQueryWrapper<OperLogDO> queryWrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(operator)) {
@@ -40,7 +39,14 @@ public class OperLogService {
 
         List<OperLogEntity> entities = operLogConvertor.toEntityList(pageInfo.getList());
         List<OperLogDTO> dtos = operLogConvertor.toDTOList(entities);
-        return PageResponse.of(dtos, (int) pageInfo.getTotal(), pageSize, pageIndex);
+
+        PageInfo<OperLogDTO> pageResult = new PageInfo<>();
+        pageResult.setTotal(pageInfo.getTotal());
+        pageResult.setPageNum(pageInfo.getPageNum());
+        pageResult.setPageSize(pageInfo.getPageSize());
+        pageResult.setPages(pageInfo.getPages());
+        pageResult.setList(dtos);
+        return pageResult;
     }
 
     public void delete(Long id) {

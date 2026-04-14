@@ -1,7 +1,6 @@
 package com.zenith.admin.app;
 
 import com.alibaba.cola.dto.MultiResponse;
-import com.alibaba.cola.dto.PageResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -30,7 +29,7 @@ public class OrgService {
         return MultiResponse.of(dtos);
     }
 
-    public PageResponse<OrgDTO> page(OrgPageQuery query) {
+    public PageInfo<OrgDTO> page(OrgPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<OrgDO> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -43,7 +42,14 @@ public class OrgService {
         PageInfo<OrgDO> pageInfo = new PageInfo<>(orgDOS);
         List<OrgEntity> entities = orgConvertor.toEntityList(pageInfo.getList());
         List<OrgDTO> dtos = orgConvertor.toDTOList(entities);
-        return PageResponse.of(dtos, (int) pageInfo.getTotal(), query.getPageSize(), query.getPageIndex());
+
+        PageInfo<OrgDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(dtos);
+        return result;
     }
 
     public void save(OrgDTO orgDTO) {

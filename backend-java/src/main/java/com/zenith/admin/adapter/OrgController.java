@@ -1,10 +1,12 @@
 package com.zenith.admin.adapter;
 
-import com.alibaba.cola.dto.PageResponse;
+import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.app.OrgService;
+import com.zenith.admin.common.utils.PageResponseUtils;
 import com.zenith.admin.dto.IdQuery;
 import com.zenith.admin.dto.OrgDTO;
 import com.zenith.admin.dto.OrgPageQuery;
+import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +19,9 @@ public class OrgController {
     private final OrgService orgService;
 
     @PostMapping("/page")
-    public PageResponse<OrgDTO> page(@RequestBody @Valid OrgPageQuery query) {
-        return orgService.page(query);
+    public com.alibaba.cola.dto.PageResponse<OrgDTO> page(@RequestBody @Valid OrgPageQuery query) {
+        PageInfo<OrgDTO> pageInfo = orgService.page(query);
+        return PageResponseUtils.of(pageInfo);
     }
 
     @PostMapping
@@ -39,8 +42,8 @@ public class OrgController {
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 
-    @GetMapping("/{id}")
-    public com.alibaba.cola.dto.SingleResponse<OrgDTO> get(@PathVariable Long id) {
-        return com.alibaba.cola.dto.SingleResponse.of(orgService.getById(id));
+    @GetMapping
+    public SingleResponse<OrgDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(orgService.getById(id));
     }
 }
