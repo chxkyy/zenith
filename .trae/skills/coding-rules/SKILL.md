@@ -4,13 +4,27 @@
 
 ## 项目架构
 
-采用 DDD 分层架构：
-- `adapter/controller` - 适配层，对外API接口
-- `application/service` - 应用层，业务服务
-- `domain/entity` - 领域层，实体对象
-- `infrastructure/persistence` - 基础设施层，数据访问
-- `common/dto` - 数据传输对象
-- `common/mapper` - MapStruct 对象转换
+**【强制】采用 COLA 官方分层架构：**
+
+| 模块 | 说明 |
+|------|------|
+| `project-web` | Controller 层，对外API接口 |
+| `project-service` | Service 实现层，业务服务 |
+| `project-api` | DTO 定义层，数据传输对象 |
+| `project-model` | 数据模型层，Mapper、DO |
+
+**包结构示例：**
+```
+project-name/
+├── project-web/              # Controller 层
+│   └── com/company/project/web/
+├── project-service/          # Service 实现层
+│   └── com/company/project/
+├── project-api/              # DTO 定义层
+│   └── com/company/project/dto/
+└── project-model/            # 数据模型层
+    └── com/company/project/mapper/
+```
 
 ## 命名规范
 

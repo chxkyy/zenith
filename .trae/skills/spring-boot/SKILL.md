@@ -38,8 +38,8 @@ public class UserController {
         return PageResponseUtils.of(userService.findPage(qry));
     }
 
-    @GetMapping("/{id}")
-    public SingleResponse<UserDTO> findById(@PathVariable Long id) {
+    @GetMapping
+    public SingleResponse<UserDTO> findById(@RequestParam Long id) {
         return SingleResponse.of(userService.findById(id));
     }
 
@@ -48,14 +48,13 @@ public class UserController {
         return SingleResponse.of(userService.create(cmd));
     }
 
-    @PostMapping("/{id}")  // 更新使用 POST
-    public SingleResponse<UserDTO> update(
-            @PathVariable Long id, @Valid @RequestBody UpdateUserCmd cmd) {
-        return SingleResponse.of(userService.update(id, cmd));
+    @PostMapping("/update")  // 更新使用 POST
+    public SingleResponse<UserDTO> update(@Valid @RequestBody UpdateUserCmd cmd) {
+        return SingleResponse.of(userService.update(cmd));
     }
 
-    @PostMapping("/{id}/delete")  // 删除使用 POST
-    public Response delete(@PathVariable Long id) {
+    @PostMapping("/delete")  // 删除使用 POST
+    public Response delete(@RequestParam Long id) {
         userService.delete(id);
         return Response.buildSuccess();
     }

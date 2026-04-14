@@ -4,6 +4,7 @@
 
 > **【强制】仅使用 GET 和 POST 方法，禁止使用 PUT、PATCH、DELETE**
 > **【强制】必须返回 COLA Response 类（Response/SingleResponse/MultiResponse/PageResponse）**
+> **【强制】禁止使用 @PathVariable，所有参数通过 @RequestParam 或 @RequestBody 传递**
 
 ## REST Controller
 
@@ -26,8 +27,8 @@ public class UserController {
         return PageResponseUtils.of(userService.findPage(qry));
     }
 
-    @GetMapping("/{id}")
-    public SingleResponse<UserDTO> findById(@PathVariable Long id) {
+    @GetMapping
+    public SingleResponse<UserDTO> findById(@RequestParam Long id) {
         return SingleResponse.of(userService.findById(id));
     }
 
@@ -36,15 +37,13 @@ public class UserController {
         return SingleResponse.of(userService.create(cmd));
     }
 
-    @PostMapping("/{id}")
-    public SingleResponse<UserDTO> update(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateUserCmd cmd) {
-        return SingleResponse.of(userService.update(id, cmd));
+    @PostMapping("/update")
+    public SingleResponse<UserDTO> update(@Valid @RequestBody UpdateUserCmd cmd) {
+        return SingleResponse.of(userService.update(cmd));
     }
 
-    @PostMapping("/{id}/delete")
-    public Response delete(@PathVariable Long id) {
+    @PostMapping("/delete")
+    public Response delete(@RequestParam Long id) {
         userService.delete(id);
         return Response.buildSuccess();
     }
@@ -58,11 +57,11 @@ public class UserController {
 @GetMapping
 @PostMapping
 
-// Path Variables
-@GetMapping("/{id}")
-public SingleResponse<UserDTO> findById(@PathVariable Long id) {}
-
 // Query Parameters
+@GetMapping
+public SingleResponse<UserDTO> findById(@RequestParam Long id) {}
+
+// Query Parameters for list
 @GetMapping
 public MultiResponse<UserDTO> search(
     @RequestParam(required = false) String keyword,
@@ -79,8 +78,8 @@ public SingleResponse<UserDTO> create(@RequestBody @Valid CreateUserCmd cmd) {}
 
 ```java
 // SingleResponse - 单个对象
-@GetMapping("/{id}")
-public SingleResponse<UserDTO> findById(@PathVariable Long id) {
+@GetMapping
+public SingleResponse<UserDTO> findById(@RequestParam Long id) {
     return SingleResponse.of(userService.findById(id));
 }
 
@@ -97,8 +96,8 @@ public PageResponse<UserDTO> findPage(@RequestBody @Valid UserPageQry qry) {
 }
 
 // Response - 无数据返回
-@PostMapping("/{id}/delete")
-public Response delete(@PathVariable Long id) {
+@PostMapping("/delete")
+public Response delete(@RequestParam Long id) {
     userService.delete(id);
     return Response.buildSuccess();
 }
@@ -133,9 +132,9 @@ public class CreateUserCmd {
     @ApiResponse(responseCode = "200", description = "User found"),
     @ApiResponse(responseCode = "400", description = "User not found")
 })
-@GetMapping("/{id}")
+@GetMapping
 public SingleResponse<UserDTO> findById(
-        @Parameter(description = "User ID") @PathVariable Long id) {
+        @Parameter(description = "User ID") @RequestParam Long id) {
     return SingleResponse.of(userService.findById(id));
 }
 ```

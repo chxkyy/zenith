@@ -227,8 +227,8 @@ public class UserController {
         return Response.buildSuccess();
     }
 
-    @GetMapping("/{id}")
-    public SingleResponse<UserDTO> getUser(@PathVariable Long id) {
+    @GetMapping
+    public SingleResponse<UserDTO> getUser(@RequestParam Long id) {
         UserGetQry qry = new UserGetQry();
         qry.setUserId(id);
         UserDTO user = userService.getUser(qry);

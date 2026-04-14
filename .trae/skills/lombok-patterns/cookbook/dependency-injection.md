@@ -129,8 +129,8 @@ public class OrderController {
         return PageResponseUtils.of(orderService.findPage(qry));
     }
 
-    @GetMapping("/{id}")
-    public SingleResponse<OrderDTO> findById(@PathVariable Long id) {
+    @GetMapping
+    public SingleResponse<OrderDTO> findById(@RequestParam Long id) {
         return SingleResponse.of(orderService.findById(id));
     }
 
@@ -140,11 +140,9 @@ public class OrderController {
         return SingleResponse.of(orderService.create(cmd));
     }
 
-    @PostMapping("/{id}")
-    public SingleResponse<OrderDTO> update(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateOrderCmd cmd) {
-        return SingleResponse.of(orderService.update(id, cmd));
+    @PostMapping("/update")
+    public SingleResponse<OrderDTO> update(@Valid @RequestBody UpdateOrderCmd cmd) {
+        return SingleResponse.of(orderService.update(cmd));
     }
 }
 ```
