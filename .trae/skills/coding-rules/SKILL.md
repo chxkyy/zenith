@@ -263,7 +263,7 @@ public MultiResponse<SysUserDTO> findAll() {
 @PostMapping("/search")
 public PageResponse<SysUserDTO> search(@RequestBody @Validated SysUserQry qry) {
     PageInfo<SysUserDTO> pageInfo = sysUserService.search(qry);
-    return PageResponse.of(pageInfo.getList(), pageInfo.getTotal());
+    return PageResponseUtils.of(pageInfo);
 }
 ```
 
@@ -510,7 +510,7 @@ public class SysUserController {
     @PostMapping("/search")
     public PageResponse<SysUserDTO> search(@RequestBody @Validated SysUserQry qry) {
         PageInfo<SysUserDTO> pageInfo = sysUserService.search(qry);
-        return PageResponse.of(pageInfo.getList(), pageInfo.getTotal());
+        return PageResponseUtils.of(pageInfo);
     }
 
     @Operation(summary = "创建用户")
