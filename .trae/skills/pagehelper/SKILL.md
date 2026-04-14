@@ -205,6 +205,8 @@ public class UserQry extends PageQuery {
 
 ### 标准分页方法
 
+**【强制】DO → DTO 转换后手动构建 PageInfo，不使用 Converter 的 toDTOPage 方法**
+
 ```java
 @Service
 @RequiredArgsConstructor
@@ -220,14 +222,22 @@ public class UserService {
         PageHelper.startPage(qry.getPageIndex(), qry.getPageSize());
         List<UserDO> list = userMapper.selectByCondition(qry);
         PageInfo<UserDO> pageInfo = new PageInfo<>(list);
-        
-        // 转换为 DTO
-        return userConverter.toDTOPage(pageInfo);
+
+        // DO → DTO 转换
+        PageInfo<UserDTO> result = new PageInfo<>();
+        result.setTotal(pageInfo.getTotal());
+        result.setPageNum(pageInfo.getPageNum());
+        result.setPageSize(pageInfo.getPageSize());
+        result.setPages(pageInfo.getPages());
+        result.setList(userConverter.toDTOList(pageInfo.getList()));
+        return result;
     }
 }
 ```
 
-### Converter 支持 PageInfo 转换
+### Converter 接口定义
+
+**【强制】Converter 只需定义单个对象和列表转换方法，不定义 toDTOPage**
 
 ```java
 @Mapper(componentModel = "spring")
@@ -236,19 +246,6 @@ public interface UserConverter {
     UserDTO toDTO(UserDO entity);
 
     List<UserDTO> toDTOList(List<UserDO> entities);
-
-    /**
-     * 转换 PageInfo
-     */
-    default PageInfo<UserDTO> toDTOPage(PageInfo<UserDO> pageInfo) {
-        PageInfo<UserDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(toDTOList(pageInfo.getList()));
-        return result;
-    }
 }
 ```
 
