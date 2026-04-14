@@ -16,6 +16,8 @@ allowed-tools: Read, Grep, Glob, Write, Edit
 
 ## Controller with DTOs
 
+**【强制】仅使用 GET 和 POST 方法，禁止使用 PUT、PATCH、DELETE 等其他HTTP方法**
+
 ```java
 @RestController
 @RequestMapping("/api/v1/users")
@@ -43,13 +45,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")  // 更新使用 POST
     public ResponseEntity<UserResponse> update(
             @PathVariable Long id, @Valid @RequestBody UpdateUserRequest dto) {
         return ResponseEntity.ok(userService.update(id, dto));
     }
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/delete")  // 删除使用 POST
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);

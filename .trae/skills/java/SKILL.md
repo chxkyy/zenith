@@ -158,54 +158,51 @@ try (var reader = new BufferedReader(new FileReader(file))) {
 
 ### Error Handling
 
+**【强制】必须使用 COLA 异常体系，禁止自定义异常类**
+
 ```java
-// Custom exception hierarchy
-public abstract class BaseException extends RuntimeException {
-    private final String errorCode;
-    private final int httpStatus;
+// 使用 COLA 提供的 BizException 和 SysException
+// BizException - 业务异常（如：用户不存在、参数错误）
+// SysException - 系统异常（如：数据库错误、RPC 调用失败）
 
-    protected BaseException(String message, String errorCode, int httpStatus) {
-        super(message);
-        this.errorCode = errorCode;
-        this.httpStatus = httpStatus;
-    }
+// 抛出业务异常示例
+throw new BizException("USER_NOT_FOUND", "用户不存在");
 
-    public String getErrorCode() { return errorCode; }
-    public int getHttpStatus() { return httpStatus; }
-}
+// 抛出系统异常示例
+throw new SysException("DB_ERROR", "数据库连接失败");
 
-public class EntityNotFoundException extends BaseException {
-    public EntityNotFoundException(String entity, Object id) {
-        super(
-            String.format("%s not found with id: %s", entity, id),
-            "NOT_FOUND",
-            404
-        );
-    }
-}
-
-// Global exception handler
+// 全局异常处理器（使用 COLA Response）
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex) {
-        log.warn("Business error: {}", ex.getMessage());
-        return ResponseEntity
-            .status(ex.getHttpStatus())
-            .body(new ErrorResponse(ex.getErrorCode(), ex.getMessage()));
+    @ExceptionHandler(BizException.class)
+    public Response handleBizException(BizException ex) {
+        log.warn("业务异常: errCode={}, errMessage={}", ex.getErrCode(), ex.getMessage());
+        return Response.buildFailure(ex.getErrCode(), ex.getMessage());
+    }
+
+    @ExceptionHandler(SysException.class)
+    public Response handleSysException(SysException ex) {
+        log.error("系统异常: errCode={}, errMessage={}", ex.getErrCode(), ex.getMessage(), ex);
+        return Response.buildFailure(ex.getErrCode(), ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
-        log.error("Unexpected error", ex);
-        return ResponseEntity
-            .status(500)
-            .body(new ErrorResponse("INTERNAL_ERROR", "An unexpected error occurred"));
+    public Response handleUnexpected(Exception ex) {
+        log.error("未知异常", ex);
+        return Response.buildFailure("UNKNOWN_ERROR", "系统繁忙，请稍后重试");
     }
 }
 ```
+
+**COLA 异常说明**：
+
+| 异常类型 | 使用场景 | 错误码示例 |
+|---------|---------|-----------|
+| `BizException` | 业务异常（参数错误、业务规则违反等） | `USER_NOT_FOUND`、`PARAM_ERROR` |
+| `SysException` | 系统异常（数据库错误、RPC 失败等） | `DB_ERROR`、`RPC_TIMEOUT` |
+| `Exception` | 未知异常，统一返回友好提示 | `UNKNOWN_ERROR` |
 
 ### Null Safety
 

@@ -8,3 +8,5 @@ coverage/
 !.env.example
 /backend-java/target/
 /.idea/
+/uploads/
+/backend-java/uploads/
