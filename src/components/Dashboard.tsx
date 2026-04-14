@@ -17,7 +17,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/stats')
+    fetch('/api/stats/overview')
       .then(async res => {
         const text = await res.text();
         if (res.status === 503) {

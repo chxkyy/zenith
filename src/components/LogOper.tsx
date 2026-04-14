@@ -75,7 +75,13 @@ const LogOper: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!confirm('确定删除该日志吗？')) return;
     try {
-      const response = await fetch(`/api/oper-logs/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/oper-logs/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
+      });
       const data = await response.json();
       if (data.success) {
         fetchLogs();

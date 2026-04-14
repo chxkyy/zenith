@@ -94,7 +94,7 @@ export default function UserTable() {
     setLoading(true);
     const isEdit = user.id !== undefined;
     const url = isEdit ? '/api/users' : '/api/users';
-    const method = isEdit ? 'PUT' : 'POST';
+    const method = isEdit ? 'POST' : 'POST';
 
     fetch(url, {
       method: method,
@@ -154,8 +154,12 @@ export default function UserTable() {
   const handleDeleteUser = (id: number) => {
     if (window.confirm('删除后用户数据不可恢复，关联角色自动解除，是否确认删除？')) {
       setLoading(true);
-      fetch(`/api/users/${id}`, {
-        method: 'DELETE'
+      fetch(`/api/users/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
       })
         .then(res => {
           if (!res.ok) {
@@ -214,7 +218,7 @@ export default function UserTable() {
     if (window.confirm(`确定要将用户状态切换为${newStatus === 1 ? '活跃' : '禁用'}吗？`)) {
       setLoading(true);
       fetch(`/api/users/status/${id}?status=${newStatus}`, {
-        method: 'PUT'
+        method: 'POST'
       })
         .then(res => {
           if (!res.ok) {

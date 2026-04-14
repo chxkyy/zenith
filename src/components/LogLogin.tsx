@@ -73,7 +73,13 @@ const LogLogin: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!confirm('确定删除该日志吗？')) return;
     try {
-      const response = await fetch(`/api/login-logs/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/login-logs/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
+      });
       const data = await response.json();
       if (data.success) {
         fetchLogs();

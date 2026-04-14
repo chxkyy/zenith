@@ -46,12 +46,12 @@ export default function RoleTable() {
   const handleDeleteRole = (id: number) => {
     if (window.confirm('删除后角色数据不可恢复，关联用户自动解除该角色，是否确认删除？')) {
       setLoading(true);
-      fetch('/api/roles', {
-        method: 'DELETE',
+      fetch('/api/roles/delete', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ roleId: id })
+        body: JSON.stringify({ id })
       })
         .then(res => {
           if (!res.ok) {
@@ -96,7 +96,7 @@ export default function RoleTable() {
     if (window.confirm(`确定要将角色状态切换为${newStatus === 1 ? '启用' : '禁用'}吗？`)) {
       setLoading(true);
       fetch(`/api/roles/status?roleId=${id}&status=${newStatus}`, {
-        method: 'PUT'
+        method: 'POST'
       })
         .then(res => {
           if (!res.ok) {

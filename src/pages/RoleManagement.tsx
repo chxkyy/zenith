@@ -93,7 +93,7 @@ export default function RoleManagement() {
     setLoading(true);
     const isEdit = role.id !== undefined;
     const url = isEdit ? '/api/roles' : '/api/roles';
-    const method = isEdit ? 'PUT' : 'POST';
+    const method = isEdit ? 'POST' : 'POST';
 
     fetch(url, {
       method: method,
@@ -137,7 +137,7 @@ export default function RoleManagement() {
     if (window.confirm('删除后，该角色关联的用户权限将全部解除，是否确认删除？')) {
       setLoading(true);
       fetch(`/api/roles?roleId=${id}`, {
-        method: 'DELETE'
+        method: 'POST'
       })
         .then(res => {
           if (!res.ok) {
@@ -167,7 +167,7 @@ export default function RoleManagement() {
     if (window.confirm(`确定要将角色状态切换为${newStatus === 1 ? '启用' : '禁用'}吗？`)) {
       setLoading(true);
       fetch(`/api/roles/status?roleId=${id}&status=${newStatus}`, {
-        method: 'PUT'
+        method: 'POST'
       })
         .then(res => {
           if (!res.ok) {

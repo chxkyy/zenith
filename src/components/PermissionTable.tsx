@@ -357,7 +357,7 @@ export default function PermissionTable() {
         });
       } else if (modalMode === 'edit' && selectedPermission) {
         response = await fetch('/api/menus', {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -398,8 +398,12 @@ export default function PermissionTable() {
     if (window.confirm('删除后，关联该权限的角色将直接失去对应操作权限，是否确认删除？')) {
       setLoading(true);
       try {
-        const response = await fetch(`/api/menus/${id}`, {
-          method: 'DELETE',
+        const response = await fetch(`/api/menus/delete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id })
         });
 
         if (!response.ok) {

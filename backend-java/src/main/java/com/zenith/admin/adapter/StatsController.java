@@ -15,6 +15,11 @@ public class StatsController {
 
     private final StatsService statsService;
 
+    @GetMapping("/health")
+    public Map<String, String> health() {
+        return Map.of("status", "UP");
+    }
+
     @GetMapping("/overview")
     public Map<String, Object> getOverview() {
         return statsService.getOverview();

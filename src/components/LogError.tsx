@@ -71,7 +71,13 @@ const LogError: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!confirm('确定删除该异常日志吗？')) return;
     try {
-      const response = await fetch(`/api/error-logs/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/error-logs/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
+      });
       const data = await response.json();
       if (data.success) {
         fetchLogs();
@@ -84,7 +90,9 @@ const LogError: React.FC = () => {
   const handleClear = async () => {
     if (!confirm('确定清理3个月前的所有异常日志吗？')) return;
     try {
-      const response = await fetch('/api/error-logs/clear?months=3', { method: 'DELETE' });
+      const response = await fetch(`/api/error-logs/clear?months=3`, {
+        method: 'POST'
+      });
       const data = await response.json();
       if (data.success) {
         fetchLogs();

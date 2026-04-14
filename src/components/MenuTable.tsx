@@ -342,7 +342,7 @@ export default function MenuTable() {
         });
       } else if (modalMode === 'edit' && selectedMenu) {
         response = await fetch('/api/menus', {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -383,8 +383,12 @@ export default function MenuTable() {
     if (window.confirm('删除后，子菜单、关联权限及按钮将一并删除且不可恢复，是否确认删除？')) {
       setLoading(true);
       try {
-        const response = await fetch(`/api/menus/${id}`, {
-          method: 'DELETE',
+        const response = await fetch(`/api/menus/delete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id })
         });
 
         if (!response.ok) {

@@ -329,7 +329,7 @@ export default function DictTable() {
   const handleDictTypeSave = async () => {
     try {
       const url = dictTypeModal.type === 'add' ? '/api/dicts' : '/api/dicts';
-      const method = dictTypeModal.type === 'add' ? 'POST' : 'PUT';
+      const method = dictTypeModal.type === 'add' ? 'POST' : 'POST';
       const response = await fetch(url, {
         method,
         headers: {
@@ -378,7 +378,11 @@ export default function DictTable() {
     if (!dictTypeModal.data) return;
     try {
       const response = await fetch(`/api/dicts?` + new URLSearchParams({ id: dictTypeModal.data.id.toString() }), {
-        method: 'DELETE'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: record.id })
       });
       if (!response.ok) {
         throw new Error('Failed to delete dict type');
@@ -419,7 +423,7 @@ export default function DictTable() {
   const handleDictItemSave = async () => {
     try {
       const url = dictItemModal.type === 'add' ? '/api/dict/items' : '/api/dict/items';
-      const method = dictItemModal.type === 'add' ? 'POST' : 'PUT';
+      const method = dictItemModal.type === 'add' ? 'POST' : 'POST';
       const response = await fetch(url, {
         method,
         headers: {
@@ -468,7 +472,11 @@ export default function DictTable() {
     if (!dictItemModal.data) return;
     try {
       const response = await fetch(`/api/dict/items?` + new URLSearchParams({ id: dictItemModal.data.id.toString() }), {
-        method: 'DELETE'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: record.id })
       });
       if (!response.ok) {
         throw new Error('Failed to delete dict item');

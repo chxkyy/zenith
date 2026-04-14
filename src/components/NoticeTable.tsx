@@ -188,7 +188,7 @@ export default function NoticeTable() {
   const handleSaveNotice = async () => {
     try {
       const url = formData.id ? '/api/notices' : '/api/notices';
-      const method = formData.id ? 'PUT' : 'POST';
+      const method = formData.id ? 'POST' : 'POST';
       
       const response = await fetch(url, {
         method,
@@ -233,8 +233,12 @@ export default function NoticeTable() {
     if (!currentNotice) return;
     
     try {
-      const response = await fetch(`/api/notices?` + new URLSearchParams({ id: currentNotice.id.toString() }), {
-        method: 'DELETE'
+      const response = await fetch(`/api/notices/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: currentNotice.id })
       });
       
       if (!response.ok) {
@@ -275,7 +279,7 @@ export default function NoticeTable() {
         id: notice.id.toString(), 
         status: newStatus 
       }), {
-        method: 'PUT'
+        method: 'POST'
       });
       
       if (!response.ok) {
