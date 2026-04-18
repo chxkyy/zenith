@@ -483,7 +483,7 @@ export default function UserTable() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{user.role}</span>
+                    <span className="text-sm text-slate-600">{user.roleNames || user.role}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={cn(
