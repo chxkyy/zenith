@@ -3,12 +3,11 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.domain.model.UserEntity;
-import com.zenith.admin.dto.dataobject.UserDTO;
-import com.zenith.admin.dto.dataobject.UserPageQuery;
 import com.zenith.admin.UserConvertor;
 import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.dataobject.UserDO;
+import com.zenith.admin.dto.dataobject.UserDTO;
+import com.zenith.admin.dto.dataobject.UserPageQuery;
 import com.zenith.admin.mapper.OrgMapper;
 import com.zenith.admin.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -62,8 +61,7 @@ public class UserService {
         List<UserDO> userDOS = userMapper.selectList(wrapper);
         PageInfo<UserDO> pageInfo = new PageInfo<>(userDOS);
 
-        List<UserEntity> entities = userConvertor.toEntityList(userDOS);
-        List<UserDTO> dtos = userConvertor.toDTOList(entities);
+        List<UserDTO> dtos = userConvertor.toDTOList(userDOS);
 
         PageInfo<UserDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -75,8 +73,7 @@ public class UserService {
     }
 
     public void save(UserDTO userDTO) {
-        UserEntity entity = userConvertor.toEntity(userDTO);
-        UserDO userDO = userConvertor.toDataObject(entity);
+        UserDO userDO = userConvertor.toDataObject(userDTO);
         if (userDO.getId() == null) {
             userMapper.insert(userDO);
         } else {
@@ -85,15 +82,14 @@ public class UserService {
     }
 
     public void update(UserDTO userDTO) {
-        UserEntity entity = userConvertor.toEntity(userDTO);
-        UserDO userDO = userConvertor.toDataObject(entity);
+        UserDO userDO = userConvertor.toDataObject(userDTO);
         userMapper.updateById(userDO);
     }
 
     public void delete(Long id) {
-        UserEntity user = getByIdEntity(id);
-        if (user != null) {
-            if ("admin".equals(user.getUsername()) || "ADMIN".equals(user.getRole())) {
+        UserDO userDO = userMapper.selectById(id);
+        if (userDO != null) {
+            if ("admin".equals(userDO.getUsername()) || "ADMIN".equals(userDO.getRole())) {
                 throw new RuntimeException("超级管理员账号不可删除");
             }
             userMapper.deleteById(id);
@@ -101,31 +97,24 @@ public class UserService {
     }
 
     public UserDTO getById(Long id) {
-        UserEntity entity = getByIdEntity(id);
-        return userConvertor.toDTO(entity);
-    }
-
-    private UserEntity getByIdEntity(Long id) {
         UserDO userDO = userMapper.selectById(id);
-        return userConvertor.toEntity(userDO);
+        return userConvertor.toDTO(userDO);
     }
 
     public void resetPassword(Long id) {
-        UserEntity user = getByIdEntity(id);
-        if (user != null) {
-            UserDO userDO = userConvertor.toDataObject(user);
+        UserDO userDO = userMapper.selectById(id);
+        if (userDO != null) {
             userMapper.updateById(userDO);
         }
     }
 
     public void changeStatus(Long id, Integer status) {
-        UserEntity user = getByIdEntity(id);
-        if (user != null) {
-            if (0 == status && ("admin".equals(user.getUsername()) || "ADMIN".equals(user.getRole()))) {
+        UserDO userDO = userMapper.selectById(id);
+        if (userDO != null) {
+            if (0 == status && ("admin".equals(userDO.getUsername()) || "ADMIN".equals(userDO.getRole()))) {
                 throw new RuntimeException("超级管理员账号不可禁用");
             }
-            user.setStatus(status);
-            UserDO userDO = userConvertor.toDataObject(user);
+            userDO.setStatus(status);
             userMapper.updateById(userDO);
         }
     }

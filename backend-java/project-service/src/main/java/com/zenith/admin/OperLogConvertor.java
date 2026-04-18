@@ -1,6 +1,5 @@
 package com.zenith.admin;
 
-import com.zenith.admin.domain.model.OperLogEntity;
 import com.zenith.admin.dto.dataobject.OperLogDTO;
 import com.zenith.admin.dataobject.OperLogDO;
 import org.mapstruct.Mapper;
@@ -12,10 +11,11 @@ import java.util.List;
 public interface OperLogConvertor {
     OperLogConvertor INSTANCE = Mappers.getMapper(OperLogConvertor.class);
 
-    OperLogEntity toEntity(OperLogDO operLogDO);
-    OperLogEntity toEntity(OperLogDTO operLogDTO);
-    OperLogDO toDataObject(OperLogEntity operLogEntity);
-    OperLogDTO toDTO(OperLogEntity operLogEntity);
-    List<OperLogEntity> toEntityList(List<OperLogDO> operLogDOList);
-    List<OperLogDTO> toDTOList(List<OperLogEntity> operLogEntityList);
+    OperLogDO toDataObject(OperLogDTO operLogDTO);
+
+    OperLogDTO toDTO(OperLogDO operLogDO);
+
+    List<OperLogDTO> toDTOList(List<OperLogDO> operLogDOList);
+
+    List<OperLogDO> toDataObjectList(List<OperLogDTO> operLogDTOList);
 }

@@ -1,6 +1,5 @@
 package com.zenith.admin;
 
-import com.zenith.admin.domain.model.RoleEntity;
 import com.zenith.admin.dto.dataobject.RoleDTO;
 import com.zenith.admin.dataobject.RoleDO;
 import org.mapstruct.Mapper;
@@ -12,15 +11,11 @@ import java.util.List;
 public interface RoleConvertor {
     RoleConvertor INSTANCE = Mappers.getMapper(RoleConvertor.class);
 
-    RoleEntity toEntity(RoleDO roleDO);
+    RoleDO toDataObject(RoleDTO roleDTO);
 
-    RoleEntity toEntity(RoleDTO roleDTO);
+    RoleDTO toDTO(RoleDO roleDO);
 
-    RoleDO toDataObject(RoleEntity roleEntity);
+    List<RoleDTO> toDTOList(List<RoleDO> roleDOList);
 
-    RoleDTO toDTO(RoleEntity roleEntity);
-
-    List<RoleEntity> toEntityList(List<RoleDO> roleDOList);
-
-    List<RoleDTO> toDTOList(List<RoleEntity> roleEntityList);
+    List<RoleDO> toDataObjectList(List<RoleDTO> roleDTOList);
 }

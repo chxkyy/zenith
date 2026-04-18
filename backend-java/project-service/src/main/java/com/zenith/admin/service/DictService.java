@@ -3,8 +3,6 @@ package com.zenith.admin.service;
 import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.domain.model.DictEntity;
-import com.zenith.admin.domain.model.DictItemEntity;
 import com.zenith.admin.dto.dataobject.DictDTO;
 import com.zenith.admin.dto.dataobject.DictItemDTO;
 import com.zenith.admin.dto.dataobject.DictPageQuery;
@@ -29,8 +27,7 @@ public class DictService {
 
     public MultiResponse<DictDTO> listAll() {
         List<DictDO> dictDOS = dictMapper.selectList(null);
-        List<DictEntity> entities = dictConvertor.toEntityList(dictDOS);
-        List<DictDTO> dtos = dictConvertor.toDTOList(entities);
+        List<DictDTO> dtos = dictConvertor.toDTOList(dictDOS);
         return MultiResponse.of(dtos);
     }
 
@@ -38,21 +35,18 @@ public class DictService {
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictDO::getType, type);
         List<DictDO> dictDOS = dictMapper.selectList(queryWrapper);
-        List<DictEntity> entities = dictConvertor.toEntityList(dictDOS);
-        List<DictDTO> dtos = dictConvertor.toDTOList(entities);
+        List<DictDTO> dtos = dictConvertor.toDTOList(dictDOS);
         return MultiResponse.of(dtos);
     }
 
     public void update(DictDTO dictDTO) {
-        DictEntity entity = dictConvertor.toEntity(dictDTO);
-        DictDO dictDO = dictConvertor.toDataObject(entity);
+        DictDO dictDO = dictConvertor.toDataObject(dictDTO);
         dictMapper.updateById(dictDO);
     }
 
     public DictDTO getById(Long id) {
         DictDO dictDO = dictMapper.selectById(id);
-        DictEntity entity = dictConvertor.toEntity(dictDO);
-        return dictConvertor.toDTO(entity);
+        return dictConvertor.toDTO(dictDO);
     }
 
     public PageInfo<DictDTO> page(DictPageQuery query) {
@@ -65,8 +59,7 @@ public class DictService {
         }
         List<DictDO> dictDOS = dictMapper.selectList(queryWrapper);
         com.github.pagehelper.PageInfo<DictDO> pageInfo = new com.github.pagehelper.PageInfo<>(dictDOS);
-        List<DictEntity> entities = dictConvertor.toEntityList(pageInfo.getList());
-        List<DictDTO> dtos = dictConvertor.toDTOList(entities);
+        List<DictDTO> dtos = dictConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<DictDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -100,8 +93,7 @@ public class DictService {
         if (count > 0) {
             throw new com.alibaba.cola.exception.BizException("DICT_TYPE_EXIST", "字典类型编码已存在");
         }
-        DictEntity entity = dictConvertor.toEntity(dictDTO);
-        DictDO dictDO = dictConvertor.toDataObject(entity);
+        DictDO dictDO = dictConvertor.toDataObject(dictDTO);
         if (dictDO.getId() == null) {
             dictMapper.insert(dictDO);
         } else {
@@ -113,8 +105,7 @@ public class DictService {
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, type).orderByAsc(DictItemDO::getSort);
         List<DictItemDO> dictItemDOS = dictItemMapper.selectList(queryWrapper);
-        List<DictItemEntity> entities = dictConvertor.toItemEntityList(dictItemDOS);
-        List<DictItemDTO> dtos = dictConvertor.toItemDTOList(entities);
+        List<DictItemDTO> dtos = dictConvertor.toItemDTOList(dictItemDOS);
         return MultiResponse.of(dtos);
     }
 
@@ -130,8 +121,7 @@ public class DictService {
         queryWrapper.orderByAsc(DictItemDO::getSort);
         List<DictItemDO> dictItemDOS = dictItemMapper.selectList(queryWrapper);
         com.github.pagehelper.PageInfo<DictItemDO> pageInfo = new com.github.pagehelper.PageInfo<>(dictItemDOS);
-        List<DictItemEntity> entities = dictConvertor.toItemEntityList(pageInfo.getList());
-        List<DictItemDTO> dtos = dictConvertor.toItemDTOList(entities);
+        List<DictItemDTO> dtos = dictConvertor.toItemDTOList(pageInfo.getList());
 
         PageInfo<DictItemDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -153,8 +143,7 @@ public class DictService {
         if (count > 0) {
             throw new com.alibaba.cola.exception.BizException("DICT_ITEM_VALUE_EXIST", "同类型下字典项值已存在");
         }
-        DictItemEntity entity = dictConvertor.toItemEntity(dictItemDTO);
-        DictItemDO dictItemDO = dictConvertor.toItemDataObject(entity);
+        DictItemDO dictItemDO = dictConvertor.toItemDataObject(dictItemDTO);
         if (dictItemDO.getId() == null) {
             dictItemMapper.insert(dictItemDO);
         } else {
@@ -163,8 +152,7 @@ public class DictService {
     }
 
     public void updateItem(DictItemDTO dictItemDTO) {
-        DictItemEntity entity = dictConvertor.toItemEntity(dictItemDTO);
-        DictItemDO dictItemDO = dictConvertor.toItemDataObject(entity);
+        DictItemDO dictItemDO = dictConvertor.toItemDataObject(dictItemDTO);
         dictItemMapper.updateById(dictItemDO);
     }
 
@@ -174,7 +162,6 @@ public class DictService {
 
     public DictItemDTO getItemById(Long id) {
         DictItemDO dictItemDO = dictItemMapper.selectById(id);
-        DictItemEntity entity = dictConvertor.toItemEntity(dictItemDO);
-        return dictConvertor.toItemDTO(entity);
+        return dictConvertor.toItemDTO(dictItemDO);
     }
 }

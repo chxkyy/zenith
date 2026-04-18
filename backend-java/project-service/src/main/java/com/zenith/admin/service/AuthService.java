@@ -1,14 +1,11 @@
 package com.zenith.admin.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zenith.admin.domain.model.UserEntity;
-import com.zenith.admin.UserConvertor;
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -18,7 +15,6 @@ import java.util.UUID;
 public class AuthService {
 
     private final UserMapper userMapper;
-    private final UserConvertor userConvertor;
 
     public Map<String, Object> login(String username, String password) {
         Map<String, Object> result = new HashMap<>();

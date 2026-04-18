@@ -4,7 +4,6 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.domain.model.RoleEntity;
 import com.zenith.admin.dto.dataobject.RoleDTO;
 import com.zenith.admin.dto.dataobject.RolePageQuery;
 import com.zenith.admin.RoleConvertor;
@@ -21,12 +20,10 @@ public class RoleService {
 
     private final RoleMapper roleMapper;
     private final RoleConvertor roleConvertor;
-    private final RoleCacheService roleCacheService;
 
     public MultiResponse<RoleDTO> listAll() {
         List<RoleDO> roleDOS = roleMapper.selectList(null);
-        List<RoleEntity> entities = roleConvertor.toEntityList(roleDOS);
-        List<RoleDTO> dtos = roleConvertor.toDTOList(entities);
+        List<RoleDTO> dtos = roleConvertor.toDTOList(roleDOS);
         return MultiResponse.of(dtos);
     }
 
@@ -37,7 +34,7 @@ public class RoleService {
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
             wrapper.like("name", query.getKeyword())
-                   .or().like("code", query.getKeyword());
+                    .or().like("code", query.getKeyword());
         }
 
         if (query.getStatus() != null) {
@@ -52,8 +49,7 @@ public class RoleService {
         List<RoleDO> roleDOS = roleMapper.selectList(wrapper);
         PageInfo<RoleDO> pageInfo = new PageInfo<>(roleDOS);
 
-        List<RoleEntity> entities = roleConvertor.toEntityList(roleDOS);
-        List<RoleDTO> dtos = roleConvertor.toDTOList(entities);
+        List<RoleDTO> dtos = roleConvertor.toDTOList(roleDOS);
 
         PageInfo<RoleDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -65,57 +61,46 @@ public class RoleService {
     }
 
     public void save(RoleDTO roleDTO) {
-        RoleEntity entity = roleConvertor.toEntity(roleDTO);
-        RoleDO roleDO = roleConvertor.toDataObject(entity);
+        RoleDO roleDO = roleConvertor.toDataObject(roleDTO);
         if (roleDO.getId() == null) {
             roleMapper.insert(roleDO);
         } else {
             roleMapper.updateById(roleDO);
         }
-        roleCacheService.refreshCache();
     }
 
     public void update(RoleDTO roleDTO) {
-        RoleEntity entity = roleConvertor.toEntity(roleDTO);
-        RoleEntity existingRole = getByIdEntity(roleDTO.getId());
+        RoleDO existingRole = roleMapper.selectById(roleDTO.getId());
         if (existingRole != null && "ADMIN".equals(existingRole.getCode())) {
-            entity.setCode(existingRole.getCode());
+            roleDTO.setCode(existingRole.getCode());
         }
-        RoleDO roleDO = roleConvertor.toDataObject(entity);
+        RoleDO roleDO = roleConvertor.toDataObject(roleDTO);
         roleMapper.updateById(roleDO);
-        roleCacheService.refreshCache();
     }
 
     public void delete(Long id) {
-        RoleEntity role = getByIdEntity(id);
+        RoleDO role = roleMapper.selectById(id);
         if (role != null) {
             if ("ADMIN".equals(role.getCode())) {
                 throw new RuntimeException("超级管理员角色不可删除");
             }
             roleMapper.deleteById(id);
-            roleCacheService.refreshCache();
         }
     }
 
     public RoleDTO getById(Long id) {
-        RoleEntity entity = getByIdEntity(id);
-        return roleConvertor.toDTO(entity);
-    }
-
-    private RoleEntity getByIdEntity(Long id) {
         RoleDO roleDO = roleMapper.selectById(id);
-        return roleConvertor.toEntity(roleDO);
+        return roleConvertor.toDTO(roleDO);
     }
 
     public void changeStatus(Long id, Integer status) {
-        RoleEntity role = getByIdEntity(id);
+        RoleDO role = roleMapper.selectById(id);
         if (role != null) {
             if (0 == status && "ADMIN".equals(role.getCode())) {
                 throw new RuntimeException("超级管理员角色不可禁用");
             }
             role.setStatus(status);
-            RoleDO roleDO = roleConvertor.toDataObject(role);
-            roleMapper.updateById(roleDO);
+            roleMapper.updateById(role);
         }
     }
 }

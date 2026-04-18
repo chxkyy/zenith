@@ -1,6 +1,5 @@
 package com.zenith.admin;
 
-import com.zenith.admin.domain.model.UserEntity;
 import com.zenith.admin.dto.dataobject.UserDTO;
 import com.zenith.admin.dataobject.UserDO;
 import org.mapstruct.Mapper;
@@ -12,15 +11,9 @@ import java.util.List;
 public interface UserConvertor {
     UserConvertor INSTANCE = Mappers.getMapper(UserConvertor.class);
 
-    UserEntity toEntity(UserDO userDO);
+    UserDTO toDTO(UserDO userDO);
 
-    UserEntity toEntity(UserDTO userDTO);
+    UserDO toDataObject(UserDTO userDTO);
 
-    UserDO toDataObject(UserEntity userEntity);
-
-    UserDTO toDTO(UserEntity userEntity);
-
-    List<UserEntity> toEntityList(List<UserDO> userDOList);
-
-    List<UserDTO> toDTOList(List<UserEntity> userEntityList);
+    List<UserDTO> toDTOList(List<UserDO> userDOList);
 }

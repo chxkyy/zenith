@@ -4,7 +4,6 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.domain.model.MenuEntity;
 import com.zenith.admin.dto.dataobject.MenuDTO;
 import com.zenith.admin.dto.dataobject.MenuPageQuery;
 import com.zenith.admin.MenuConvertor;
@@ -24,8 +23,7 @@ public class MenuService {
 
     public MultiResponse<MenuDTO> listAll() {
         List<MenuDO> menuDOS = menuMapper.selectList(null);
-        List<MenuEntity> entities = menuConvertor.toEntityList(menuDOS);
-        List<MenuDTO> dtos = menuConvertor.toDTOList(entities);
+        List<MenuDTO> dtos = menuConvertor.toDTOList(menuDOS);
         return MultiResponse.of(dtos);
     }
 
@@ -36,7 +34,7 @@ public class MenuService {
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
             queryWrapper.and(wrapper -> {
                 wrapper.like(MenuDO::getName, query.getKeyword())
-                       .or().like(MenuDO::getPath, query.getKeyword());
+                        .or().like(MenuDO::getPath, query.getKeyword());
             });
         }
 
@@ -51,8 +49,7 @@ public class MenuService {
         queryWrapper.orderByAsc(MenuDO::getSort);
         List<MenuDO> menuDOS = menuMapper.selectList(queryWrapper);
         PageInfo<MenuDO> pageInfo = new PageInfo<>(menuDOS);
-        List<MenuEntity> entities = menuConvertor.toEntityList(pageInfo.getList());
-        List<MenuDTO> dtos = menuConvertor.toDTOList(entities);
+        List<MenuDTO> dtos = menuConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<MenuDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -64,8 +61,7 @@ public class MenuService {
     }
 
     public void save(MenuDTO menuDTO) {
-        MenuEntity entity = menuConvertor.toEntity(menuDTO);
-        MenuDO menuDO = menuConvertor.toDataObject(entity);
+        MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
         if (menuDO.getId() == null) {
             menuMapper.insert(menuDO);
         } else {
@@ -74,8 +70,7 @@ public class MenuService {
     }
 
     public void update(MenuDTO menuDTO) {
-        MenuEntity entity = menuConvertor.toEntity(menuDTO);
-        MenuDO menuDO = menuConvertor.toDataObject(entity);
+        MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
         menuMapper.updateById(menuDO);
     }
 
@@ -85,7 +80,6 @@ public class MenuService {
 
     public MenuDTO getById(Long id) {
         MenuDO menuDO = menuMapper.selectById(id);
-        MenuEntity entity = menuConvertor.toEntity(menuDO);
-        return menuConvertor.toDTO(entity);
+        return menuConvertor.toDTO(menuDO);
     }
 }

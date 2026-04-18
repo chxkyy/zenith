@@ -1,6 +1,5 @@
 package com.zenith.admin;
 
-import com.zenith.admin.domain.model.OrgEntity;
 import com.zenith.admin.dto.dataobject.OrgDTO;
 import com.zenith.admin.dataobject.OrgDO;
 import org.mapstruct.Mapper;
@@ -12,15 +11,11 @@ import java.util.List;
 public interface OrgConvertor {
     OrgConvertor INSTANCE = Mappers.getMapper(OrgConvertor.class);
 
-    OrgEntity toEntity(OrgDO orgDO);
+    OrgDO toDataObject(OrgDTO orgDTO);
 
-    OrgEntity toEntity(OrgDTO orgDTO);
+    OrgDTO toDTO(OrgDO orgDO);
 
-    OrgDO toDataObject(OrgEntity orgEntity);
+    List<OrgDTO> toDTOList(List<OrgDO> orgDOList);
 
-    OrgDTO toDTO(OrgEntity orgEntity);
-
-    List<OrgEntity> toEntityList(List<OrgDO> orgDOList);
-
-    List<OrgDTO> toDTOList(List<OrgEntity> orgEntityList);
+    List<OrgDO> toDataObjectList(List<OrgDTO> orgDTOList);
 }

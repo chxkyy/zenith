@@ -4,7 +4,6 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.domain.model.OrgEntity;
 import com.zenith.admin.dto.dataobject.OrgDTO;
 import com.zenith.admin.dto.dataobject.OrgPageQuery;
 import com.zenith.admin.OrgConvertor;
@@ -24,8 +23,7 @@ public class OrgService {
 
     public MultiResponse<OrgDTO> listAll() {
         List<OrgDO> orgDOS = orgMapper.selectList(null);
-        List<OrgEntity> entities = orgConvertor.toEntityList(orgDOS);
-        List<OrgDTO> dtos = orgConvertor.toDTOList(entities);
+        List<OrgDTO> dtos = orgConvertor.toDTOList(orgDOS);
         return MultiResponse.of(dtos);
     }
 
@@ -40,8 +38,7 @@ public class OrgService {
         queryWrapper.orderByAsc(OrgDO::getSort);
         List<OrgDO> orgDOS = orgMapper.selectList(queryWrapper);
         PageInfo<OrgDO> pageInfo = new PageInfo<>(orgDOS);
-        List<OrgEntity> entities = orgConvertor.toEntityList(pageInfo.getList());
-        List<OrgDTO> dtos = orgConvertor.toDTOList(entities);
+        List<OrgDTO> dtos = orgConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<OrgDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -53,8 +50,7 @@ public class OrgService {
     }
 
     public void save(OrgDTO orgDTO) {
-        OrgEntity entity = orgConvertor.toEntity(orgDTO);
-        OrgDO orgDO = orgConvertor.toDataObject(entity);
+        OrgDO orgDO = orgConvertor.toDataObject(orgDTO);
         if (orgDO.getId() == null) {
             orgMapper.insert(orgDO);
         } else {
@@ -63,8 +59,7 @@ public class OrgService {
     }
 
     public void update(OrgDTO orgDTO) {
-        OrgEntity entity = orgConvertor.toEntity(orgDTO);
-        OrgDO orgDO = orgConvertor.toDataObject(entity);
+        OrgDO orgDO = orgConvertor.toDataObject(orgDTO);
         orgMapper.updateById(orgDO);
     }
 
@@ -74,7 +69,6 @@ public class OrgService {
 
     public OrgDTO getById(Long id) {
         OrgDO orgDO = orgMapper.selectById(id);
-        OrgEntity entity = orgConvertor.toEntity(orgDO);
-        return orgConvertor.toDTO(entity);
+        return orgConvertor.toDTO(orgDO);
     }
 }

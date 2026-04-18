@@ -1,6 +1,5 @@
 package com.zenith.admin;
 
-import com.zenith.admin.domain.model.MenuEntity;
 import com.zenith.admin.dto.dataobject.MenuDTO;
 import com.zenith.admin.dataobject.MenuDO;
 import org.mapstruct.Mapper;
@@ -12,15 +11,11 @@ import java.util.List;
 public interface MenuConvertor {
     MenuConvertor INSTANCE = Mappers.getMapper(MenuConvertor.class);
 
-    MenuEntity toEntity(MenuDO menuDO);
+    MenuDO toDataObject(MenuDTO menuDTO);
 
-    MenuEntity toEntity(MenuDTO menuDTO);
+    MenuDTO toDTO(MenuDO menuDO);
 
-    MenuDO toDataObject(MenuEntity menuEntity);
+    List<MenuDTO> toDTOList(List<MenuDO> menuDOList);
 
-    MenuDTO toDTO(MenuEntity menuEntity);
-
-    List<MenuEntity> toEntityList(List<MenuDO> menuDOList);
-
-    List<MenuDTO> toDTOList(List<MenuEntity> menuEntityList);
+    List<MenuDO> toDataObjectList(List<MenuDTO> menuDTOList);
 }

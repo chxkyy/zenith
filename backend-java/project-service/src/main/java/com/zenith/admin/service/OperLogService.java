@@ -3,7 +3,6 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.domain.model.OperLogEntity;
 import com.zenith.admin.dto.dataobject.OperLogDTO;
 import com.zenith.admin.OperLogConvertor;
 import com.zenith.admin.dataobject.OperLogDO;
@@ -37,8 +36,7 @@ public class OperLogService {
         List<OperLogDO> operLogDOS = operLogMapper.selectList(queryWrapper);
         PageInfo<OperLogDO> pageInfo = new PageInfo<>(operLogDOS);
 
-        List<OperLogEntity> entities = operLogConvertor.toEntityList(pageInfo.getList());
-        List<OperLogDTO> dtos = operLogConvertor.toDTOList(entities);
+        List<OperLogDTO> dtos = operLogConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<OperLogDTO> pageResult = new PageInfo<>();
         pageResult.setTotal(pageInfo.getTotal());
@@ -54,7 +52,7 @@ public class OperLogService {
     }
 
     public void save(OperLogDTO operLogDTO) {
-        OperLogEntity entity = operLogConvertor.toEntity(operLogDTO);
-        operLogMapper.insert(operLogConvertor.toDataObject(entity));
+        OperLogDO operLogDO = operLogConvertor.toDataObject(operLogDTO);
+        operLogMapper.insert(operLogDO);
     }
 }

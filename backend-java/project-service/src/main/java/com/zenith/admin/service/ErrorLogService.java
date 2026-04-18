@@ -3,7 +3,6 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.domain.model.ErrorLogEntity;
 import com.zenith.admin.dto.dataobject.ErrorLogDTO;
 import com.zenith.admin.ErrorLogConvertor;
 import com.zenith.admin.dataobject.ErrorLogDO;
@@ -35,8 +34,7 @@ public class ErrorLogService {
         List<ErrorLogDO> errorLogDOS = errorLogMapper.selectList(queryWrapper);
         PageInfo<ErrorLogDO> pageInfo = new PageInfo<>(errorLogDOS);
 
-        List<ErrorLogEntity> entities = errorLogConvertor.toEntityList(pageInfo.getList());
-        List<ErrorLogDTO> dtos = errorLogConvertor.toDTOList(entities);
+        List<ErrorLogDTO> dtos = errorLogConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<ErrorLogDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -58,7 +56,7 @@ public class ErrorLogService {
     }
 
     public void save(ErrorLogDTO errorLogDTO) {
-        ErrorLogEntity entity = errorLogConvertor.toEntity(errorLogDTO);
-        errorLogMapper.insert(errorLogConvertor.toDataObject(entity));
+        ErrorLogDO errorLogDO = errorLogConvertor.toDataObject(errorLogDTO);
+        errorLogMapper.insert(errorLogDO);
     }
 }

@@ -1,7 +1,5 @@
 package com.zenith.admin;
 
-import com.zenith.admin.domain.model.DictEntity;
-import com.zenith.admin.domain.model.DictItemEntity;
 import com.zenith.admin.dto.dataobject.DictDTO;
 import com.zenith.admin.dto.dataobject.DictItemDTO;
 import com.zenith.admin.dataobject.DictDO;
@@ -15,28 +13,19 @@ import java.util.List;
 public interface DictConvertor {
     DictConvertor INSTANCE = Mappers.getMapper(DictConvertor.class);
 
-    DictEntity toEntity(DictDO dictDO);
+    DictDO toDataObject(DictDTO dictDTO);
 
-    DictEntity toEntity(DictDTO dictDTO);
+    DictDTO toDTO(DictDO dictDO);
 
-    DictDO toDataObject(DictEntity dictEntity);
+    List<DictDTO> toDTOList(List<DictDO> dictDOList);
 
-    DictDTO toDTO(DictEntity dictEntity);
+    List<DictDO> toDataObjectList(List<DictDTO> dictDTOList);
 
-    List<DictEntity> toEntityList(List<DictDO> dictDOList);
+    DictItemDO toItemDataObject(DictItemDTO dictItemDTO);
 
-    List<DictDTO> toDTOList(List<DictEntity> dictEntityList);
+    DictItemDTO toItemDTO(DictItemDO dictItemDO);
 
-    // 字典项转换方法
-    DictItemEntity toItemEntity(DictItemDO dictItemDO);
+    List<DictItemDTO> toItemDTOList(List<DictItemDO> dictItemDOList);
 
-    DictItemEntity toItemEntity(DictItemDTO dictItemDTO);
-
-    DictItemDO toItemDataObject(DictItemEntity dictItemEntity);
-
-    DictItemDTO toItemDTO(DictItemEntity dictItemEntity);
-
-    List<DictItemEntity> toItemEntityList(List<DictItemDO> dictItemDOList);
-
-    List<DictItemDTO> toItemDTOList(List<DictItemEntity> dictItemEntityList);
+    List<DictItemDO> toItemDataObjectList(List<DictItemDTO> dictItemDTOList);
 }
