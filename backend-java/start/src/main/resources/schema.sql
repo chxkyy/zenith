@@ -128,25 +128,25 @@ INSERT INTO sys_org (parent_id, name, sort, status) VALUES (16, '出纳组', 2, 
 -- 字典类型表
 CREATE TABLE IF NOT EXISTS sys_dict_type (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL COMMENT '字典名称',
-    type VARCHAR(255) NOT NULL UNIQUE COMMENT '字典类型',
-    status INT DEFAULT 1 COMMENT '状态',
-    remark VARCHAR(255) COMMENT '备注',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间'
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL UNIQUE,
+    status INT DEFAULT 1,
+    remark VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 字典项表
 CREATE TABLE IF NOT EXISTS sys_dict_item (
     id BIGSERIAL PRIMARY KEY,
-    type VARCHAR(255) NOT NULL COMMENT '字典类型',
-    label VARCHAR(255) NOT NULL COMMENT '标签',
-    dict_value VARCHAR(255) NOT NULL COMMENT '值',
-    sort INT DEFAULT 0 COMMENT '排序',
-    status INT DEFAULT 1 COMMENT '状态',
-    remark VARCHAR(255) COMMENT '备注',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    type VARCHAR(255) NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    dict_value VARCHAR(255) NOT NULL,
+    sort INT DEFAULT 0,
+    status INT DEFAULT 1,
+    remark VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uk_type_value UNIQUE (type, dict_value)
 );
 

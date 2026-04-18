@@ -6,7 +6,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   sql:
     init:
-      mode: always
+      mode: NEVER
   servlet:
     multipart:
       max-file-size: 100MB
