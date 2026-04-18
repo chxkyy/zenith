@@ -1,0 +1,13 @@
+com\zenith\admin\web\DictItemController.class
+com\zenith\admin\web\StatsController.class
+com\zenith\admin\web\OperLogController.class
+com\zenith\admin\web\UserController.class
+com\zenith\admin\web\OrgController.class
+com\zenith\admin\web\MenuController.class
+com\zenith\admin\web\AuthController.class
+com\zenith\admin\web\DictController.class
+com\zenith\admin\web\RoleController.class
+com\zenith\admin\web\NoticeController.class
+com\zenith\admin\web\ErrorLogController.class
+com\zenith\admin\web\FileController.class
+com\zenith\admin\web\LoginLogController.class
