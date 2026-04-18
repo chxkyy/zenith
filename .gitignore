@@ -10,3 +10,8 @@ coverage/
 /.idea/
 /uploads/
 /backend-java/uploads/
+/backend-java/project-api/target/
+/backend-java/project-model/target/
+/backend-java/project-service/target/
+/backend-java/project-web/target/
+/backend-java/start/target/
