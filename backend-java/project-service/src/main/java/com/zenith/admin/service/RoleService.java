@@ -21,6 +21,7 @@ public class RoleService {
 
     private final RoleMapper roleMapper;
     private final RoleConvertor roleConvertor;
+    private final RoleCacheService roleCacheService;
 
     public MultiResponse<RoleDTO> listAll() {
         List<RoleDO> roleDOS = roleMapper.selectList(null);
@@ -71,6 +72,7 @@ public class RoleService {
         } else {
             roleMapper.updateById(roleDO);
         }
+        roleCacheService.refreshCache();
     }
 
     public void update(RoleDTO roleDTO) {
@@ -81,6 +83,7 @@ public class RoleService {
         }
         RoleDO roleDO = roleConvertor.toDataObject(entity);
         roleMapper.updateById(roleDO);
+        roleCacheService.refreshCache();
     }
 
     public void delete(Long id) {
@@ -90,6 +93,7 @@ public class RoleService {
                 throw new RuntimeException("超级管理员角色不可删除");
             }
             roleMapper.deleteById(id);
+            roleCacheService.refreshCache();
         }
     }
 

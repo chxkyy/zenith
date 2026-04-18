@@ -1,6 +1,7 @@
 package com.zenith.admin.dto.dataobject;
 
 import com.alibaba.cola.dto.DTO;
+import com.zenith.admin.annotation.RoleName;
 import lombok.Data;
 
 @Data
@@ -11,5 +12,7 @@ public class UserDTO extends DTO {
     private String email;
     private Integer status;
     private String role;
+    @RoleName(roleId = "role", separator = ",")
+    private String roleNames;
     private String orgName;
 }
