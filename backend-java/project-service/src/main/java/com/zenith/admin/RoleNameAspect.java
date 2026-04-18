@@ -8,6 +8,7 @@ import com.github.pagehelper.PageInfo;
 import com.zenith.admin.annotation.RoleName;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.mapper.RoleMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -25,6 +26,11 @@ import java.util.stream.Collectors;
 public class RoleNameAspect {
 
     private final RoleMapper roleMapper;
+
+    @PostConstruct
+    public void init() {
+        log.info("========== RoleNameAspect 初始化成功 ==========");
+    }
 
     @AfterReturning(pointcut = "execution(* com.zenith.admin.service..*.*(..))", returning = "result")
     public void fillRoleNames(Object result) {
