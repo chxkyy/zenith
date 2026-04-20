@@ -7,9 +7,11 @@ import com.zenith.admin.PageResponseUtils;
 import com.zenith.admin.dto.dataobject.IdQuery;
 import com.zenith.admin.dto.dataobject.NoticeDTO;
 import com.zenith.admin.dto.dataobject.NoticePageQuery;
+import com.zenith.admin.dto.dataobject.NoticeStatusUpdateCmd;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -54,8 +56,8 @@ public class NoticeController {
     }
 
     @PostMapping("/status")
-    public com.alibaba.cola.dto.Response updateStatus(@RequestBody IdQuery query, @RequestParam String status) {
-        noticeService.updateStatus(query.getId(), status);
+    public com.alibaba.cola.dto.Response updateStatus(@RequestBody @Validated NoticeStatusUpdateCmd cmd) {
+        noticeService.updateStatus(cmd.getId(), cmd.getStatus());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 }

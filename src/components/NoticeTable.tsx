@@ -51,7 +51,7 @@ export default function NoticeTable() {
     type: 'system',
     author: 'admin',
     content: '',
-    status: 'draft',
+    status: '0',
     remark: ''
   });
   
@@ -142,7 +142,7 @@ export default function NoticeTable() {
       type: 'system',
       author: 'admin',
       content: '',
-      status: 'draft',
+      status: '0',
       remark: ''
     });
     setModalType('add');
@@ -276,12 +276,16 @@ export default function NoticeTable() {
   // 发布/撤回公告
   const handlePublishNotice = async (notice: Notice) => {
     try {
-      const newStatus = notice.status === '已发布' ? '已撤回' : '已发布';
-      const response = await fetch(`/api/notices/status?` + new URLSearchParams({ 
-        id: notice.id.toString(), 
-        status: newStatus 
-      }), {
-        method: 'POST'
+      const newStatus = notice.status === '1' ? '0' : '1';
+      const response = await fetch(`/api/notices/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          id: notice.id, 
+          status: newStatus 
+        })
       });
       
       if (!response.ok) {
@@ -292,7 +296,7 @@ export default function NoticeTable() {
       if (data.success) {
         fetchNotices();
         setNotification({
-          message: notice.status === '已发布' ? '公告已撤回' : '公告已发布',
+          message: notice.status === '1' ? '公告已撤回' : '公告已发布',
           type: 'success',
           key: Date.now()
         });
@@ -364,9 +368,8 @@ export default function NoticeTable() {
               className="bg-white border border-slate-200 text-sm rounded-lg px-3 py-1.5 outline-none focus:border-blue-500"
             >
               <option value="">所有状态</option>
-              <option value="published">已发布</option>
-              <option value="draft">草稿</option>
-              <option value="withdrawn">已撤回</option>
+              <option value="1">已发布</option>
+              <option value="0">草稿</option>
             </select>
           </div>
         </div>
@@ -581,8 +584,8 @@ export default function NoticeTable() {
                     required
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="draft">草稿</option>
-                    <option value="已发布">已发布</option>
+                    <option value="0">草稿</option>
+                    <option value="1">已发布</option>
                   </select>
                 </div>
                 
@@ -608,11 +611,11 @@ export default function NoticeTable() {
                     <span>发布时间：{currentNotice.time}</span>
                     <span className={cn(
                       "px-2 py-0.5 text-xs font-bold rounded",
-                      currentNotice.status === '已发布' ? "bg-emerald-50 text-emerald-600" :
-                      currentNotice.status === '草稿' ? "bg-blue-50 text-blue-600" :
+                      currentNotice.status === '1' ? "bg-emerald-50 text-emerald-600" :
+                      currentNotice.status === '0' ? "bg-blue-50 text-blue-600" :
                       "bg-slate-100 text-slate-500"
                     )}>
-                      {currentNotice.status}
+                      {currentNotice.statusName}
                     </span>
                   </div>
                 </div>

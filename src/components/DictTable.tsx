@@ -240,8 +240,10 @@ export default function DictTable() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
+    fetchDictTypes();
     if (selectedDictType) {
       setItemsCurrentPage(1);
+      fetchDictItems(selectedDictType.type, 1, itemsPageSize);
     }
   };
 
@@ -382,7 +384,7 @@ export default function DictTable() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ id: record.id })
+        body: JSON.stringify({ id: dictTypeModal.data.id })
       });
       if (!response.ok) {
         throw new Error('Failed to delete dict type');
@@ -476,7 +478,7 @@ export default function DictTable() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ id: record.id })
+        body: JSON.stringify({ id: dictItemModal.data.id })
       });
       if (!response.ok) {
         throw new Error('Failed to delete dict item');
@@ -536,6 +538,7 @@ export default function DictTable() {
             <Search size={18} className="text-slate-400" />
             <input 
               type="text" 
+              name="keyword"
               placeholder="搜索字典名称或编码..." 
               className="text-sm outline-none w-full bg-transparent"
               value={searchParams.keyword}
