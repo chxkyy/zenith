@@ -1,5 +1,6 @@
 package com.zenith.admin.dto.dataobject;
 
+import com.zenith.admin.annotation.DictTranslate;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,9 @@ public class NoticeDTO {
     private String content;
 
     private String status;
+
+    @DictTranslate(source = "status", dictType = "notice_status")
+    private String statusName;
 
     private String remark;
 

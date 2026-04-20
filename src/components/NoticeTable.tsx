@@ -10,6 +10,7 @@ interface Notice {
   author: string;
   time: string;
   status: string;
+  statusName: string;
   isPinned: boolean;
   readCount: number;
   content?: string;
@@ -93,6 +94,7 @@ export default function NoticeTable() {
           author: notice.author,
           time: notice.createdAt || notice.time,
           status: notice.status,
+          statusName: notice.statusName,
           isPinned: notice.isPinned || false,
           readCount: notice.readCount || 0,
           content: notice.content,
@@ -417,11 +419,11 @@ export default function NoticeTable() {
                     <td className="px-6 py-4">
                       <span className={cn(
                         "px-2.5 py-1 text-xs font-bold rounded-md",
-                        notice.status === '已发布' ? "bg-emerald-50 text-emerald-600" :
-                        notice.status === '草稿' ? "bg-blue-50 text-blue-600" :
+                        notice.status === '1' ? "bg-emerald-50 text-emerald-600" :
+                        notice.status === '0' ? "bg-blue-50 text-blue-600" :
                         "bg-slate-100 text-slate-500"
                       )}>
-                        {notice.status}
+                        {notice.statusName}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{notice.readCount}</td>
@@ -441,7 +443,7 @@ export default function NoticeTable() {
                         >
                           <Edit size={18} />
                         </button>
-                        {notice.status === '已发布' ? (
+                        {notice.status === '1' ? (
                           <button 
                             className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-orange-600"
                             title="撤回"

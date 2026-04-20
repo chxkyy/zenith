@@ -16,6 +16,8 @@
 - 数据传输对象以 `DTO` 结尾
 - 数据对象以 `DO` 结尾
 - 转换器类以 `Convertor` 结尾
+- 命令对象（用于修改操作）以 `Cmd` 结尾，如 `NoticeStatusUpdateCmd`
+- 查询对象（用于读取操作）以 `Query` 结尾，如 `NoticePageQuery`
 
 ### 2.3 方法命名
 - 使用 camelCase 命名法，如 `getUserById`、`saveRole`
