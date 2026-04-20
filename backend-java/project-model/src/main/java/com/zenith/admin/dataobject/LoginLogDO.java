@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_login_log")
+@TableName("t_sys_login_log")
 public class LoginLogDO {
     @TableId(type = IdType.AUTO)
     private Long id;

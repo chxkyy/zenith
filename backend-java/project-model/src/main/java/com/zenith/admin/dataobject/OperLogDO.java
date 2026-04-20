@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_oper_log")
+@TableName("t_sys_oper_log")
 public class OperLogDO {
     @TableId(type = IdType.AUTO)
     private Long id;

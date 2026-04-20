@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_notice")
+@TableName("t_sys_notice")
 public class NoticeDO {
 
     @TableId(type = IdType.AUTO)

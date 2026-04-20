@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_dict_type")
+@TableName("t_sys_dict_type")
 public class DictDO {
     @TableId(type = IdType.AUTO)
     private Long id;

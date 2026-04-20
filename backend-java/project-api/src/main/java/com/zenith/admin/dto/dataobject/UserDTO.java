@@ -3,8 +3,10 @@ package com.zenith.admin.dto.dataobject;
 import com.alibaba.cola.dto.DTO;
 import com.zenith.admin.annotation.RoleName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class UserDTO extends DTO {
     private Long id;
     private String username;

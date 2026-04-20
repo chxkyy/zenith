@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_role")
+@TableName("t_sys_role")
 public class RoleDO {
     @TableId(type = IdType.AUTO)
     private Long id;

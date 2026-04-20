@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_dict_item")
+@TableName("t_sys_dict_item")
 public class DictItemDO {
 
     @TableId(type = IdType.AUTO)

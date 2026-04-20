@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_error_log")
+@TableName("t_sys_error_log")
 public class ErrorLogDO {
     @TableId(type = IdType.AUTO)
     private Long id;
