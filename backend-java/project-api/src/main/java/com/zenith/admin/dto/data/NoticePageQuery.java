@@ -1,4 +1,4 @@
-package com.zenith.admin.dto.dataobject;
+package com.zenith.admin.dto.data;
 
 import com.alibaba.cola.dto.PageQuery;
 import jakarta.validation.constraints.Max;
@@ -8,8 +8,10 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class OrgPageQuery extends PageQuery {
-    private String keyword; // 关键词搜索（组织名称）
+public class NoticePageQuery extends PageQuery {
+    private String keyword; // 关键词搜索（标题）
+    private String type; // 公告类型
+    private String status; // 公告状态
 
     @Min(value = 1, message = "页码必须大于0")
     @Override
@@ -18,7 +20,7 @@ public class OrgPageQuery extends PageQuery {
     }
 
     @Min(value = 1, message = "每页条数必须大于0")
-    @Max(value = 1000, message = "每页条数不能超过1000")
+    @Max(value = 100, message = "每页条数不能超过100")
     @Override
     public int getPageSize() {
         return super.getPageSize();

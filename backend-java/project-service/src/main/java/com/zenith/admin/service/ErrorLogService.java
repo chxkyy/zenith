@@ -3,7 +3,7 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.dataobject.ErrorLogDTO;
+import com.zenith.admin.dto.data.ErrorLogDTO;
 import com.zenith.admin.ErrorLogConvertor;
 import com.zenith.admin.dataobject.ErrorLogDO;
 import com.zenith.admin.mapper.ErrorLogMapper;

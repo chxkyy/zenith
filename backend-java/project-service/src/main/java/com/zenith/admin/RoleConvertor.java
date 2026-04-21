@@ -1,6 +1,6 @@
 package com.zenith.admin;
 
-import com.zenith.admin.dto.dataobject.RoleDTO;
+import com.zenith.admin.dto.data.RoleDTO;
 import com.zenith.admin.dataobject.RoleDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

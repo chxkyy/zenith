@@ -1,4 +1,4 @@
-package com.zenith.admin.dto.dataobject;
+package com.zenith.admin.dto.data;
 
 import com.zenith.admin.annotation.DictTranslate;
 import lombok.Data;

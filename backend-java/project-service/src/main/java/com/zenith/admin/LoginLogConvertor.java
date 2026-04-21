@@ -1,6 +1,6 @@
 package com.zenith.admin;
 
-import com.zenith.admin.dto.dataobject.LoginLogDTO;
+import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.dataobject.LoginLogDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

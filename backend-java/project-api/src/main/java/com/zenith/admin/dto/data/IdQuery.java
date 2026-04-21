@@ -1,4 +1,4 @@
-package com.zenith.admin.dto.dataobject;
+package com.zenith.admin.dto.data;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

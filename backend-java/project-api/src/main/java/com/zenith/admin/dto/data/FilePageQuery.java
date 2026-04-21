@@ -1,4 +1,4 @@
-package com.zenith.admin.dto.dataobject;
+package com.zenith.admin.dto.data;
 
 import com.alibaba.cola.dto.PageQuery;
 import jakarta.validation.constraints.Max;
@@ -8,8 +8,8 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DictPageQuery extends PageQuery {
-    private String keyword; // 关键词搜索（类型名称、编码）
+public class FilePageQuery extends PageQuery {
+    private String keyword; // 关键词搜索（文件名）
 
     @Min(value = 1, message = "页码必须大于0")
     @Override

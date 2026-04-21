@@ -1,4 +1,4 @@
-package com.zenith.admin.dto.dataobject;
+package com.zenith.admin.dto.data;
 
 import com.alibaba.cola.dto.PageQuery;
 import jakarta.validation.constraints.Max;
@@ -8,15 +8,10 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class RolePageQuery extends PageQuery {
-    private String keyword; // 关键词搜索（角色名称、角色编码）
-    
-    @Min(value = 0, message = "状态值不合法")
-    @Max(value = 1, message = "状态值不合法")
-    private Integer status; // 状态筛选
-    
-    private String sortField; // 排序字段
-    private String sortOrder; // 排序方向（asc/desc）
+public class MenuPageQuery extends PageQuery {
+    private String keyword; // 关键词搜索（菜单名称、路径）
+    private String type; // 菜单类型
+    private Long parentId; // 父菜单ID
 
     @Min(value = 1, message = "页码必须大于0")
     @Override

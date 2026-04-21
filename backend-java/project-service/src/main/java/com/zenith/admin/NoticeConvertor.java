@@ -1,6 +1,6 @@
 package com.zenith.admin;
 
-import com.zenith.admin.dto.dataobject.NoticeDTO;
+import com.zenith.admin.dto.data.NoticeDTO;
 import com.zenith.admin.dataobject.NoticeDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

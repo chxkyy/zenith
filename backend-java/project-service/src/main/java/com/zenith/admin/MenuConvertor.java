@@ -1,6 +1,6 @@
 package com.zenith.admin;
 
-import com.zenith.admin.dto.dataobject.MenuDTO;
+import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dataobject.MenuDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

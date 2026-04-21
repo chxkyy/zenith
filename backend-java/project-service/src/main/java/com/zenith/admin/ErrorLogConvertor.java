@@ -1,6 +1,6 @@
 package com.zenith.admin;
 
-import com.zenith.admin.dto.dataobject.ErrorLogDTO;
+import com.zenith.admin.dto.data.ErrorLogDTO;
 import com.zenith.admin.dataobject.ErrorLogDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

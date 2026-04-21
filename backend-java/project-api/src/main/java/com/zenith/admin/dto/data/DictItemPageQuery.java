@@ -1,17 +1,19 @@
-package com.zenith.admin.dto.dataobject;
+package com.zenith.admin.dto.data;
 
 import com.alibaba.cola.dto.PageQuery;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class NoticePageQuery extends PageQuery {
-    private String keyword; // 关键词搜索（标题）
-    private String type; // 公告类型
-    private String status; // 公告状态
+public class DictItemPageQuery extends PageQuery {
+    @NotBlank(message = "字典类型不能为空")
+    private String type; // 字典类型编码
+
+    private String keyword; // 关键词搜索（标签、值）
 
     @Min(value = 1, message = "页码必须大于0")
     @Override

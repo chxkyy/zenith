@@ -2,8 +2,8 @@ package com.zenith.admin.web;
 
 import com.zenith.admin.service.OperLogService;
 import com.zenith.admin.PageResponseUtils;
-import com.zenith.admin.dto.dataobject.IdQuery;
-import com.zenith.admin.dto.dataobject.OperLogDTO;
+import com.zenith.admin.dto.data.IdQuery;
+import com.zenith.admin.dto.data.OperLogDTO;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
