@@ -21,5 +21,11 @@ public class FileDTO {
 
     private String uploader;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
+
+    private LocalDateTime updateTime;
+
+    private Long createUserId;
+
+    private Long updateUserId;
 }

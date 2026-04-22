@@ -14,4 +14,8 @@ public class MenuDTO extends DTO {
     private Integer sort;
     private String type;
     private String permission;
+    private java.time.LocalDateTime createdTime;
+    private java.time.LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }

@@ -10,7 +10,10 @@ interface DictType {
   type: string;
   status: number;
   remark: string;
-  createdAt: string;
+  createdTime: string;
+  updateTime: string;
+  createUserId: number;
+  updateUserId: number;
 }
 
 // 字典项接口
@@ -22,6 +25,10 @@ interface DictItem {
   sort: number;
   status: number;
   remark: string;
+  createdTime: string;
+  updateTime: string;
+  createUserId: number;
+  updateUserId: number;
 }
 
 // 模态框状态接口
@@ -569,21 +576,24 @@ export default function DictTable() {
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">类型名称</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">编码</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">状态</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">备注</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建人</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改人</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改时间</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={10} className="px-6 py-12 text-center">
                     <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                   </td>
                 </tr>
               ) : dictTypes.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={10} className="px-6 py-12 text-center text-slate-500">
                     暂无字典类型数据
                   </td>
                 </tr>
@@ -607,8 +617,11 @@ export default function DictTable() {
                         {dictType.status === 1 ? '正常' : '禁用'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{formatDateTime(dictType.createdAt)}</td>
                     <td className="px-6 py-4 text-sm text-slate-500" onClick={() => handleDictTypeSelect(dictType)}>{dictType.remark}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.createUserId || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{formatDateTime(dictType.createdTime)}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.updateUserId || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{formatDateTime(dictType.updateTime)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
@@ -704,19 +717,23 @@ export default function DictTable() {
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">排序</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">状态</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">备注</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建人</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改人</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改时间</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {itemsLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center">
+                    <td colSpan={11} className="px-6 py-12 text-center">
                       <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                     </td>
                   </tr>
                 ) : dictItems.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan={11} className="px-6 py-12 text-center text-slate-500">
                       暂无字典项数据
                     </td>
                   </tr>
@@ -736,6 +753,10 @@ export default function DictTable() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-500">{item.remark}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{item.createUserId || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(item.createdTime)}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{item.updateUserId || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(item.updateTime)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button 

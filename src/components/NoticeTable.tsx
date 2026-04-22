@@ -15,6 +15,10 @@ interface Notice {
   readCount: number;
   content?: string;
   remark?: string;
+  createUserId: number;
+  updateUserId: number;
+  createdTime: string;
+  updateTime: string;
 }
 
 interface NoticeForm {
@@ -92,13 +96,17 @@ export default function NoticeTable() {
           title: notice.title,
           type: notice.type,
           author: notice.author,
-          time: formatDateTime(notice.createdAt || notice.time),
+          time: formatDateTime(notice.createdTime || notice.createdAt || notice.time),
           status: notice.status,
           statusName: notice.statusName,
           isPinned: notice.isPinned || false,
           readCount: notice.readCount || 0,
           content: notice.content,
-          remark: notice.remark
+          remark: notice.remark,
+          createUserId: notice.createUserId,
+          updateUserId: notice.updateUserId,
+          createdTime: notice.createdTime,
+          updateTime: notice.updateTime
         }));
         setNotices(formattedNotices);
         setTotalCount(data.totalCount || 0);
@@ -381,22 +389,25 @@ export default function NoticeTable() {
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">公告标题</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">类型</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">发布人</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">发布时间</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">状态</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">阅读人数</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建人</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改人</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改时间</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={10} className="px-6 py-12 text-center">
                     <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                   </td>
                 </tr>
               ) : notices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={10} className="px-6 py-12 text-center text-slate-500">
                     暂无通知数据
                   </td>
                 </tr>
@@ -418,7 +429,6 @@ export default function NoticeTable() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{notice.author}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{notice.time}</td>
                     <td className="px-6 py-4">
                       <span className={cn(
                         "px-2.5 py-1 text-xs font-bold rounded-md",
@@ -430,6 +440,18 @@ export default function NoticeTable() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{notice.readCount}</td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600">{notice.createUserId || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600">{formatDateTime(notice.createdTime)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600">{notice.updateUserId || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600">{formatDateTime(notice.updateTime)}</span>
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 

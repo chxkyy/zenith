@@ -21,7 +21,11 @@ public class DictItemDTO {
 
     private String remark;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime updateTime;
+
+    private Long createUserId;
+
+    private Long updateUserId;
 }

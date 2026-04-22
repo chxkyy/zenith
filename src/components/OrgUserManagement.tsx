@@ -15,7 +15,7 @@ import {
     User,
     Shield
 } from 'lucide-react';
-import {cn} from '../lib/utils';
+import {cn, formatDateTime} from '../lib/utils';
 import UserModal from './UserModal';
 import RoleAssignModal from './RoleAssignModal';
 
@@ -606,7 +606,7 @@ export default function OrgUserManagement() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-slate-600">
-                                                {user.createdTime ? new Date(user.createdTime).toLocaleString() : '-'}
+                                                {formatDateTime(user.createdTime)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -614,7 +614,7 @@ export default function OrgUserManagement() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-slate-600">
-                                                {user.updateTime ? new Date(user.updateTime).toLocaleString() : '-'}
+                                                {formatDateTime(user.updateTime)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">

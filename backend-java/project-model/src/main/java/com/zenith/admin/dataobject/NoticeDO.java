@@ -30,7 +30,11 @@ public class NoticeDO {
 
     private Integer readCount;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime updateTime;
+
+    private Long createUserId;
+
+    private Long updateUserId;
 }

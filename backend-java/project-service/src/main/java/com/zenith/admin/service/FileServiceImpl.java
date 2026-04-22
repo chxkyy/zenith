@@ -40,7 +40,7 @@ public class FileServiceImpl implements FileService {
             queryWrapper.like(FileDO::getName, query.getKeyword());
         }
 
-        queryWrapper.orderByDesc(FileDO::getCreatedAt);
+        queryWrapper.orderByDesc(FileDO::getCreatedTime);
         List<FileDO> fileDOS = fileMapper.selectList(queryWrapper);
         PageInfo<FileDO> pageInfo = new PageInfo<>(fileDOS);
         List<FileDTO> fileDTOS = fileConvertor.toDTOList(pageInfo.getList());
@@ -81,7 +81,9 @@ public class FileServiceImpl implements FileService {
         fileDO.setType(ext.replace(".", "").toUpperCase());
         fileDO.setSize(fileSize);
         fileDO.setUploader("admin");
-        fileDO.setCreatedAt(LocalDateTime.now());
+        Long currentUserId = 1L;
+        fileDO.setCreateUserId(currentUserId);
+        fileDO.setCreatedTime(LocalDateTime.now());
 
         fileMapper.insert(fileDO);
 

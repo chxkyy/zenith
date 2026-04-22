@@ -55,9 +55,14 @@ public class OrgServiceImpl implements OrgService {
     @Override
     public void save(OrgDTO orgDTO) {
         OrgDO orgDO = orgConvertor.toDataObject(orgDTO);
+        Long currentUserId = 1L;
         if (orgDO.getId() == null) {
+            orgDO.setCreateUserId(currentUserId);
+            orgDO.setCreatedTime(java.time.LocalDateTime.now());
             orgMapper.insert(orgDO);
         } else {
+            orgDO.setUpdateUserId(currentUserId);
+            orgDO.setUpdateTime(java.time.LocalDateTime.now());
             orgMapper.updateById(orgDO);
         }
     }
@@ -65,6 +70,9 @@ public class OrgServiceImpl implements OrgService {
     @Override
     public void update(OrgDTO orgDTO) {
         OrgDO orgDO = orgConvertor.toDataObject(orgDTO);
+        Long currentUserId = 1L;
+        orgDO.setUpdateUserId(currentUserId);
+        orgDO.setUpdateTime(java.time.LocalDateTime.now());
         orgMapper.updateById(orgDO);
     }
 

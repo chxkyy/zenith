@@ -19,5 +19,8 @@ public class MenuDO {
     private Integer sort;
     private String type;
     private String permission;
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
+    private LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }

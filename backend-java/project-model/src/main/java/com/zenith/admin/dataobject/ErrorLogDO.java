@@ -15,5 +15,8 @@ public class ErrorLogDO {
     private String ip;
     private String errorMsg;
     private String stackTrace;
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
+    private LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }

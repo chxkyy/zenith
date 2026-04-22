@@ -16,6 +16,8 @@ public class DictDO {
     private String type;
     private Integer status;
     private String remark;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDateTime createdTime;
+    private LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }

@@ -10,6 +10,10 @@ interface LoginLog {
   msg: string;
   loginAt: string;
   logoutAt: string | null;
+  createUserId: number;
+  updateUserId: number;
+  createdTime: string;
+  updateTime: string;
 }
 
 const LogLogin: React.FC = () => {
@@ -166,21 +170,25 @@ const LogLogin: React.FC = () => {
                 <th className="px-6 py-3 font-medium">失败原因</th>
                 <th className="px-6 py-3 font-medium">登录时间</th>
                 <th className="px-6 py-3 font-medium">登出时间</th>
+                <th className="px-6 py-3 font-medium">创建人</th>
+                <th className="px-6 py-3 font-medium">创建时间</th>
+                <th className="px-6 py-3 font-medium">修改人</th>
+                <th className="px-6 py-3 font-medium">修改时间</th>
                 <th className="px-6 py-3 font-medium">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center text-gray-400">加载中...</td>
+                  <td colSpan={12} className="px-6 py-10 text-center text-gray-400">加载中...</td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center text-red-500">{error}</td>
+                  <td colSpan={12} className="px-6 py-10 text-center text-red-500">{error}</td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center text-gray-400">暂无数据</td>
+                  <td colSpan={12} className="px-6 py-10 text-center text-gray-400">暂无数据</td>
                 </tr>
               ) : (
                 logs.map((log) => (
@@ -198,6 +206,10 @@ const LogLogin: React.FC = () => {
                     <td className="px-6 py-4 text-gray-600">{log.msg || '-'}</td>
                     <td className="px-6 py-4 text-gray-500">{formatDateTime(log.loginAt)}</td>
                     <td className="px-6 py-4 text-gray-500">{log.logoutAt ? formatDateTime(log.logoutAt) : '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{log.createUserId || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdTime)}</td>
+                    <td className="px-6 py-4 text-gray-500">{log.updateUserId || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.updateTime)}</td>
                     <td className="px-6 py-4">
                       <button 
                         onClick={() => handleDelete(log.id)}

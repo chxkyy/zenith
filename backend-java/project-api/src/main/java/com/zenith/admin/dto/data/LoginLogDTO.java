@@ -13,4 +13,8 @@ public class LoginLogDTO extends DTO {
     private String msg;
     private LocalDateTime loginAt;
     private LocalDateTime logoutAt;
+    private LocalDateTime createdTime;
+    private LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }

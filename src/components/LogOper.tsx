@@ -10,7 +10,10 @@ interface OperLog {
   ip: string;
   result: string;
   remark: string;
-  createdAt: string;
+  createdTime: string;
+  updateTime: string;
+  createUserId: number;
+  updateUserId: number;
 }
 
 const LogOper: React.FC = () => {
@@ -166,23 +169,26 @@ const LogOper: React.FC = () => {
                 <th className="px-6 py-3 font-medium">操作IP</th>
                 <th className="px-6 py-3 font-medium">操作模块</th>
                 <th className="px-6 py-3 font-medium">操作内容</th>
-                <th className="px-6 py-3 font-medium">操作时间</th>
                 <th className="px-6 py-3 font-medium">结果</th>
+                <th className="px-6 py-3 font-medium">创建人</th>
+                <th className="px-6 py-3 font-medium">创建时间</th>
+                <th className="px-6 py-3 font-medium">修改人</th>
+                <th className="px-6 py-3 font-medium">修改时间</th>
                 <th className="px-6 py-3 font-medium">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center text-gray-400">加载中...</td>
+                  <td colSpan={11} className="px-6 py-10 text-center text-gray-400">加载中...</td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center text-red-500">{error}</td>
+                  <td colSpan={11} className="px-6 py-10 text-center text-red-500">{error}</td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center text-gray-400">暂无数据</td>
+                  <td colSpan={11} className="px-6 py-10 text-center text-gray-400">暂无数据</td>
                 </tr>
               ) : (
                 logs.map((log) => (
@@ -194,7 +200,6 @@ const LogOper: React.FC = () => {
                       <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">{log.module}</span>
                     </td>
                     <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={log.content}>{log.content}</td>
-                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdAt)}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-0.5 rounded-full text-xs ${
                         log.result === '成功' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -202,6 +207,10 @@ const LogOper: React.FC = () => {
                         {log.result}
                       </span>
                     </td>
+                    <td className="px-6 py-4 text-gray-500">{log.createUserId || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdTime)}</td>
+                    <td className="px-6 py-4 text-gray-500">{log.updateUserId || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.updateTime)}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-3">
                         <button className="text-blue-600 hover:text-blue-800" title="详情">

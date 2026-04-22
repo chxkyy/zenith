@@ -66,9 +66,14 @@ public class MenuServiceImpl implements MenuService {
     @Override
     public void save(MenuDTO menuDTO) {
         MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
+        Long currentUserId = 1L;
         if (menuDO.getId() == null) {
+            menuDO.setCreateUserId(currentUserId);
+            menuDO.setCreatedTime(java.time.LocalDateTime.now());
             menuMapper.insert(menuDO);
         } else {
+            menuDO.setUpdateUserId(currentUserId);
+            menuDO.setUpdateTime(java.time.LocalDateTime.now());
             menuMapper.updateById(menuDO);
         }
     }
@@ -76,6 +81,9 @@ public class MenuServiceImpl implements MenuService {
     @Override
     public void update(MenuDTO menuDTO) {
         MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
+        Long currentUserId = 1L;
+        menuDO.setUpdateUserId(currentUserId);
+        menuDO.setUpdateTime(java.time.LocalDateTime.now());
         menuMapper.updateById(menuDO);
     }
 

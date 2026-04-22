@@ -15,5 +15,8 @@ public class OrgDO {
     private String name;
     private Integer sort;
     private Integer status;
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
+    private LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }

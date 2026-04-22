@@ -45,6 +45,9 @@ public class DictServiceImpl implements DictService {
     @Override
     public void update(DictDTO dictDTO) {
         DictDO dictDO = dictConvertor.toDataObject(dictDTO);
+        Long currentUserId = 1L;
+        dictDO.setUpdateUserId(currentUserId);
+        dictDO.setUpdateTime(java.time.LocalDateTime.now());
         dictMapper.updateById(dictDO);
     }
 
@@ -102,9 +105,14 @@ public class DictServiceImpl implements DictService {
             throw new com.alibaba.cola.exception.BizException("DICT_TYPE_EXIST", "字典类型编码已存在");
         }
         DictDO dictDO = dictConvertor.toDataObject(dictDTO);
+        Long currentUserId = 1L;
         if (dictDO.getId() == null) {
+            dictDO.setCreateUserId(currentUserId);
+            dictDO.setCreatedTime(java.time.LocalDateTime.now());
             dictMapper.insert(dictDO);
         } else {
+            dictDO.setUpdateUserId(currentUserId);
+            dictDO.setUpdateTime(java.time.LocalDateTime.now());
             dictMapper.updateById(dictDO);
         }
     }
@@ -155,9 +163,14 @@ public class DictServiceImpl implements DictService {
             throw new com.alibaba.cola.exception.BizException("DICT_ITEM_VALUE_EXIST", "同类型下字典项值已存在");
         }
         DictItemDO dictItemDO = dictConvertor.toItemDataObject(dictItemDTO);
+        Long currentUserId = 1L;
         if (dictItemDO.getId() == null) {
+            dictItemDO.setCreateUserId(currentUserId);
+            dictItemDO.setCreatedTime(java.time.LocalDateTime.now());
             dictItemMapper.insert(dictItemDO);
         } else {
+            dictItemDO.setUpdateUserId(currentUserId);
+            dictItemDO.setUpdateTime(java.time.LocalDateTime.now());
             dictItemMapper.updateById(dictItemDO);
         }
     }
@@ -165,6 +178,9 @@ public class DictServiceImpl implements DictService {
     @Override
     public void updateItem(DictItemDTO dictItemDTO) {
         DictItemDO dictItemDO = dictConvertor.toItemDataObject(dictItemDTO);
+        Long currentUserId = 1L;
+        dictItemDO.setUpdateUserId(currentUserId);
+        dictItemDO.setUpdateTime(java.time.LocalDateTime.now());
         dictItemMapper.updateById(dictItemDO);
     }
 

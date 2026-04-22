@@ -46,7 +46,7 @@ public class NoticeServiceImpl implements NoticeService {
             queryWrapper.eq(NoticeDO::getStatus, query.getStatus());
         }
 
-        queryWrapper.orderByDesc(NoticeDO::getCreatedAt);
+        queryWrapper.orderByDesc(NoticeDO::getCreatedTime);
 
         List<NoticeDO> noticeDOS = noticeMapper.selectList(queryWrapper);
         com.github.pagehelper.PageInfo<NoticeDO> pageInfo = new com.github.pagehelper.PageInfo<>(noticeDOS);
@@ -64,15 +64,19 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public void save(NoticeDTO noticeDTO) {
         NoticeDO noticeDO = noticeConvertor.toDataObject(noticeDTO);
+        Long currentUserId = 1L;
 
         if (noticeDO.getId() == null) {
             noticeDO.setReadCount(0);
             noticeDO.setIsPinned(false);
-            noticeDO.setCreatedAt(LocalDateTime.now());
-            noticeDO.setUpdatedAt(LocalDateTime.now());
+            noticeDO.setCreateUserId(currentUserId);
+            noticeDO.setCreatedTime(LocalDateTime.now());
+            noticeDO.setUpdateUserId(currentUserId);
+            noticeDO.setUpdateTime(LocalDateTime.now());
             noticeMapper.insert(noticeDO);
         } else {
-            noticeDO.setUpdatedAt(LocalDateTime.now());
+            noticeDO.setUpdateUserId(currentUserId);
+            noticeDO.setUpdateTime(LocalDateTime.now());
             noticeMapper.updateById(noticeDO);
         }
     }
@@ -93,7 +97,9 @@ public class NoticeServiceImpl implements NoticeService {
         NoticeDO noticeDO = noticeMapper.selectById(id);
         if (noticeDO != null) {
             noticeDO.setStatus(status);
-            noticeDO.setUpdatedAt(LocalDateTime.now());
+            Long currentUserId = 1L;
+            noticeDO.setUpdateUserId(currentUserId);
+            noticeDO.setUpdateTime(LocalDateTime.now());
             noticeMapper.updateById(noticeDO);
         }
     }

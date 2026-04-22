@@ -10,6 +10,8 @@ public class DictDTO extends DTO {
     private String type;
     private Integer status;
     private String remark;
-    private java.time.LocalDateTime createdAt;
-    private java.time.LocalDateTime updatedAt;
+    private java.time.LocalDateTime createdTime;
+    private java.time.LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }

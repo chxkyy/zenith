@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MoreHorizontal, Search, ShieldCheck, Plus, Lock, Unlock, Edit, Trash2, User, Shield } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, formatDateTime } from '../lib/utils';
 
 interface Role {
   id: number;
@@ -9,6 +9,10 @@ interface Role {
   description: string;
   status: number;
   memberCount: number;
+  createUserId: number;
+  updateUserId: number;
+  createdTime: string;
+  updateTime: string;
 }
 
 export default function RoleTable() {
@@ -170,19 +174,23 @@ export default function RoleTable() {
               <th className="px-6 py-4">描述</th>
               <th className="px-6 py-4">成员数</th>
               <th className="px-6 py-4">状态</th>
+              <th className="px-6 py-4">创建人</th>
+              <th className="px-6 py-4">创建时间</th>
+              <th className="px-6 py-4">修改人</th>
+              <th className="px-6 py-4">修改时间</th>
               <th className="px-6 py-4 text-right">操作</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center">
+                <td colSpan={10} className="px-6 py-12 text-center">
                   <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </td>
               </tr>
             ) : roles.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                <td colSpan={10} className="px-6 py-12 text-center text-slate-500">
                   暂无角色数据
                 </td>
               </tr>
@@ -216,6 +224,18 @@ export default function RoleTable() {
                       {role.status === 1 ? <Unlock size={10} /> : <Lock size={10} />}
                       {role.status === 1 ? '启用' : '禁用'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-slate-600">{role.createUserId || '-'}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-slate-600">{formatDateTime(role.createdTime)}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-slate-600">{role.updateUserId || '-'}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-slate-600">{formatDateTime(role.updateTime)}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">

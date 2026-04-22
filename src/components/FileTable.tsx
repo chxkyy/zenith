@@ -10,7 +10,10 @@ interface FileItem {
   type: string;
   size: number;
   uploader: string;
-  createdAt: string;
+  createdTime: string;
+  updateTime: string;
+  createUserId: number;
+  updateUserId: number;
 }
 
 export default function FileTable() {
@@ -212,20 +215,23 @@ export default function FileTable() {
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">文件名</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">大小</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">存储路径</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">上传时间</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建人</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改人</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改时间</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                   </td>
                 </tr>
               ) : files.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
                     暂无文件
                   </td>
                 </tr>
@@ -242,7 +248,18 @@ export default function FileTable() {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{formatFileSize(file.size)}</td>
                     <td className="px-6 py-4 text-sm font-mono text-slate-500">{file.path}</td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(file.createdAt)}</td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600">{file.createUserId || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600">{formatDateTime(file.createdTime)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600">{file.updateUserId || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-600">{formatDateTime(file.updateTime)}</span>
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button

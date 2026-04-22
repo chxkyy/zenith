@@ -66,9 +66,14 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public void save(RoleDTO roleDTO) {
         RoleDO roleDO = roleConvertor.toDataObject(roleDTO);
+        Long currentUserId = 1L;
         if (roleDO.getId() == null) {
+            roleDO.setCreateUserId(currentUserId);
+            roleDO.setCreatedTime(java.time.LocalDateTime.now());
             roleMapper.insert(roleDO);
         } else {
+            roleDO.setUpdateUserId(currentUserId);
+            roleDO.setUpdateTime(java.time.LocalDateTime.now());
             roleMapper.updateById(roleDO);
         }
     }
@@ -80,6 +85,9 @@ public class RoleServiceImpl implements RoleService {
             roleDTO.setCode(existingRole.getCode());
         }
         RoleDO roleDO = roleConvertor.toDataObject(roleDTO);
+        Long currentUserId = 1L;
+        roleDO.setUpdateUserId(currentUserId);
+        roleDO.setUpdateTime(java.time.LocalDateTime.now());
         roleMapper.updateById(roleDO);
     }
 
@@ -108,6 +116,9 @@ public class RoleServiceImpl implements RoleService {
                 throw new RuntimeException("超级管理员角色不可禁用");
             }
             role.setStatus(status);
+            Long currentUserId = 1L;
+            role.setUpdateUserId(currentUserId);
+            role.setUpdateTime(java.time.LocalDateTime.now());
             roleMapper.updateById(role);
         }
     }

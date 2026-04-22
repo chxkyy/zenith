@@ -8,7 +8,10 @@ interface ErrorLog {
   ip: string;
   errorMsg: string;
   stackTrace: string;
-  createdAt: string;
+  createdTime: string;
+  updateTime: string;
+  createUserId: number;
+  updateUserId: number;
 }
 
 const LogError: React.FC = () => {
@@ -160,23 +163,26 @@ const LogError: React.FC = () => {
                 <th className="px-6 py-3 font-medium">日志ID</th>
                 <th className="px-6 py-3 font-medium">异常IP</th>
                 <th className="px-6 py-3 font-medium">异常模块</th>
-                <th className="px-6 py-3 font-medium">异常时间</th>
                 <th className="px-6 py-3 font-medium">异常信息</th>
+                <th className="px-6 py-3 font-medium">创建人</th>
+                <th className="px-6 py-3 font-medium">创建时间</th>
+                <th className="px-6 py-3 font-medium">修改人</th>
+                <th className="px-6 py-3 font-medium">修改时间</th>
                 <th className="px-6 py-3 font-medium">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-gray-400">加载中...</td>
+                  <td colSpan={9} className="px-6 py-10 text-center text-gray-400">加载中...</td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-red-500">{error}</td>
+                  <td colSpan={9} className="px-6 py-10 text-center text-red-500">{error}</td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-gray-400">暂无数据</td>
+                  <td colSpan={9} className="px-6 py-10 text-center text-gray-400">暂无数据</td>
                 </tr>
               ) : (
                 logs.map((log) => (
@@ -186,10 +192,13 @@ const LogError: React.FC = () => {
                     <td className="px-6 py-4">
                       <span className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs">{log.module}</span>
                     </td>
-                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdAt)}</td>
                     <td className="px-6 py-4 text-red-600 font-medium truncate max-w-xs" title={log.errorMsg}>
                       {log.errorMsg}
                     </td>
+                    <td className="px-6 py-4 text-gray-500">{log.createUserId || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdTime)}</td>
+                    <td className="px-6 py-4 text-gray-500">{log.updateUserId || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.updateTime)}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-3">
                         <button 
@@ -236,7 +245,7 @@ const LogError: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">异常时间</label>
-                  <div className="mt-1 text-gray-900">{formatDateTime(selectedLog.createdAt)}</div>
+                  <div className="mt-1 text-gray-900">{formatDateTime(selectedLog.createdTime)}</div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">异常IP</label>

@@ -10,4 +10,8 @@ public class OrgDTO extends DTO {
     private String name;
     private Integer sort;
     private Integer status;
+    private java.time.LocalDateTime createdTime;
+    private java.time.LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }

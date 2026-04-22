@@ -13,5 +13,8 @@ public class OperLogDTO extends DTO {
     private String ip;
     private String result;
     private String remark;
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
+    private LocalDateTime updateTime;
+    private Long createUserId;
+    private Long updateUserId;
 }
