@@ -17,5 +17,8 @@ public class UserDO {
     private Integer status;
     private String role;
     private String orgName;
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
+    private LocalDateTime updateTime;
+    private Long updateUserId;
+    private Long createUserId;
 }

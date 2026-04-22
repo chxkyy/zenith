@@ -17,4 +17,8 @@ public class UserDTO extends DTO {
     @RoleName(roleId = "role", separator = ",")
     private String roleNames;
     private String orgName;
+    private Long createUserId;
+    private Long updateUserId;
+    private java.time.LocalDateTime createdTime;
+    private java.time.LocalDateTime updateTime;
 }

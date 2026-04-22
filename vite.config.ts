@@ -68,18 +68,17 @@ export default defineConfig(({mode}) => {
       // 启用代码分割
       rollupOptions: {
         output: {
-          manualChunks: {
-            // 将第三方库单独打包
-            vendor: ['react', 'react-dom'],
-            // 将图表库单独打包
-            charts: ['recharts'],
-            // 将动画库单独打包
-            motion: ['motion'],
+          manualChunks: (id) => {
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'vendor';
+            } else if (id.includes('node_modules/recharts')) {
+              return 'charts';
+            } else if (id.includes('node_modules/motion')) {
+              return 'motion';
+            }
           },
         },
       },
-      // 启用压缩
-      minify: 'terser',
       // 生成 sourcemap
       sourcemap: false,
     },

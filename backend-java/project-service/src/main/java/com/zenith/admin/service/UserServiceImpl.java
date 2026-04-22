@@ -77,9 +77,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public void save(UserDTO userDTO) {
         UserDO userDO = userConvertor.toDataObject(userDTO);
+        Long currentUserId = 1L; // TODO: 从上下文获取当前登录用户ID
         if (userDO.getId() == null) {
+            userDO.setCreateUserId(currentUserId);
+            userDO.setCreatedTime(java.time.LocalDateTime.now());
             userMapper.insert(userDO);
         } else {
+            userDO.setUpdateUserId(currentUserId);
+            userDO.setUpdateTime(java.time.LocalDateTime.now());
             userMapper.updateById(userDO);
         }
     }
@@ -87,6 +92,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public void update(UserDTO userDTO) {
         UserDO userDO = userConvertor.toDataObject(userDTO);
+        Long currentUserId = 1L; // TODO: 从上下文获取当前登录用户ID
+        userDO.setUpdateUserId(currentUserId);
+        userDO.setUpdateTime(java.time.LocalDateTime.now());
         userMapper.updateById(userDO);
     }
 
@@ -123,6 +131,9 @@ public class UserServiceImpl implements UserService {
                 throw new RuntimeException("超级管理员账号不可禁用");
             }
             userDO.setStatus(status);
+            Long currentUserId = 1L; // TODO: 从上下文获取当前登录用户ID
+            userDO.setUpdateUserId(currentUserId);
+            userDO.setUpdateTime(java.time.LocalDateTime.now());
             userMapper.updateById(userDO);
         }
     }

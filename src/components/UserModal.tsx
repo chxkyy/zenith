@@ -17,7 +17,11 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
     email: '',
     role: 'USER',
     orgName: '',
-    status: 1
+    status: 1,
+    createUserId: undefined,
+    updateUserId: undefined,
+    createdTime: undefined,
+    updateTime: undefined
   });
 
   // 当用户数据变化时，更新表单数据
@@ -29,7 +33,11 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
         email: user.email || '',
         role: user.role || 'USER',
         orgName: user.orgName || '',
-        status: user.status || 1
+        status: user.status || 1,
+        createUserId: user.createUserId,
+        updateUserId: user.updateUserId,
+        createdTime: user.createdTime,
+        updateTime: user.updateTime
       });
     } else if (mode === 'add') {
       setFormData({
@@ -38,7 +46,11 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
         email: '',
         role: 'USER',
         orgName: '',
-        status: 1
+        status: 1,
+        createUserId: undefined,
+        updateUserId: undefined,
+        createdTime: undefined,
+        updateTime: undefined
       });
     }
   }, [user, mode]);
