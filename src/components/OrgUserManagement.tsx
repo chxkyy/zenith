@@ -526,19 +526,23 @@ export default function OrgUserManagement() {
                                 <th className="px-6 py-4">用户信息</th>
                                 <th className="px-6 py-4">角色</th>
                                 <th className="px-6 py-4">状态</th>
+                                <th className="px-6 py-4">创建人</th>
+                                <th className="px-6 py-4">创建时间</th>
+                                <th className="px-6 py-4">修改人</th>
+                                <th className="px-6 py-4">修改时间</th>
                                 <th className="px-6 py-4 text-right">操作</th>
                             </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                             {!selectedOrg ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                    <td colSpan={8} className="px-6 py-12 text-center">
                                         <p className="text-slate-500 text-sm">请选择一个部门</p>
                                     </td>
                                 </tr>
                             ) : userLoading ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                    <td colSpan={8} className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div
                                                 className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -548,7 +552,7 @@ export default function OrgUserManagement() {
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                    <td colSpan={8} className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <p className="text-red-500 text-sm font-medium">{error}</p>
                                             <button
@@ -566,7 +570,7 @@ export default function OrgUserManagement() {
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                    <td colSpan={8} className="px-6 py-12 text-center">
                                         <p className="text-slate-500 text-sm">该部门暂无用户数据</p>
                                     </td>
                                 </tr>
@@ -596,6 +600,22 @@ export default function OrgUserManagement() {
                         )}>
                           {user.status === 1 ? '活跃' : '禁用'}
                         </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-slate-600">{user.createUserId || '-'}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-slate-600">
+                                                {user.createdTime ? new Date(user.createdTime).toLocaleString() : '-'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-slate-600">{user.updateUserId || '-'}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-slate-600">
+                                                {user.updateTime ? new Date(user.updateTime).toLocaleString() : '-'}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-1">
