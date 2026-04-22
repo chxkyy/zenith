@@ -3,6 +3,7 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.UserService;
 import com.zenith.admin.UserConvertor;
 import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.dataobject.UserDO;
@@ -17,12 +18,13 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final OrgMapper orgMapper;
     private final UserConvertor userConvertor;
 
+    @Override
     public PageInfo<UserDTO> listByPage(UserPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
 
@@ -72,6 +74,7 @@ public class UserService {
         return result;
     }
 
+    @Override
     public void save(UserDTO userDTO) {
         UserDO userDO = userConvertor.toDataObject(userDTO);
         if (userDO.getId() == null) {
@@ -81,11 +84,13 @@ public class UserService {
         }
     }
 
+    @Override
     public void update(UserDTO userDTO) {
         UserDO userDO = userConvertor.toDataObject(userDTO);
         userMapper.updateById(userDO);
     }
 
+    @Override
     public void delete(Long id) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {
@@ -96,11 +101,13 @@ public class UserService {
         }
     }
 
+    @Override
     public UserDTO getById(Long id) {
         UserDO userDO = userMapper.selectById(id);
         return userConvertor.toDTO(userDO);
     }
 
+    @Override
     public void resetPassword(Long id) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {
@@ -108,6 +115,7 @@ public class UserService {
         }
     }
 
+    @Override
     public void changeStatus(Long id, Integer status) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {

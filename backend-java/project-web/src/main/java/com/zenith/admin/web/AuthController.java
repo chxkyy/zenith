@@ -1,6 +1,6 @@
 package com.zenith.admin.web;
 
-import com.zenith.admin.service.AuthService;
+import com.zenith.admin.api.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

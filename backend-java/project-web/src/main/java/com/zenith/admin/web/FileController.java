@@ -1,6 +1,6 @@
 package com.zenith.admin.web;
 
-import com.zenith.admin.service.FileService;
+import com.zenith.admin.api.FileService;
 import com.zenith.admin.PageResponseUtils;
 import com.zenith.admin.dto.data.FileDTO;
 import com.zenith.admin.dto.data.FilePageQuery;
@@ -35,7 +35,12 @@ public class FileController {
 
     @PostMapping("/upload")
     public com.alibaba.cola.dto.SingleResponse<FileDTO> upload(@RequestParam("file") MultipartFile file) throws IOException {
-        FileDTO fileDTO = fileService.upload(file);
+        FileDTO fileDTO = fileService.upload(
+                file.getBytes(),
+                file.getOriginalFilename(),
+                file.getContentType(),
+                file.getSize()
+        );
         return com.alibaba.cola.dto.SingleResponse.of(fileDTO);
     }
 
@@ -46,7 +51,11 @@ public class FileController {
             return ResponseEntity.notFound().build();
         }
 
-        Path filePath = Paths.get(fileDTO.getPath().substring(1));
+        String pathStr = fileDTO.getPath();
+        if (pathStr != null && pathStr.startsWith("/")) {
+            pathStr = pathStr.substring(1);
+        }
+        Path filePath = Paths.get(pathStr);
         Resource resource = new UrlResource(filePath.toUri());
 
         if (resource.exists() && resource.isReadable()) {

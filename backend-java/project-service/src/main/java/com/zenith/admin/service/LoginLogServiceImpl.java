@@ -3,6 +3,7 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.LoginLogService;
 import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.LoginLogConvertor;
 import com.zenith.admin.dataobject.LoginLogDO;
@@ -15,11 +16,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class LoginLogService {
+public class LoginLogServiceImpl implements LoginLogService {
 
     private final LoginLogMapper loginLogMapper;
     private final LoginLogConvertor loginLogConvertor;
 
+    @Override
     public PageInfo<LoginLogDTO> listByPage(int pageIndex, int pageSize, String username, String status, String ip) {
         PageHelper.startPage(pageIndex, pageSize);
         LambdaQueryWrapper<LoginLogDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -47,10 +49,12 @@ public class LoginLogService {
         return result;
     }
 
+    @Override
     public void delete(Long id) {
         loginLogMapper.deleteById(id);
     }
 
+    @Override
     public void save(LoginLogDTO loginLogDTO) {
         LoginLogDO loginLogDO = loginLogConvertor.toDataObject(loginLogDTO);
         loginLogMapper.insert(loginLogDO);

@@ -3,6 +3,7 @@ package com.zenith.admin.service;
 import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.NoticeService;
 import com.zenith.admin.dto.data.NoticeDTO;
 import com.zenith.admin.dto.data.NoticePageQuery;
 import com.zenith.admin.NoticeConvertor;
@@ -16,17 +17,19 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class NoticeService {
+public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeMapper noticeMapper;
     private final NoticeConvertor noticeConvertor;
 
+    @Override
     public MultiResponse<NoticeDTO> listAll() {
         List<NoticeDO> noticeDOS = noticeMapper.selectList(null);
         List<NoticeDTO> noticeDTOS = noticeConvertor.toDTOList(noticeDOS);
         return MultiResponse.of(noticeDTOS);
     }
 
+    @Override
     public PageInfo<NoticeDTO> page(NoticePageQuery query) {
         com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<NoticeDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -58,6 +61,7 @@ public class NoticeService {
         return result;
     }
 
+    @Override
     public void save(NoticeDTO noticeDTO) {
         NoticeDO noticeDO = noticeConvertor.toDataObject(noticeDTO);
 
@@ -73,15 +77,18 @@ public class NoticeService {
         }
     }
 
+    @Override
     public void delete(Long id) {
         noticeMapper.deleteById(id);
     }
 
+    @Override
     public NoticeDTO getById(Long id) {
         NoticeDO noticeDO = noticeMapper.selectById(id);
         return noticeConvertor.toDTO(noticeDO);
     }
 
+    @Override
     public void updateStatus(Long id, String status) {
         NoticeDO noticeDO = noticeMapper.selectById(id);
         if (noticeDO != null) {

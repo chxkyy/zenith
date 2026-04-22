@@ -1,6 +1,6 @@
 package com.zenith.admin.web;
 
-import com.zenith.admin.service.StatsService;
+import com.zenith.admin.api.StatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

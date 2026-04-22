@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, RotateCcw, Download, Trash2, Eye } from 'lucide-react';
+import { formatDateTime } from '../lib/utils';
 
 interface OperLog {
   id: number;
@@ -193,7 +194,7 @@ const LogOper: React.FC = () => {
                       <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">{log.module}</span>
                     </td>
                     <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={log.content}>{log.content}</td>
-                    <td className="px-6 py-4 text-gray-500">{new Date(log.createdAt).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdAt)}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-0.5 rounded-full text-xs ${
                         log.result === '成功' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Bell, Eye, Trash2, Edit, Send, RotateCcw, Pin, X, Check, AlertTriangle } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, formatDateTime } from '../lib/utils';
 import Notification from './Notification';
 
 interface Notice {
@@ -92,7 +92,7 @@ export default function NoticeTable() {
           title: notice.title,
           type: notice.type,
           author: notice.author,
-          time: notice.createdAt || notice.time,
+          time: formatDateTime(notice.createdAt || notice.time),
           status: notice.status,
           statusName: notice.statusName,
           isPinned: notice.isPinned || false,

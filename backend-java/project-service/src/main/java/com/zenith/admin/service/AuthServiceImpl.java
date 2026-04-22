@@ -1,6 +1,7 @@
 package com.zenith.admin.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zenith.admin.api.AuthService;
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +13,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
 
+    @Override
     public Map<String, Object> login(String username, String password) {
         Map<String, Object> result = new HashMap<>();
 
@@ -45,6 +47,7 @@ public class AuthService {
         return result;
     }
 
+    @Override
     public Map<String, Object> logout(String token) {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -52,6 +55,7 @@ public class AuthService {
         return result;
     }
 
+    @Override
     public Map<String, Object> getCurrentUser(String token) {
         Map<String, Object> result = new HashMap<>();
 
@@ -68,6 +72,7 @@ public class AuthService {
         return result;
     }
 
+    @Override
     public Map<String, Object> refreshToken(String token) {
         Map<String, Object> result = new HashMap<>();
 

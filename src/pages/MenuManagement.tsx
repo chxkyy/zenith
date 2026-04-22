@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Plus, Menu as MenuIcon, Layout, Square, ChevronRight, ChevronDown, Trash2, Edit, MoveUp, MoveDown, Filter, X, Eye, EyeOff, Settings, Shield } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, formatDateTime } from '../lib/utils';
 import Notification from '../components/Notification';
 
 interface Menu {
@@ -458,7 +458,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
       setPermissions(permissions.map(p => 
         p.id === id ? { ...p, status: newStatus } : p
       ));
-      setNotification({ message: `权限状态已切换为${newStatus === 1 ? '启用' : '禁用'}`, type: 'success' });
+      setNotification({ message: \`权限状态已切换为\${newStatus === 1 ? '启用' : '禁用'}\`, type: 'success' });
       setLoading(false);
     }, 500);
   };
@@ -488,13 +488,13 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
           <div className="flex">
             <button
               onClick={() => setActiveTab('FUNCTION')}
-              className={`px-6 py-4 font-medium transition-colors ${activeTab === 'FUNCTION' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`px-6 py-4 font-medium transition-colors \${activeTab === 'FUNCTION' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-600 hover:text-slate-900'}\`}
             >
               功能权限
             </button>
             <button
               onClick={() => setActiveTab('FIELD')}
-              className={`px-6 py-4 font-medium transition-colors ${activeTab === 'FIELD' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`px-6 py-4 font-medium transition-colors \${activeTab === 'FIELD' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-600 hover:text-slate-900'}\`}
             >
               字段权限
             </button>
@@ -584,7 +584,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
       />
 
       {notification && (
-        <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-emerald-100 text-emerald-700' : notification.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+        <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg \${notification.type === 'success' ? 'bg-emerald-100 text-emerald-700' : notification.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}\`}>
           {notification.message}
         </div>
       )}
@@ -639,7 +639,7 @@ export default function MenuManagement() {
             parentId: menuDTO.parentId,
             order: menuDTO.sort || 0,
             status: 1, // 默认为启用状态
-            createTime: new Date().toLocaleString('zh-CN'),
+            createTime: formatDateTime(menuDTO.createdAt), // 使用统一的日期格式化工具
             remark: menuDTO.remark,
             children: []
           };
@@ -768,7 +768,7 @@ export default function MenuManagement() {
     if (window.confirm('删除后，子菜单、关联权限及按钮将一并删除且不可恢复，是否确认删除？')) {
       setLoading(true);
       try {
-        const response = await fetch(`/api/menus/delete`, {
+        const response = await fetch(\`/api/menus/delete\`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -813,7 +813,7 @@ export default function MenuManagement() {
       // 由于后端 API 尚未实现状态更新功能，这里只是模拟成功
       setTimeout(() => {
         setNotification({ 
-          message: `菜单状态已切换为${newStatus === 1 ? '启用' : '禁用'}`,
+          message: \`菜单状态已切换为\${newStatus === 1 ? '启用' : '禁用'}\`,
           type: 'success'
         });
         setLoading(false);
@@ -853,7 +853,7 @@ export default function MenuManagement() {
     return menuList.map(menu => (
       <React.Fragment key={menu.id}>
         <div 
-          className={`flex items-center gap-2 p-2 rounded-lg transition-colors cursor-pointer ${selectedMenu?.id === menu.id ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'}`}
+          className={`flex items-center gap-2 p-2 rounded-lg transition-colors cursor-pointer \${selectedMenu?.id === menu.id ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'}\`}
           onClick={() => setSelectedMenu(menu)}
           onContextMenu={(e) => handleRightClick(e, menu)}
         >
@@ -879,7 +879,7 @@ export default function MenuManagement() {
           </span>
         </div>
         {menu.children && menu.children.length > 0 && expanded.includes(menu.id) && (
-          <div className={`ml-4 border-l-2 border-slate-200 pl-2 mt-1`}>
+          <div className={`ml-4 border-l-2 border-slate-200 pl-2 mt-1\`}>
             {renderMenuTree(menu.children, level + 1)}
           </div>
         )}

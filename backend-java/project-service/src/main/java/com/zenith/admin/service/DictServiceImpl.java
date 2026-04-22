@@ -3,6 +3,7 @@ package com.zenith.admin.service;
 import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.DictService;
 import com.zenith.admin.dto.data.DictDTO;
 import com.zenith.admin.dto.data.DictItemDTO;
 import com.zenith.admin.dto.data.DictPageQuery;
@@ -19,18 +20,20 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class DictService {
+public class DictServiceImpl implements DictService {
 
     private final DictMapper dictMapper;
     private final DictItemMapper dictItemMapper;
     private final DictConvertor dictConvertor;
 
+    @Override
     public MultiResponse<DictDTO> listAll() {
         List<DictDO> dictDOS = dictMapper.selectList(null);
         List<DictDTO> dtos = dictConvertor.toDTOList(dictDOS);
         return MultiResponse.of(dtos);
     }
 
+    @Override
     public MultiResponse<DictDTO> listByType(String type) {
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictDO::getType, type);
@@ -39,16 +42,19 @@ public class DictService {
         return MultiResponse.of(dtos);
     }
 
+    @Override
     public void update(DictDTO dictDTO) {
         DictDO dictDO = dictConvertor.toDataObject(dictDTO);
         dictMapper.updateById(dictDO);
     }
 
+    @Override
     public DictDTO getById(Long id) {
         DictDO dictDO = dictMapper.selectById(id);
         return dictConvertor.toDTO(dictDO);
     }
 
+    @Override
     public PageInfo<DictDTO> page(DictPageQuery query) {
         com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -70,6 +76,7 @@ public class DictService {
         return result;
     }
 
+    @Override
     public void delete(Long id) {
         DictDO dictDO = dictMapper.selectById(id);
         if (dictDO != null) {
@@ -83,6 +90,7 @@ public class DictService {
         dictMapper.deleteById(id);
     }
 
+    @Override
     public void save(DictDTO dictDTO) {
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictDO::getType, dictDTO.getType());
@@ -101,6 +109,7 @@ public class DictService {
         }
     }
 
+    @Override
     public MultiResponse<DictItemDTO> listItemsByType(String type) {
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, type).orderByAsc(DictItemDO::getSort);
@@ -109,6 +118,7 @@ public class DictService {
         return MultiResponse.of(dtos);
     }
 
+    @Override
     public PageInfo<DictItemDTO> pageItems(DictItemPageQuery query) {
         com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -132,6 +142,7 @@ public class DictService {
         return result;
     }
 
+    @Override
     public void saveItem(DictItemDTO dictItemDTO) {
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, dictItemDTO.getType());
@@ -151,15 +162,18 @@ public class DictService {
         }
     }
 
+    @Override
     public void updateItem(DictItemDTO dictItemDTO) {
         DictItemDO dictItemDO = dictConvertor.toItemDataObject(dictItemDTO);
         dictItemMapper.updateById(dictItemDO);
     }
 
+    @Override
     public void deleteItem(Long id) {
         dictItemMapper.deleteById(id);
     }
 
+    @Override
     public DictItemDTO getItemById(Long id) {
         DictItemDO dictItemDO = dictItemMapper.selectById(id);
         return dictConvertor.toItemDTO(dictItemDO);

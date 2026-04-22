@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, RotateCcw, Download, Trash2 } from 'lucide-react';
+import { formatDateTime } from '../lib/utils';
 
 interface LoginLog {
   id: number;
@@ -195,8 +196,8 @@ const LogLogin: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-600">{log.msg || '-'}</td>
-                    <td className="px-6 py-4 text-gray-500">{new Date(log.loginAt).toLocaleString()}</td>
-                    <td className="px-6 py-4 text-gray-500">{log.logoutAt ? new Date(log.logoutAt).toLocaleString() : '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.loginAt)}</td>
+                    <td className="px-6 py-4 text-gray-500">{log.logoutAt ? formatDateTime(log.logoutAt) : '-'}</td>
                     <td className="px-6 py-4">
                       <button 
                         onClick={() => handleDelete(log.id)}

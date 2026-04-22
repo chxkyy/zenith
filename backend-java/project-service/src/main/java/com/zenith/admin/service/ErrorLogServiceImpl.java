@@ -3,6 +3,7 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.ErrorLogService;
 import com.zenith.admin.dto.data.ErrorLogDTO;
 import com.zenith.admin.ErrorLogConvertor;
 import com.zenith.admin.dataobject.ErrorLogDO;
@@ -16,11 +17,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ErrorLogService {
+public class ErrorLogServiceImpl implements ErrorLogService {
 
     private final ErrorLogMapper errorLogMapper;
     private final ErrorLogConvertor errorLogConvertor;
 
+    @Override
     public PageInfo<ErrorLogDTO> listByPage(int pageIndex, int pageSize, String module, String ip) {
         PageHelper.startPage(pageIndex, pageSize);
         LambdaQueryWrapper<ErrorLogDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -45,16 +47,19 @@ public class ErrorLogService {
         return result;
     }
 
+    @Override
     public void delete(Long id) {
         errorLogMapper.deleteById(id);
     }
 
+    @Override
     public void clear(int months) {
         LambdaQueryWrapper<ErrorLogDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.le(ErrorLogDO::getCreatedAt, LocalDateTime.now().minusMonths(months));
         errorLogMapper.delete(queryWrapper);
     }
 
+    @Override
     public void save(ErrorLogDTO errorLogDTO) {
         ErrorLogDO errorLogDO = errorLogConvertor.toDataObject(errorLogDTO);
         errorLogMapper.insert(errorLogDO);

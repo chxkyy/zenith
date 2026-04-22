@@ -2,7 +2,7 @@ package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.SingleResponse;
-import com.zenith.admin.service.RoleService;
+import com.zenith.admin.api.RoleService;
 import com.zenith.admin.PageResponseUtils;
 import com.zenith.admin.dto.data.IdQuery;
 import com.zenith.admin.dto.data.RoleDTO;

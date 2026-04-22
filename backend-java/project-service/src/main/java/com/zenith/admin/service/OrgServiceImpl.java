@@ -4,6 +4,7 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.OrgService;
 import com.zenith.admin.dto.data.OrgDTO;
 import com.zenith.admin.dto.data.OrgPageQuery;
 import com.zenith.admin.OrgConvertor;
@@ -16,17 +17,19 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OrgService {
+public class OrgServiceImpl implements OrgService {
 
     private final OrgMapper orgMapper;
     private final OrgConvertor orgConvertor;
 
+    @Override
     public MultiResponse<OrgDTO> listAll() {
         List<OrgDO> orgDOS = orgMapper.selectList(null);
         List<OrgDTO> dtos = orgConvertor.toDTOList(orgDOS);
         return MultiResponse.of(dtos);
     }
 
+    @Override
     public PageInfo<OrgDTO> page(OrgPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<OrgDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -49,6 +52,7 @@ public class OrgService {
         return result;
     }
 
+    @Override
     public void save(OrgDTO orgDTO) {
         OrgDO orgDO = orgConvertor.toDataObject(orgDTO);
         if (orgDO.getId() == null) {
@@ -58,15 +62,18 @@ public class OrgService {
         }
     }
 
+    @Override
     public void update(OrgDTO orgDTO) {
         OrgDO orgDO = orgConvertor.toDataObject(orgDTO);
         orgMapper.updateById(orgDO);
     }
 
+    @Override
     public void delete(Long id) {
         orgMapper.deleteById(id);
     }
 
+    @Override
     public OrgDTO getById(Long id) {
         OrgDO orgDO = orgMapper.selectById(id);
         return orgConvertor.toDTO(orgDO);

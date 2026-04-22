@@ -3,6 +3,7 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.FileService;
 import com.zenith.admin.dto.data.FileDTO;
 import com.zenith.admin.dto.data.FilePageQuery;
 import com.zenith.admin.FileConvertor;
@@ -10,9 +11,9 @@ import com.zenith.admin.dataobject.FileDO;
 import com.zenith.admin.mapper.FileMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FileService {
+public class FileServiceImpl implements FileService {
 
     private final FileMapper fileMapper;
     private final FileConvertor fileConvertor;
@@ -30,6 +31,7 @@ public class FileService {
         return userDir + File.separator + "uploads" + File.separator;
     }
 
+    @Override
     public PageInfo<FileDTO> page(FilePageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<FileDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -52,30 +54,32 @@ public class FileService {
         return result;
     }
 
-    public FileDTO upload(MultipartFile file) throws IOException {
-        String originalName = file.getOriginalFilename();
+    @Override
+    public FileDTO upload(byte[] fileContent, String originalName, String contentType, long fileSize) throws IOException {
         String ext = "";
         if (originalName != null && originalName.contains(".")) {
             ext = originalName.substring(originalName.lastIndexOf("."));
         }
         String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
         String uploadDir = getUploadDir();
-        String path = uploadDir + fileName;
+        String relativePath = "uploads" + File.separator + fileName;
+        String fullPath = uploadDir + fileName;
 
         File uploadDirFile = new File(uploadDir);
         if (!uploadDirFile.exists()) {
             uploadDirFile.mkdirs();
         }
 
-        File destFile = new File(path);
-        file.transferTo(destFile);
+        try (FileOutputStream fos = new FileOutputStream(fullPath)) {
+            fos.write(fileContent);
+        }
 
         FileDO fileDO = new FileDO();
         fileDO.setName(fileName);
         fileDO.setOriginalName(originalName);
-        fileDO.setPath("/" + path);
+        fileDO.setPath("/" + relativePath.replace("\\", "/"));
         fileDO.setType(ext.replace(".", "").toUpperCase());
-        fileDO.setSize(file.getSize());
+        fileDO.setSize(fileSize);
         fileDO.setUploader("admin");
         fileDO.setCreatedAt(LocalDateTime.now());
 
@@ -84,10 +88,15 @@ public class FileService {
         return fileConvertor.toDTO(fileDO);
     }
 
+    @Override
     public void delete(Long id) {
         FileDO fileDO = fileMapper.selectById(id);
         if (fileDO != null) {
-            File file = new File(fileDO.getPath().substring(1));
+            String path = fileDO.getPath();
+            if (path != null && path.startsWith("/")) {
+                path = path.substring(1);
+            }
+            File file = new File(path);
             if (file.exists()) {
                 file.delete();
             }
@@ -95,6 +104,7 @@ public class FileService {
         }
     }
 
+    @Override
     public FileDTO getById(Long id) {
         FileDO fileDO = fileMapper.selectById(id);
         return fileConvertor.toDTO(fileDO);

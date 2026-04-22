@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Book, Trash2, Edit, List, ChevronLeft, ChevronRight, X, Check, AlertTriangle } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, formatDateTime } from '../lib/utils';
 import Notification from './Notification';
 
 // 字典类型接口
@@ -133,7 +133,7 @@ export default function DictTable() {
     if (!dictTypeModal.data) return;
     try {
       // 检查是否有字典项
-      const response = await fetch(`/api/dict/items/list?` + new URLSearchParams({ type: dictTypeModal.data.type }));
+      const response = await fetch(\`/api/dict/items/list?\` + new URLSearchParams({ type: dictTypeModal.data.type }));
       if (!response.ok) {
         throw new Error('Failed to check dict items');
       }
@@ -379,7 +379,7 @@ export default function DictTable() {
   const handleDictTypeDelete = async () => {
     if (!dictTypeModal.data) return;
     try {
-      const response = await fetch(`/api/dicts?` + new URLSearchParams({ id: dictTypeModal.data.id.toString() }), {
+      const response = await fetch(\`/api/dicts?\` + new URLSearchParams({ id: dictTypeModal.data.id.toString() }), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -473,7 +473,7 @@ export default function DictTable() {
   const handleDictItemDelete = async () => {
     if (!dictItemModal.data) return;
     try {
-      const response = await fetch(`/api/dict/items?` + new URLSearchParams({ id: dictItemModal.data.id.toString() }), {
+      const response = await fetch(\`/api/dict/items?\` + new URLSearchParams({ id: dictItemModal.data.id.toString() }), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -607,7 +607,7 @@ export default function DictTable() {
                         {dictType.status === 1 ? '正常' : '禁用'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.createdAt}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{formatDateTime(dictType.createdAt)}</td>
                     <td className="px-6 py-4 text-sm text-slate-500" onClick={() => handleDictTypeSelect(dictType)}>{dictType.remark}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">

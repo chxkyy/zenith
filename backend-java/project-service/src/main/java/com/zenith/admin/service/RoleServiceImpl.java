@@ -4,6 +4,7 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.RoleService;
 import com.zenith.admin.dto.data.RoleDTO;
 import com.zenith.admin.dto.data.RolePageQuery;
 import com.zenith.admin.RoleConvertor;
@@ -16,17 +17,19 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class RoleService {
+public class RoleServiceImpl implements RoleService {
 
     private final RoleMapper roleMapper;
     private final RoleConvertor roleConvertor;
 
+    @Override
     public MultiResponse<RoleDTO> listAll() {
         List<RoleDO> roleDOS = roleMapper.selectList(null);
         List<RoleDTO> dtos = roleConvertor.toDTOList(roleDOS);
         return MultiResponse.of(dtos);
     }
 
+    @Override
     public PageInfo<RoleDTO> listByPage(RolePageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
 
@@ -60,6 +63,7 @@ public class RoleService {
         return result;
     }
 
+    @Override
     public void save(RoleDTO roleDTO) {
         RoleDO roleDO = roleConvertor.toDataObject(roleDTO);
         if (roleDO.getId() == null) {
@@ -69,6 +73,7 @@ public class RoleService {
         }
     }
 
+    @Override
     public void update(RoleDTO roleDTO) {
         RoleDO existingRole = roleMapper.selectById(roleDTO.getId());
         if (existingRole != null && "ADMIN".equals(existingRole.getCode())) {
@@ -78,6 +83,7 @@ public class RoleService {
         roleMapper.updateById(roleDO);
     }
 
+    @Override
     public void delete(Long id) {
         RoleDO role = roleMapper.selectById(id);
         if (role != null) {
@@ -88,11 +94,13 @@ public class RoleService {
         }
     }
 
+    @Override
     public RoleDTO getById(Long id) {
         RoleDO roleDO = roleMapper.selectById(id);
         return roleConvertor.toDTO(roleDO);
     }
 
+    @Override
     public void changeStatus(Long id, Integer status) {
         RoleDO role = roleMapper.selectById(id);
         if (role != null) {

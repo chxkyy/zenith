@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Upload, File, Image, FileText, Trash2, Download, ExternalLink } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, formatDateTime } from '../lib/utils';
 
 interface FileItem {
   id: number;
@@ -108,7 +108,7 @@ export default function FileTable() {
 
   const handleDownload = async (id: number, fileName: string) => {
     try {
-      const response = await fetch(`/api/files/${id}`);
+      const response = await fetch(\`/api/files/download?id=\${id}\`);
       if (!response.ok) {
         throw new Error('Download failed');
       }
@@ -242,7 +242,7 @@ export default function FileTable() {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{formatFileSize(file.size)}</td>
                     <td className="px-6 py-4 text-sm font-mono text-slate-500">{file.path}</td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{file.createdAt}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(file.createdAt)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button

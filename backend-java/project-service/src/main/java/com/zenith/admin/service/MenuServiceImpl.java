@@ -4,6 +4,7 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.MenuService;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.MenuPageQuery;
 import com.zenith.admin.MenuConvertor;
@@ -16,17 +17,19 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MenuService {
+public class MenuServiceImpl implements MenuService {
 
     private final MenuMapper menuMapper;
     private final MenuConvertor menuConvertor;
 
+    @Override
     public MultiResponse<MenuDTO> listAll() {
         List<MenuDO> menuDOS = menuMapper.selectList(null);
         List<MenuDTO> dtos = menuConvertor.toDTOList(menuDOS);
         return MultiResponse.of(dtos);
     }
 
+    @Override
     public PageInfo<MenuDTO> page(MenuPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<MenuDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -60,6 +63,7 @@ public class MenuService {
         return result;
     }
 
+    @Override
     public void save(MenuDTO menuDTO) {
         MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
         if (menuDO.getId() == null) {
@@ -69,15 +73,18 @@ public class MenuService {
         }
     }
 
+    @Override
     public void update(MenuDTO menuDTO) {
         MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
         menuMapper.updateById(menuDO);
     }
 
+    @Override
     public void delete(Long id) {
         menuMapper.deleteById(id);
     }
 
+    @Override
     public MenuDTO getById(Long id) {
         MenuDO menuDO = menuMapper.selectById(id);
         return menuConvertor.toDTO(menuDO);
