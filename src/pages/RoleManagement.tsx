@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MoreHorizontal, Search, Filter, Plus, ChevronUp, ChevronDown, X, Edit, Trash2, Shield, UserPlus } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, formatDateTime } from '../lib/utils';
 import PermissionAssignModal from '../components/PermissionAssignModal';
 import UserAssignModal from '../components/UserAssignModal';
 
@@ -252,6 +252,7 @@ export default function RoleManagement() {
         </div>
         <div className="flex items-center gap-3">
           <button 
+            onClick={() => fetchRoles(currentPage)}
             disabled={loading}
             className="flex items-center gap-2 bg-white text-slate-600 border border-slate-200 px-4 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
           >
@@ -434,7 +435,7 @@ export default function RoleManagement() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{role.createTime || '-'}</span>
+                    <span className="text-sm text-slate-600">{formatDateTime(role.createdAt)}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">

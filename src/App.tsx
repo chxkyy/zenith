@@ -1,24 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import Dashboard from './components/Dashboard';
-import RoleManagement from './pages/RoleManagement';
-import MenuManagement from './pages/MenuManagement';
-import OrgUserManagement from './components/OrgUserManagement';
-import Profile from './components/Profile';
-import NoticeTable from './components/NoticeTable';
-import PermissionTable from './components/PermissionTable';
-import LogOper from './components/LogOper';
-import LogLogin from './components/LogLogin';
-import LogError from './components/LogError';
-import ConfigTable from './components/ConfigTable';
-import DictTable from './components/DictTable';
-import FileTable from './components/FileTable';
-import MonitoringTable from './components/MonitoringTable';
-import CacheTable from './components/CacheTable';
-import OnlineUsersTable from './components/OnlineUsersTable';
-import SystemLogs from './components/SystemLogs';
 import { motion, AnimatePresence } from 'motion/react';
+
+// 懒加载组件
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const RoleManagement = lazy(() => import('./pages/RoleManagement'));
+const MenuManagement = lazy(() => import('./pages/MenuManagement'));
+const OrgUserManagement = lazy(() => import('./components/OrgUserManagement'));
+const Profile = lazy(() => import('./components/Profile'));
+const NoticeTable = lazy(() => import('./components/NoticeTable'));
+const PermissionTable = lazy(() => import('./components/PermissionTable'));
+const LogOper = lazy(() => import('./components/LogOper'));
+const LogLogin = lazy(() => import('./components/LogLogin'));
+const LogError = lazy(() => import('./components/LogError'));
+const ConfigTable = lazy(() => import('./components/ConfigTable'));
+const DictTable = lazy(() => import('./components/DictTable'));
+const FileTable = lazy(() => import('./components/FileTable'));
+const MonitoringTable = lazy(() => import('./components/MonitoringTable'));
+const CacheTable = lazy(() => import('./components/CacheTable'));
+const OnlineUsersTable = lazy(() => import('./components/OnlineUsersTable'));
+const SystemLogs = lazy(() => import('./components/SystemLogs'));
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -88,7 +90,14 @@ export default function App() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {renderContent()}
+              <Suspense fallback={
+                <div className="p-8 flex flex-col items-center justify-center h-[calc(100vh-64px)]">
+                  <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin mb-4"></div>
+                  <p className="text-slate-500">加载中...</p>
+                </div>
+              }>
+                {renderContent()}
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </div>

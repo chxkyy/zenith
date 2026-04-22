@@ -1,12 +1,7 @@
 package com.zenith.admin.api;
 
-import java.util.Map;
+import com.zenith.admin.dto.data.StatsOverviewDTO;
 
 public interface StatsService {
-    Map<String, Object> getOverview();
-    Map<String, Object> getUserStats();
-    Map<String, Object> getRoleStats();
-    Map<String, Object> getOrgStats();
-    Map<String, Object> getMenuStats();
-    Map<String, Object> getLogStats();
+    StatsOverviewDTO getOverview();
 }
