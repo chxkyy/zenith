@@ -108,7 +108,7 @@ export default function FileTable() {
 
   const handleDownload = async (id: number, fileName: string) => {
     try {
-      const response = await fetch(\`/api/files/download?id=\${id}\`);
+      const response = await fetch(`/api/files/download?id=${id}`);
       if (!response.ok) {
         throw new Error('Download failed');
       }

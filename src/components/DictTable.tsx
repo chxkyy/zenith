@@ -133,7 +133,7 @@ export default function DictTable() {
     if (!dictTypeModal.data) return;
     try {
       // 检查是否有字典项
-      const response = await fetch(\`/api/dict/items/list?\` + new URLSearchParams({ type: dictTypeModal.data.type }));
+      const response = await fetch(`/api/dict/items/list?` + new URLSearchParams({ type: dictTypeModal.data.type }));
       if (!response.ok) {
         throw new Error('Failed to check dict items');
       }
@@ -379,7 +379,7 @@ export default function DictTable() {
   const handleDictTypeDelete = async () => {
     if (!dictTypeModal.data) return;
     try {
-      const response = await fetch(\`/api/dicts?\` + new URLSearchParams({ id: dictTypeModal.data.id.toString() }), {
+      const response = await fetch(`/api/dicts?` + new URLSearchParams({ id: dictTypeModal.data.id.toString() }), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -473,7 +473,7 @@ export default function DictTable() {
   const handleDictItemDelete = async () => {
     if (!dictItemModal.data) return;
     try {
-      const response = await fetch(\`/api/dict/items?\` + new URLSearchParams({ id: dictItemModal.data.id.toString() }), {
+      const response = await fetch(`/api/dict/items?` + new URLSearchParams({ id: dictItemModal.data.id.toString() }), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

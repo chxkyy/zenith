@@ -29,13 +29,13 @@ const LogError: React.FC = () => {
       if (searchParams.module) params.append('module', searchParams.module);
       if (searchParams.ip) params.append('ip', searchParams.ip);
       
-      const response = await fetch(\`/api/error-logs?\${params.toString()}\`);
+      const response = await fetch(`/api/error-logs?${params.toString()}`);
       const text = await response.text();
       if (response.status === 503) {
         throw new Error('Java 后端正在启动，请稍候...');
       }
       if (!response.ok) {
-        throw new Error(\`HTTP error! status: \${response.status}. \${text}\`);
+        throw new Error(`HTTP error! status: ${response.status}. ${text}`);
       }
       if (!text) {
         setLogs([]);
@@ -72,7 +72,7 @@ const LogError: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!confirm('确定删除该异常日志吗？')) return;
     try {
-      const response = await fetch(\`/api/error-logs/delete\`, {
+      const response = await fetch(`/api/error-logs/delete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -91,7 +91,7 @@ const LogError: React.FC = () => {
   const handleClear = async () => {
     if (!confirm('确定清理3个月前的所有异常日志吗？')) return;
     try {
-      const response = await fetch(\`/api/error-logs/clear?months=3\`, {
+      const response = await fetch(`/api/error-logs/clear?months=3`, {
         method: 'POST'
       });
       const data = await response.json();
