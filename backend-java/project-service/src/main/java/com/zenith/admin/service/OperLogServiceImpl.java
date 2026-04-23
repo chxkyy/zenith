@@ -34,7 +34,7 @@ public class OperLogServiceImpl implements OperLogService {
         if (StringUtils.hasText(result)) {
             queryWrapper.eq(OperLogDO::getResult, result);
         }
-        queryWrapper.orderByDesc(OperLogDO::getCreatedAt);
+        queryWrapper.orderByDesc(OperLogDO::getCreatedTime);
         List<OperLogDO> operLogDOS = operLogMapper.selectList(queryWrapper);
         PageInfo<OperLogDO> pageInfo = new PageInfo<>(operLogDOS);
 

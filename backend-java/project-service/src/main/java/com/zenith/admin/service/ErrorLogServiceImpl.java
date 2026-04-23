@@ -32,7 +32,7 @@ public class ErrorLogServiceImpl implements ErrorLogService {
         if (StringUtils.hasText(ip)) {
             queryWrapper.like(ErrorLogDO::getIp, ip);
         }
-        queryWrapper.orderByDesc(ErrorLogDO::getCreatedAt);
+        queryWrapper.orderByDesc(ErrorLogDO::getCreatedTime);
         List<ErrorLogDO> errorLogDOS = errorLogMapper.selectList(queryWrapper);
         PageInfo<ErrorLogDO> pageInfo = new PageInfo<>(errorLogDOS);
 
@@ -55,7 +55,7 @@ public class ErrorLogServiceImpl implements ErrorLogService {
     @Override
     public void clear(int months) {
         LambdaQueryWrapper<ErrorLogDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.le(ErrorLogDO::getCreatedAt, LocalDateTime.now().minusMonths(months));
+        queryWrapper.le(ErrorLogDO::getCreatedTime, LocalDateTime.now().minusMonths(months));
         errorLogMapper.delete(queryWrapper);
     }
 

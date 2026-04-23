@@ -545,7 +545,10 @@ export default function MenuTable() {
               {menu.status === 1 ? '启用' : '禁用'}
             </button>
           </td>
-          <td className="px-6 py-4 text-sm text-slate-500">{menu.createTime}</td>
+          <td className="px-6 py-4 text-sm text-slate-500">{menu.createUserId || '-'}</td>
+          <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(menu.createdTime)}</td>
+          <td className="px-6 py-4 text-sm text-slate-500">{menu.updateUserId || '-'}</td>
+          <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(menu.updateTime)}</td>
           <td className="px-6 py-4 text-right">
             <div className="flex items-center justify-end gap-1">
               {level === 0 && (
@@ -677,22 +680,26 @@ export default function MenuTable() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">菜单名称</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">类型</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">路由路径</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">图标</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">排序</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">状态</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">操作</th>
+            <thead>
+              <tr className="bg-slate-50 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                <th className="px-6 py-4">菜单名称</th>
+                <th className="px-6 py-4">路径</th>
+                <th className="px-6 py-4">组件</th>
+                <th className="px-6 py-4">图标</th>
+                <th className="px-6 py-4">排序</th>
+                <th className="px-6 py-4">类型</th>
+                <th className="px-6 py-4">权限标识</th>
+                <th className="px-6 py-4">创建人</th>
+                <th className="px-6 py-4">创建时间</th>
+                <th className="px-6 py-4">修改人</th>
+                <th className="px-6 py-4">修改时间</th>
+                <th className="px-6 py-4 text-right">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
+                  <td colSpan={12} className="px-6 py-12 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                       <span className="text-slate-600">加载中...</span>
@@ -701,7 +708,7 @@ export default function MenuTable() {
                 </tr>
               ) : menus.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
+                  <td colSpan={12} className="px-6 py-12 text-center">
                     <span className="text-slate-500">暂无菜单数据</span>
                   </td>
                 </tr>

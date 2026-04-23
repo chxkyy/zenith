@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { MoreHorizontal, Search, Building2, Plus, ChevronDown, ChevronRight, Users2 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, formatDateTime } from '../lib/utils';
 
 interface Org {
   id: number;
+  parentId: number;
   name: string;
-  code: string;
-  type: string;
-  leader: string;
-  memberCount: number;
-  parentId?: number;
+  sort: number;
+  status: number;
+  createdTime: string;
+  updateTime: string;
+  createUserId: number;
+  updateUserId: number;
   children?: Org[];
 }
 
@@ -46,25 +48,19 @@ function OrgRow({ org, level }: OrgItemProps) {
             <span className="text-sm font-semibold text-slate-900">{org.name}</span>
           </div>
         </td>
+        <td className="px-6 py-4 text-sm text-slate-600">{org.sort}</td>
         <td className="px-6 py-4">
-          <code className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-mono">
-            {org.code}
-          </code>
-        </td>
-        <td className="px-6 py-4">
-          <span className="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-600 rounded-md">
-            {org.type}
+          <span className={cn(
+            "px-2 py-1 text-xs font-bold rounded-md",
+            org.status === 1 ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+          )}>
+            {org.status === 1 ? '正常' : '禁用'}
           </span>
         </td>
-        <td className="px-6 py-4">
-          <span className="text-sm text-slate-600">{org.leader}</span>
-        </td>
-        <td className="px-6 py-4">
-          <div className="flex items-center gap-1.5 text-slate-500">
-            <Users2 size={14} />
-            <span className="text-sm font-medium">{org.memberCount}</span>
-          </div>
-        </td>
+        <td className="px-6 py-4 text-sm text-slate-600">{org.createUserId || '-'}</td>
+        <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(org.createdTime)}</td>
+        <td className="px-6 py-4 text-sm text-slate-600">{org.updateUserId || '-'}</td>
+        <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(org.updateTime)}</td>
         <td className="px-6 py-4 text-right">
           <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
             <MoreHorizontal size={18} />
@@ -181,24 +177,24 @@ export default function OrgTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-12 text-center">
-                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                </td>
-              </tr>
-            ) : orgs.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                  暂无组织数据
-                </td>
-              </tr>
-            ) : (
-              orgs.map((org) => (
-                <OrgRow key={org.id} org={org} level={0} />
-              ))
-            )}
-          </tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-12 text-center">
+                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  </td>
+                </tr>
+              ) : orgs.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                    暂无组织数据
+                  </td>
+                </tr>
+              ) : (
+                orgs.map((org) => (
+                  <OrgRow key={org.id} org={org} level={0} />
+                ))
+              )}
+            </tbody>
         </table>
       </div>
     </div>
