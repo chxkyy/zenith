@@ -166,8 +166,12 @@ export default function RoleManagement() {
     const newStatus = currentStatus === 1 ? 0 : 1;
     if (window.confirm(`确定要将角色状态切换为${newStatus === 1 ? '启用' : '禁用'}吗？`)) {
       setLoading(true);
-      fetch(`/api/roles/status?roleId=${id}&status=${newStatus}`, {
-        method: 'POST'
+      fetch(`/api/roles/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id, status: newStatus })
       })
         .then(res => {
           if (!res.ok) {
@@ -435,7 +439,7 @@ export default function RoleManagement() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{formatDateTime(role.createdAt)}</span>
+                    <span className="text-sm text-slate-600">{formatDateTime(role.createdTime)}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">

@@ -372,8 +372,12 @@ export default function OrgUserManagement() {
         const newStatus = currentStatus === 1 ? 0 : 1;
         if (window.confirm(`确定要将用户状态切换为${newStatus === 1 ? '活跃' : '禁用'}吗？`)) {
             setUserLoading(true);
-            fetch(`/api/users/status/${id}?status=${newStatus}`, {
-                method: 'POST'
+            fetch(`/api/users/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id, status: newStatus })
             })
                 .then(res => {
                     if (!res.ok) {

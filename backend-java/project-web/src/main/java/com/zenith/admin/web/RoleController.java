@@ -7,6 +7,7 @@ import com.zenith.admin.PageResponseUtils;
 import com.zenith.admin.dto.data.IdQuery;
 import com.zenith.admin.dto.data.RoleDTO;
 import com.zenith.admin.dto.data.RolePageQuery;
+import com.zenith.admin.dto.data.StatusUpdateQuery;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,8 +55,8 @@ public class RoleController {
     }
 
     @PostMapping("/status")
-    public com.alibaba.cola.dto.Response changeStatus(@RequestBody IdQuery query, @RequestParam Integer status) {
-        roleService.changeStatus(query.getId(), status);
+    public com.alibaba.cola.dto.Response changeStatus(@RequestBody StatusUpdateQuery query) {
+        roleService.changeStatus(query.getId(), query.getStatus());
         return com.alibaba.cola.dto.Response.buildSuccess();
     }
 }
