@@ -7,19 +7,11 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("t_sys_user")
-public class UserDO {
+@TableName("t_sys_user_role")
+public class UserRoleDO {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private String username;
-    private String nickname;
-    private String email;
-    private String password;
-    private Integer status;
-    private String role;
-    private String orgName;
+    private Long userId;
+    private Long roleId;
     private LocalDateTime createdTime;
-    private LocalDateTime updateTime;
-    private Long updateUserId;
-    private Long createUserId;
 }

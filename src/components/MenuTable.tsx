@@ -550,22 +550,20 @@ export default function MenuTable() {
           <td className="px-6 py-4 text-sm text-slate-500">{menu.updateUserId || '-'}</td>
           <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(menu.updateTime)}</td>
           <td className="px-6 py-4 text-right">
-            <div className="flex items-center justify-end gap-1">
+            <div className="flex items-center justify-end gap-3">
               {level === 0 && (
                 <>
                   <button 
                     onClick={() => handleMoveUp(menu)}
-                    className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="上移"
+                    className="text-sm text-slate-600 hover:text-slate-800 font-medium"
                   >
-                    <MoveUp size={16} />
+                    上移
                   </button>
                   <button 
                     onClick={() => handleMoveDown(menu)}
-                    className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="下移"
+                    className="text-sm text-slate-600 hover:text-slate-800 font-medium"
                   >
-                    <MoveDown size={16} />
+                    下移
                   </button>
                 </>
               )}
@@ -575,17 +573,15 @@ export default function MenuTable() {
                   setModalMode('edit');
                   setIsModalOpen(true);
                 }}
-                className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                title="编辑"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
               >
-                <Edit size={16} />
+                编辑
               </button>
               <button 
                 onClick={() => handleDeleteMenu(menu.id)}
-                className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="删除"
+                className="text-sm text-red-600 hover:text-red-800 font-medium"
               >
-                <Trash2 size={16} />
+                删除
               </button>
             </div>
           </td>

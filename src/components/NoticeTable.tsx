@@ -453,44 +453,39 @@ export default function NoticeTable() {
                       <span className="text-sm text-slate-600">{formatDateTime(notice.updateTime)}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-3">
                         <button 
-                          className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-blue-600"
-                          title="查看详情"
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                           onClick={() => handleViewNotice(notice)}
                         >
-                          <Eye size={18} />
+                          查看
                         </button>
                         <button 
-                          className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-blue-600"
-                          title="编辑"
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                           onClick={() => handleEditNotice(notice)}
                         >
-                          <Edit size={18} />
+                          编辑
                         </button>
                         {notice.status === '1' ? (
                           <button 
-                            className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-orange-600"
-                            title="撤回"
+                            className="text-sm text-orange-600 hover:text-orange-800 font-medium"
                             onClick={() => handlePublishNotice(notice)}
                           >
-                            <RotateCcw size={18} />
+                            撤回
                           </button>
                         ) : (
                           <button 
-                            className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-emerald-600"
-                            title="发布"
+                            className="text-sm text-emerald-600 hover:text-emerald-800 font-medium"
                             onClick={() => handlePublishNotice(notice)}
                           >
-                            <Send size={18} />
+                            发布
                           </button>
                         )}
                         <button 
-                          className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-red-600"
-                          title="删除"
+                          className="text-sm text-red-600 hover:text-red-800 font-medium"
                           onClick={() => handleDeleteNotice(notice)}
                         >
-                          <Trash2 size={18} />
+                          删除
                         </button>
                       </div>
                     </td>

@@ -622,41 +622,36 @@ export default function OrgUserManagement() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-1">
+                                            <div className="flex items-center justify-end gap-3">
                                                 <button
                                                     onClick={() => handleEditUser(user)}
-                                                    className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title="编辑"
+                                                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                                                 >
-                                                    <Edit size={16}/>
+                                                    编辑
                                                 </button>
                                                 <button
                                                     onClick={() => handleResetPassword(user.id)}
-                                                    className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                                                    title="重置密码"
+                                                    className="text-sm text-amber-600 hover:text-amber-800 font-medium"
                                                 >
-                                                    <ResetIcon size={16}/>
+                                                    重置密码
                                                 </button>
                                                 <button
                                                     onClick={() => handleChangeStatus(user.id, user.status)}
-                                                    className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                                    title={user.status === 1 ? '禁用' : '启用'}
+                                                    className="text-sm text-purple-600 hover:text-purple-800 font-medium"
                                                 >
-                                                    <User size={16}/>
+                                                    {user.status === 1 ? '禁用' : '启用'}
                                                 </button>
                                                 <button
                                                     onClick={() => handleAssignRoles(user)}
-                                                    className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                    title="分配角色"
+                                                    className="text-sm text-emerald-600 hover:text-emerald-800 font-medium"
                                                 >
-                                                    <Shield size={16}/>
+                                                    分配角色
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteUser(user.id)}
-                                                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="删除"
+                                                    className="text-sm text-red-600 hover:text-red-800 font-medium"
                                                 >
-                                                    <Trash2 size={16}/>
+                                                    删除
                                                 </button>
                                             </div>
                                         </td>

@@ -261,20 +261,18 @@ export default function FileTable() {
                       <span className="text-sm text-slate-600">{formatDateTime(file.updateTime)}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-3">
                         <button
                           onClick={() => handleDownload(file.id, file.originalName)}
-                          className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
-                          title="下载"
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                         >
-                          <Download size={18} />
+                          下载
                         </button>
                         <button
                           onClick={() => handleDelete(file.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 transition-colors"
-                          title="删除"
+                          className="text-sm text-red-600 hover:text-red-800 font-medium"
                         >
-                          <Trash2 size={18} />
+                          删除
                         </button>
                       </div>
                     </td>

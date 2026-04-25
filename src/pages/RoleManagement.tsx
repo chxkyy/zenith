@@ -11,6 +11,12 @@ export default function RoleManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [selectedRole, setSelectedRole] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    code: '',
+    status: 1,
+    description: ''
+  });
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [selectedRoleForPermissions, setSelectedRoleForPermissions] = useState<any>(null);
@@ -128,6 +134,12 @@ export default function RoleManagement() {
   const handleEditRole = (role: any) => {
     console.log('Editing role:', role);
     setSelectedRole(role);
+    setFormData({
+      name: role.name || '',
+      code: role.code || '',
+      status: role.status ?? 1,
+      description: role.description || ''
+    });
     setModalMode('edit');
     setIsModalOpen(true);
     console.log('Modal should be open now');
@@ -267,6 +279,12 @@ export default function RoleManagement() {
               console.log('Adding new role');
               setModalMode('add');
               setSelectedRole(null);
+              setFormData({
+                name: '',
+                code: '',
+                status: 1,
+                description: ''
+              });
               setIsModalOpen(true);
               console.log('Modal should be open now');
             }}
@@ -376,6 +394,7 @@ export default function RoleManagement() {
                   )}
                 </button>
               </th>
+              <th className="px-6 py-4">备注</th>
               <th className="px-6 py-4">
                 <button 
                   onClick={() => handleSort('createTime')}
@@ -393,7 +412,7 @@ export default function RoleManagement() {
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center">
+                <td colSpan={6} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-slate-500 text-sm">正在加载角色数据...</p>
@@ -402,7 +421,7 @@ export default function RoleManagement() {
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center">
+                <td colSpan={6} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <p className="text-red-500 text-sm font-medium">{error}</p>
                     <button 
@@ -415,7 +434,7 @@ export default function RoleManagement() {
               </tr>
             ) : roles.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center">
+                <td colSpan={6} className="px-6 py-12 text-center">
                   <p className="text-slate-500 text-sm">暂无角色数据</p>
                 </td>
               </tr>
@@ -424,7 +443,6 @@ export default function RoleManagement() {
                 <tr key={role.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
                     <p className="text-sm font-semibold text-slate-900">{role.name}</p>
-                    <p className="text-xs text-slate-500">{role.remark || '-'}</p>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-slate-600 font-mono">{role.code}</span>
@@ -439,44 +457,42 @@ export default function RoleManagement() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
+                    <span className="text-sm text-slate-600">{role.description || '-'}</span>
+                  </td>
+                  <td className="px-6 py-4">
                     <span className="text-sm text-slate-600">{formatDateTime(role.createdTime)}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-3">
                       <button 
                         onClick={() => handleEditRole(role)}
-                        className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="编辑"
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                       >
-                        <Edit size={16} />
+                        编辑
                       </button>
                       <button 
                         onClick={() => handleChangeStatus(role.id, role.status)}
-                        className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        title={role.status === 1 ? '禁用' : '启用'}
+                        className="text-sm text-purple-600 hover:text-purple-800 font-medium"
                       >
-                        <UserPlus size={16} />
+                        {role.status === 1 ? '禁用' : '启用'}
                       </button>
                       <button 
                         onClick={() => handleAssignPermissions(role)}
-                        className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                        title="分配权限"
+                        className="text-sm text-emerald-600 hover:text-emerald-800 font-medium"
                       >
-                        <Shield size={16} />
+                        分配权限
                       </button>
                       <button 
                         onClick={() => handleAssignUsers(role)}
-                        className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                        title="分配用户"
+                        className="text-sm text-amber-600 hover:text-amber-800 font-medium"
                       >
-                        <UserPlus size={16} />
+                        分配用户
                       </button>
                       <button 
                         onClick={() => handleDeleteRole(role.id)}
-                        className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="删除"
+                        className="text-sm text-red-600 hover:text-red-800 font-medium"
                       >
-                        <Trash2 size={16} />
+                        删除
                       </button>
                     </div>
                   </td>
@@ -528,13 +544,12 @@ export default function RoleManagement() {
             <form 
               onSubmit={(e) => {
                 e.preventDefault();
-                const formData = new FormData(e.target as HTMLFormElement);
                 const roleData = {
                   id: modalMode === 'edit' ? selectedRole.id : undefined,
-                  name: formData.get('name') as string,
-                  code: formData.get('code') as string,
-                  status: parseInt(formData.get('status') as string),
-                  remark: formData.get('remark') as string
+                  name: formData.name,
+                  code: formData.code,
+                  status: formData.status,
+                  description: formData.description
                 };
                 handleSaveRole(roleData);
               }}
@@ -548,7 +563,8 @@ export default function RoleManagement() {
                   name="name"
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
                   placeholder="请输入角色名称"
-                  defaultValue={modalMode === 'edit' ? selectedRole?.name : ''}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
 
@@ -560,8 +576,9 @@ export default function RoleManagement() {
                   name="code"
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all font-mono"
                   placeholder="请输入角色编码（大写英文+下划线）"
-                  defaultValue={modalMode === 'edit' ? selectedRole?.code : ''}
-                  disabled={modalMode === 'edit'} // 编辑模式下角色编码不可修改
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                  disabled={modalMode === 'edit'}
                 />
               </div>
 
@@ -571,7 +588,8 @@ export default function RoleManagement() {
                   required
                   name="status"
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all bg-white"
-                  defaultValue={modalMode === 'edit' ? selectedRole?.status : 1}
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: parseInt(e.target.value) })}
                 >
                   <option value={1}>启用</option>
                   <option value={0}>禁用</option>
@@ -581,11 +599,12 @@ export default function RoleManagement() {
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">备注</label>
                 <textarea
-                  name="remark"
+                  name="description"
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all resize-none"
                   placeholder="请输入备注信息"
                   rows={3}
-                  defaultValue={modalMode === 'edit' ? selectedRole?.remark : ''}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 ></textarea>
               </div>
 

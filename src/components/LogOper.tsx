@@ -213,15 +213,14 @@ const LogOper: React.FC = () => {
                     <td className="px-6 py-4 text-gray-500">{formatDateTime(log.updateTime)}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-3">
-                        <button className="text-blue-600 hover:text-blue-800" title="详情">
-                          <Eye size={18} />
+                        <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                          详情
                         </button>
                         <button 
                           onClick={() => handleDelete(log.id)}
-                          className="text-red-600 hover:text-red-800" 
-                          title="删除"
+                          className="text-sm text-red-600 hover:text-red-800 font-medium"
                         >
-                          <Trash2 size={18} />
+                          删除
                         </button>
                       </div>
                     </td>

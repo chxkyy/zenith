@@ -490,31 +490,28 @@ export default function PermissionTable() {
           </td>
           <td className="px-6 py-4 text-sm text-slate-500">{perm.createTime}</td>
           <td className="px-6 py-4 text-right">
-            <div className="flex items-center justify-end gap-1">
+            <div className="flex items-center justify-end gap-3">
               <button 
                 onClick={() => {
                   setSelectedPermission(perm);
                   setModalMode('edit');
                   setIsModalOpen(true);
                 }}
-                className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                title="编辑"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
               >
-                <Edit size={16} />
+                编辑
               </button>
               <button 
                 onClick={() => handleViewAssociatedRoles(perm)}
-                className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                title="关联角色"
+                className="text-sm text-purple-600 hover:text-purple-800 font-medium"
               >
-                <Users size={16} />
+                关联角色
               </button>
               <button 
                 onClick={() => handleDeletePermission(perm.id)}
-                className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="删除"
+                className="text-sm text-red-600 hover:text-red-800 font-medium"
               >
-                <Trash2 size={16} />
+                删除
               </button>
             </div>
           </td>

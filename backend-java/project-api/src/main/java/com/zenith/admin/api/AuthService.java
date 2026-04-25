@@ -1,10 +1,13 @@
 package com.zenith.admin.api;
 
-import java.util.Map;
+import com.alibaba.cola.dto.Response;
+import com.alibaba.cola.dto.SingleResponse;
+import com.zenith.admin.dto.data.UserDTO;
 
 public interface AuthService {
-    Map<String, Object> login(String username, String password);
-    Map<String, Object> logout(String token);
-    Map<String, Object> getCurrentUser(String token);
-    Map<String, Object> refreshToken(String token);
+    SingleResponse<UserDTO> login(String username, String password, String ip);
+    Response logout(String token);
+    UserDTO getCurrentUser(Long userId);
+    Response changePassword(Long userId, String oldPassword, String newPassword);
+    String getTokenAndClean();
 }

@@ -213,10 +213,9 @@ const LogLogin: React.FC = () => {
                     <td className="px-6 py-4">
                       <button 
                         onClick={() => handleDelete(log.id)}
-                        className="text-red-600 hover:text-red-800" 
-                        title="删除"
+                        className="text-sm text-red-600 hover:text-red-800 font-medium"
                       >
-                        <Trash2 size={18} />
+                        删除
                       </button>
                     </td>
                   </tr>

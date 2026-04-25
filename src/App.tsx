@@ -1,7 +1,8 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import { motion, AnimatePresence } from 'motion/react';
+import Login from './Login';
 
 // 懒加载组件
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -24,6 +25,64 @@ const SystemLogs = lazy(() => import('./components/SystemLogs'));
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{ username?: string; email?: string } | null>(null);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setIsAuthenticated(true);
+        setCurrentUser({ username: data.data.username, email: data.data.email });
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      }
+    } catch (error) {
+      setIsAuthenticated(false);
+      setCurrentUser(null);
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    checkAuth();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setActiveTab('dashboard');
+  };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -77,9 +136,13 @@ export default function App() {
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
+
       <main className="flex-1 flex flex-col min-w-0">
-        <Header />
+        <Header
+          username={currentUser?.username}
+          email={currentUser?.email}
+          onLogout={handleLogout}
+        />
         
         <div className="flex-1 overflow-y-auto">
           <AnimatePresence mode="wait">
