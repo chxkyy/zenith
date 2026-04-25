@@ -1,7 +1,6 @@
 package com.zenith.admin.service;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.ErrorLogService;
 import com.zenith.admin.ErrorLogConvertor;
 import com.zenith.admin.dataobject.ErrorLogDO;
 import com.zenith.admin.dto.data.ErrorLogDTO;
@@ -13,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 
@@ -21,7 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ErrorLogServiceImplTest implements ErrorLogService {
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ErrorLogServiceImplTest {
 
     @Mock
     private ErrorLogMapper errorLogMapper;
@@ -40,13 +42,13 @@ class ErrorLogServiceImplTest implements ErrorLogService {
         testErrorLog = new ErrorLogDO();
         testErrorLog.setId(1L);
         testErrorLog.setModule("用户管理");
-        testErrorLog.setMessage("NullPointerException");
+        testErrorLog.setErrorMsg("NullPointerException");
         testErrorLog.setIp("127.0.0.1");
 
         testErrorLogDTO = new ErrorLogDTO();
         testErrorLogDTO.setId(1L);
         testErrorLogDTO.setModule("用户管理");
-        testErrorLogDTO.setMessage("NullPointerException");
+        testErrorLogDTO.setErrorMsg("NullPointerException");
         testErrorLogDTO.setIp("127.0.0.1");
     }
 
@@ -58,7 +60,7 @@ class ErrorLogServiceImplTest implements ErrorLogService {
         when(errorLogConvertor.toDTO(any(ErrorLogDO.class))).thenReturn(testErrorLogDTO);
         when(errorLogConvertor.toDTOList(anyList())).thenReturn(Arrays.asList(testErrorLogDTO));
 
-        PageInfo<ErrorLogDTO> result = listByPage(1, 10, "用户管理", "127.0.0.1");
+        PageInfo<ErrorLogDTO> result = errorLogService.listByPage(1, 10, "用户管理", "127.0.0.1");
 
         assertNotNull(result);
         verify(errorLogMapper).selectList(any());
@@ -69,7 +71,7 @@ class ErrorLogServiceImplTest implements ErrorLogService {
     void testSave_Success() {
         when(errorLogConvertor.toDataObject(any(ErrorLogDTO.class))).thenReturn(testErrorLog);
 
-        save(testErrorLogDTO);
+        errorLogService.save(testErrorLogDTO);
 
         verify(errorLogMapper).insert(any(ErrorLogDO.class));
     }
@@ -77,7 +79,7 @@ class ErrorLogServiceImplTest implements ErrorLogService {
     @Test
     @DisplayName("删除错误日志")
     void testDelete_Success() {
-        delete(1L);
+        errorLogService.delete(1L);
 
         verify(errorLogMapper).deleteById(1L);
     }
@@ -85,7 +87,7 @@ class ErrorLogServiceImplTest implements ErrorLogService {
     @Test
     @DisplayName("清理指定月份前的错误日志")
     void testClear_Success() {
-        clear(3);
+        errorLogService.clear(3);
 
         verify(errorLogMapper).delete(any());
     }

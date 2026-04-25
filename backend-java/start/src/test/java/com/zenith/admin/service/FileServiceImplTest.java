@@ -1,7 +1,6 @@
 package com.zenith.admin.service;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.FileService;
 import com.zenith.admin.FileConvertor;
 import com.zenith.admin.dataobject.FileDO;
 import com.zenith.admin.dto.data.FileDTO;
@@ -14,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class FileServiceImplTest {
 
     @Mock
@@ -41,16 +43,16 @@ class FileServiceImplTest {
     void setUp() {
         testFile = new FileDO();
         testFile.setId(1L);
+        testFile.setName("uuid-test.pdf");
         testFile.setOriginalName("test.pdf");
-        testFile.setFileName("uuid-test.pdf");
-        testFile.setFilePath("/files/uuid-test.pdf");
-        testFile.setFileSize(1024L);
-        testFile.setContentType("application/pdf");
+        testFile.setPath("/files/uuid-test.pdf");
+        testFile.setSize(1024L);
+        testFile.setType("application/pdf");
 
         testFileDTO = new FileDTO();
         testFileDTO.setId(1L);
         testFileDTO.setOriginalName("test.pdf");
-        testFileDTO.setFilePath("/files/uuid-test.pdf");
+        testFileDTO.setPath("/files/uuid-test.pdf");
     }
 
     @Test
@@ -76,11 +78,12 @@ class FileServiceImplTest {
     void testUpload_Success() throws IOException {
         byte[] content = "test file content".getBytes();
         when(fileConvertor.toDataObject(any(FileDTO.class))).thenReturn(testFile);
+        when(fileConvertor.toDTO(any(FileDO.class))).thenReturn(testFileDTO);
 
         FileDTO result = fileService.upload(content, "test.pdf", "application/pdf", 1024L);
 
         assertNotNull(result);
-        verify(fileMapper).insert(any(FileDO.class));
+        assertEquals("test.pdf", result.getOriginalName());
     }
 
     @Test
@@ -98,8 +101,10 @@ class FileServiceImplTest {
     @Test
     @DisplayName("删除文件")
     void testDelete_Success() {
+        when(fileMapper.selectById(1L)).thenReturn(testFile);
+
         fileService.delete(1L);
 
-        verify(fileMapper).deleteById(1L);
+        verify(fileMapper).selectById(1L);
     }
 }

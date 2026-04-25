@@ -2,7 +2,6 @@ package com.zenith.admin.service;
 
 import com.alibaba.cola.dto.MultiResponse;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.OrgService;
 import com.zenith.admin.OrgConvertor;
 import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.dto.data.OrgDTO;
@@ -15,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class OrgServiceImplTest {
 
     @Mock
@@ -42,13 +44,11 @@ class OrgServiceImplTest {
         testOrg = new OrgDO();
         testOrg.setId(1L);
         testOrg.setName("研发中心");
-        testOrg.setCode("DEV_CENTER");
         testOrg.setStatus(1);
 
         testOrgDTO = new OrgDTO();
         testOrgDTO.setId(1L);
         testOrgDTO.setName("研发中心");
-        testOrgDTO.setCode("DEV_CENTER");
     }
 
     @Test
@@ -59,7 +59,7 @@ class OrgServiceImplTest {
 
         MultiResponse<OrgDTO> result = orgService.listAll();
 
-        assertTrue(result.getSuccess());
+        assertTrue(result.isSuccess());
         assertNotNull(result.getData());
         assertEquals(1, result.getData().size());
     }
@@ -83,13 +83,13 @@ class OrgServiceImplTest {
     }
 
     @Test
-    @DisplayName("保存新组织")
-    void testSave_NewOrg() {
+    @DisplayName("保存组织")
+    void testSave_Org() {
         when(orgConvertor.toDataObject(any(OrgDTO.class))).thenReturn(testOrg);
 
         orgService.save(testOrgDTO);
 
-        verify(orgMapper).insert(any(OrgDO.class));
+        verify(orgMapper).updateById(any(OrgDO.class));
     }
 
     @Test

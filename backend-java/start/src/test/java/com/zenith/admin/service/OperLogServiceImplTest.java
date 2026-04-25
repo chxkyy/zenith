@@ -1,7 +1,6 @@
 package com.zenith.admin.service;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.OperLogService;
 import com.zenith.admin.OperLogConvertor;
 import com.zenith.admin.dataobject.OperLogDO;
 import com.zenith.admin.dto.data.OperLogDTO;
@@ -13,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 
@@ -21,7 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class OperLogServiceImplTest implements OperLogService {
+@MockitoSettings(strictness = Strictness.LENIENT)
+class OperLogServiceImplTest {
 
     @Mock
     private OperLogMapper operLogMapper;
@@ -41,14 +43,14 @@ class OperLogServiceImplTest implements OperLogService {
         testOperLog.setId(1L);
         testOperLog.setOperator("admin");
         testOperLog.setModule("用户管理");
-        testOperLog.setAction("新增用户");
+        testOperLog.setContent("新增用户");
         testOperLog.setResult("success");
 
         testOperLogDTO = new OperLogDTO();
         testOperLogDTO.setId(1L);
         testOperLogDTO.setOperator("admin");
         testOperLogDTO.setModule("用户管理");
-        testOperLogDTO.setAction("新增用户");
+        testOperLogDTO.setContent("新增用户");
         testOperLogDTO.setResult("success");
     }
 
@@ -60,7 +62,7 @@ class OperLogServiceImplTest implements OperLogService {
         when(operLogConvertor.toDTO(any(OperLogDO.class))).thenReturn(testOperLogDTO);
         when(operLogConvertor.toDTOList(anyList())).thenReturn(Arrays.asList(testOperLogDTO));
 
-        PageInfo<OperLogDTO> result = listByPage(1, 10, "admin", "用户管理", "success");
+        PageInfo<OperLogDTO> result = operLogService.listByPage(1, 10, "admin", "用户管理", "success");
 
         assertNotNull(result);
         verify(operLogMapper).selectList(any());
@@ -71,7 +73,7 @@ class OperLogServiceImplTest implements OperLogService {
     void testSave_Success() {
         when(operLogConvertor.toDataObject(any(OperLogDTO.class))).thenReturn(testOperLog);
 
-        save(testOperLogDTO);
+        operLogService.save(testOperLogDTO);
 
         verify(operLogMapper).insert(any(OperLogDO.class));
     }
@@ -79,7 +81,7 @@ class OperLogServiceImplTest implements OperLogService {
     @Test
     @DisplayName("删除操作日志")
     void testDelete_Success() {
-        delete(1L);
+        operLogService.delete(1L);
 
         verify(operLogMapper).deleteById(1L);
     }

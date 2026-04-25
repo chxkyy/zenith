@@ -15,12 +15,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuthServiceImplTest {
 
     @Mock
@@ -36,13 +40,15 @@ class AuthServiceImplTest {
     private AuthServiceImpl authService;
 
     private UserDO testUser;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
+        passwordEncoder = new BCryptPasswordEncoder();
         testUser = new UserDO();
         testUser.setId(1L);
         testUser.setUsername("admin");
-        testUser.setPassword("$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW");
+        testUser.setPassword(passwordEncoder.encode("000000"));
         testUser.setStatus(1);
     }
 
@@ -59,7 +65,7 @@ class AuthServiceImplTest {
 
         SingleResponse<UserDTO> response = authService.login("admin", "000000", "127.0.0.1");
 
-        assertTrue(response.getSuccess());
+        assertTrue(response.isSuccess());
         assertNotNull(response.getData());
         assertEquals("admin", response.getData().getUsername());
         verify(tokenService).generateToken(1L, "127.0.0.1");
@@ -72,7 +78,7 @@ class AuthServiceImplTest {
 
         SingleResponse<UserDTO> response = authService.login("nonexistent", "password", "127.0.0.1");
 
-        assertFalse(response.getSuccess());
+        assertFalse(response.isSuccess());
         assertEquals("USER_NOT_FOUND", response.getErrCode());
         verify(tokenService, never()).generateToken(anyLong(), anyString());
     }
@@ -84,7 +90,7 @@ class AuthServiceImplTest {
 
         SingleResponse<UserDTO> response = authService.login("admin", "wrongpassword", "127.0.0.1");
 
-        assertFalse(response.getSuccess());
+        assertFalse(response.isSuccess());
         assertEquals("PASSWORD_ERROR", response.getErrCode());
         verify(tokenService, never()).generateToken(anyLong(), anyString());
     }
@@ -97,7 +103,7 @@ class AuthServiceImplTest {
 
         SingleResponse<UserDTO> response = authService.login("admin", "000000", "127.0.0.1");
 
-        assertFalse(response.getSuccess());
+        assertFalse(response.isSuccess());
         assertEquals("USER_DISABLED", response.getErrCode());
     }
 
@@ -106,7 +112,7 @@ class AuthServiceImplTest {
     void testLogout_Success() {
         Response response = authService.logout("test-token-123");
 
-        assertTrue(response.getSuccess());
+        assertTrue(response.isSuccess());
         verify(tokenService).deleteToken("test-token-123");
     }
 
@@ -115,7 +121,7 @@ class AuthServiceImplTest {
     void testLogout_EmptyToken() {
         Response response = authService.logout("");
 
-        assertTrue(response.getSuccess());
+        assertTrue(response.isSuccess());
         verify(tokenService, never()).deleteToken(anyString());
     }
 
@@ -141,7 +147,7 @@ class AuthServiceImplTest {
 
         Response response = authService.changePassword(1L, "000000", "newpassword123");
 
-        assertTrue(response.getSuccess());
+        assertTrue(response.isSuccess());
         verify(userMapper).updateById(any(UserDO.class));
     }
 
@@ -152,7 +158,7 @@ class AuthServiceImplTest {
 
         Response response = authService.changePassword(1L, "wrongoldpassword", "newpassword123");
 
-        assertFalse(response.getSuccess());
+        assertFalse(response.isSuccess());
         assertEquals("OLD_PASSWORD_ERROR", response.getErrCode());
         verify(userMapper, never()).updateById(any(UserDO.class));
     }
@@ -164,7 +170,7 @@ class AuthServiceImplTest {
 
         Response response = authService.changePassword(1L, "000000", "newpassword123");
 
-        assertFalse(response.getSuccess());
+        assertFalse(response.isSuccess());
         assertEquals("USER_NOT_FOUND", response.getErrCode());
     }
 }

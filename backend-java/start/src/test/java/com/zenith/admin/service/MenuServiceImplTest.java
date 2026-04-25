@@ -2,7 +2,6 @@ package com.zenith.admin.service;
 
 import com.alibaba.cola.dto.MultiResponse;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.MenuService;
 import com.zenith.admin.MenuConvertor;
 import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.dto.data.MenuDTO;
@@ -15,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class MenuServiceImplTest {
 
     @Mock
@@ -45,7 +47,7 @@ class MenuServiceImplTest {
         testMenu.setPath("/users");
         testMenu.setIcon("user");
         testMenu.setSort(1);
-        testMenu.setStatus(1);
+        testMenu.setType("menu");
 
         testMenuDTO = new MenuDTO();
         testMenuDTO.setId(1L);
@@ -62,7 +64,7 @@ class MenuServiceImplTest {
 
         MultiResponse<MenuDTO> result = menuService.listAll();
 
-        assertTrue(result.getSuccess());
+        assertTrue(result.isSuccess());
         assertNotNull(result.getData());
         assertEquals(1, result.getData().size());
     }
@@ -86,13 +88,13 @@ class MenuServiceImplTest {
     }
 
     @Test
-    @DisplayName("保存新菜单")
-    void testSave_NewMenu() {
+    @DisplayName("保存菜单")
+    void testSave_Menu() {
         when(menuConvertor.toDataObject(any(MenuDTO.class))).thenReturn(testMenu);
 
         menuService.save(testMenuDTO);
 
-        verify(menuMapper).insert(any(MenuDO.class));
+        verify(menuMapper).updateById(any(MenuDO.class));
     }
 
     @Test

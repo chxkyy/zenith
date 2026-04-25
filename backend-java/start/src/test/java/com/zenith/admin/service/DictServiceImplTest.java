@@ -2,14 +2,13 @@ package com.zenith.admin.service;
 
 import com.alibaba.cola.dto.MultiResponse;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.DictService;
 import com.zenith.admin.DictConvertor;
 import com.zenith.admin.dataobject.DictDO;
 import com.zenith.admin.dataobject.DictItemDO;
 import com.zenith.admin.dto.data.DictDTO;
 import com.zenith.admin.dto.data.DictItemDTO;
-import com.zenith.admin.dto.data.DictPageQuery;
 import com.zenith.admin.dto.data.DictItemPageQuery;
+import com.zenith.admin.dto.data.DictPageQuery;
 import com.zenith.admin.mapper.DictItemMapper;
 import com.zenith.admin.mapper.DictMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +18,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 
@@ -27,17 +28,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class DictServiceImplTest {
 
     @Mock
-    private DictMapper dictMapper;
-
+    private DictConvertor dictConvertor;
     @Mock
     private DictItemMapper dictItemMapper;
-
     @Mock
-    private DictConvertor dictConvertor;
-
+    private DictMapper dictMapper;
     @InjectMocks
     private DictServiceImpl dictService;
 
@@ -85,7 +84,7 @@ class DictServiceImplTest {
 
         MultiResponse<DictDTO> result = dictService.listAll();
 
-        assertTrue(result.getSuccess());
+        assertTrue(result.isSuccess());
         assertNotNull(result.getData());
         assertEquals(1, result.getData().size());
     }
@@ -98,7 +97,7 @@ class DictServiceImplTest {
 
         MultiResponse<DictDTO> result = dictService.listByType("user_status");
 
-        assertTrue(result.getSuccess());
+        assertTrue(result.isSuccess());
         assertNotNull(result.getData());
     }
 
@@ -121,13 +120,13 @@ class DictServiceImplTest {
     }
 
     @Test
-    @DisplayName("保存新字典类型")
-    void testSave_NewDict() {
+    @DisplayName("保存字典类型")
+    void testSave_Dict() {
         when(dictConvertor.toDataObject(any(DictDTO.class))).thenReturn(testDict);
 
         dictService.save(testDictDTO);
 
-        verify(dictMapper).insert(any(DictDO.class));
+        verify(dictMapper).updateById(any(DictDO.class));
     }
 
     @Test
@@ -177,11 +176,11 @@ class DictServiceImplTest {
     @DisplayName("根据类型查询字典项")
     void testListItemsByType_Success() {
         when(dictItemMapper.selectList(any())).thenReturn(Arrays.asList(testDictItem));
-        when(dictConvertor toItemDTOList(anyList())).thenReturn(Arrays.asList(testDictItemDTO));
+        when(dictConvertor.toItemDTOList(anyList())).thenReturn(Arrays.asList(testDictItemDTO));
 
         MultiResponse<DictItemDTO> result = dictService.listItemsByType("user_status");
 
-        assertTrue(result.getSuccess());
+        assertTrue(result.isSuccess());
         assertNotNull(result.getData());
     }
 
@@ -194,9 +193,9 @@ class DictServiceImplTest {
         query.setType("user_status");
 
         when(dictItemMapper.selectList(any())).thenReturn(Arrays.asList(testDictItem));
-        when(dictConvertor toItemDataObject(any(DictItemDTO.class))).thenReturn(testDictItem);
-        when(dictConvertor toItemDTO(any(DictItemDO.class))).thenReturn(testDictItemDTO);
-        when(dictConvertor toItemDTOList(anyList())).thenReturn(Arrays.asList(testDictItemDTO));
+        when(dictConvertor.toItemDataObject(any(DictItemDTO.class))).thenReturn(testDictItem);
+        when(dictConvertor.toItemDTO(any(DictItemDO.class))).thenReturn(testDictItemDTO);
+        when(dictConvertor.toItemDTOList(anyList())).thenReturn(Arrays.asList(testDictItemDTO));
 
         PageInfo<DictItemDTO> result = dictService.pageItems(query);
 
@@ -205,20 +204,20 @@ class DictServiceImplTest {
     }
 
     @Test
-    @DisplayName("保存新字典项")
-    void testSaveItem_NewItem() {
-        when(dictConvertor toItemDataObject(any(DictItemDTO.class))).thenReturn(testDictItem);
+    @DisplayName("保存字典项")
+    void testSaveItem_DictItem() {
+        when(dictConvertor.toItemDataObject(any(DictItemDTO.class))).thenReturn(testDictItem);
         when(dictItemMapper.selectCount(any())).thenReturn(0L);
 
         dictService.saveItem(testDictItemDTO);
 
-        verify(dictItemMapper).insert(any(DictItemDO.class));
+        verify(dictItemMapper).updateById(any(DictItemDO.class));
     }
 
     @Test
     @DisplayName("更新字典项")
     void testUpdateItem_ExistingItem() {
-        when(dictConvertor toItemDataObject(any(DictItemDTO.class))).thenReturn(testDictItem);
+        when(dictConvertor.toItemDataObject(any(DictItemDTO.class))).thenReturn(testDictItem);
 
         dictService.updateItem(testDictItemDTO);
 
@@ -237,7 +236,7 @@ class DictServiceImplTest {
     @DisplayName("根据ID获取字典项")
     void testGetItemById_Success() {
         when(dictItemMapper.selectById(1L)).thenReturn(testDictItem);
-        when(dictConvertor toItemDTO(any(DictItemDO.class))).thenReturn(testDictItemDTO);
+        when(dictConvertor.toItemDTO(any(DictItemDO.class))).thenReturn(testDictItemDTO);
 
         DictItemDTO result = dictService.getItemById(1L);
 

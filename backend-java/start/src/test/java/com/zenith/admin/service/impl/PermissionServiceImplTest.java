@@ -1,7 +1,6 @@
 package com.zenith.admin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zenith.admin.api.PermissionService;
 import com.zenith.admin.dataobject.RoleMenuDO;
 import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.MenuDTO;
@@ -14,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,7 +25,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PermissionServiceImplTest implements PermissionService {
+@MockitoSettings(strictness = Strictness.LENIENT)
+class PermissionServiceImplTest {
 
     @Mock
     private UserRoleMapper userRoleMapper;
