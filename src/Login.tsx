@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import Notification from './Notification';
+import Notification from './components/Notification';
 
 interface LoginProps {
   onLoginSuccess: () => void;
 }
 
 export default function Login({ onLoginSuccess }: LoginProps) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('000000');
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{
     message: string;

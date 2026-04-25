@@ -337,10 +337,9 @@ export default function DictTable() {
   // 处理字典类型保存
   const handleDictTypeSave = async () => {
     try {
-      const url = dictTypeModal.type === 'add' ? '/api/dicts' : '/api/dicts';
-      const method = dictTypeModal.type === 'add' ? 'POST' : 'POST';
+      const url = dictTypeModal.type === 'add' ? '/api/dicts' : '/api/dicts/update';
       const response = await fetch(url, {
-        method,
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -431,10 +430,9 @@ export default function DictTable() {
   // 处理字典项保存
   const handleDictItemSave = async () => {
     try {
-      const url = dictItemModal.type === 'add' ? '/api/dict/items' : '/api/dict/items';
-      const method = dictItemModal.type === 'add' ? 'POST' : 'POST';
+      const url = dictItemModal.type === 'add' ? '/api/dict/items' : '/api/dict/items/update';
       const response = await fetch(url, {
-        method,
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
