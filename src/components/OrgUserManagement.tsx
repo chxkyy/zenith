@@ -185,6 +185,18 @@ export default function OrgUserManagement() {
         }
     }, [selectedOrg]);
 
+    const handleSearch = () => {
+        if (selectedOrg) {
+            fetchUsersByOrg(selectedOrg.id, 1);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
     // 从后端获取指定组织下的用户数据
     const fetchUsersByOrg = (orgId: number, pageIndex = 1) => {
         setUserLoading(true);
@@ -506,8 +518,16 @@ export default function OrgUserManagement() {
                                     className="text-sm outline-none w-full"
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                 />
                             </div>
+                            <button
+                                onClick={handleSearch}
+                                disabled={!selectedOrg || userLoading}
+                                className="flex items-center gap-2 bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
+                            >
+                                查询
+                            </button>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => {

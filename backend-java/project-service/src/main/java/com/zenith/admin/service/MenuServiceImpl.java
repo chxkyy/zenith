@@ -24,7 +24,10 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public MultiResponse<MenuDTO> listAll() {
-        List<MenuDO> menuDOS = menuMapper.selectList(null);
+        LambdaQueryWrapper<MenuDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(MenuDO::getType, "DIR", "MENU", "dir", "menu");
+        queryWrapper.orderByAsc(MenuDO::getSort);
+        List<MenuDO> menuDOS = menuMapper.selectList(queryWrapper);
         List<MenuDTO> dtos = menuConvertor.toDTOList(menuDOS);
         return MultiResponse.of(dtos);
     }

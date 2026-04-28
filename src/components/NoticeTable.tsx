@@ -118,19 +118,31 @@ export default function NoticeTable() {
     }
   };
 
-  // 当分页或搜索参数变化时，重新获取数据
+  // 当分页变化时，重新获取数据
   useEffect(() => {
     fetchNotices();
-  }, [currentPage, pageSize, searchParams]);
+  }, [currentPage, pageSize]);
 
-  // 处理搜索参数变化
+  // 处理搜索参数变化（仅更新状态，不触发请求）
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setSearchParams(prev => ({
       ...prev,
       [name]: value
     }));
-    setCurrentPage(1); // 搜索时重置到第一页
+  };
+
+  // 手动触发搜索
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchNotices();
+  };
+
+  // 回车键触发搜索
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   // 处理表单输入变化
@@ -348,15 +360,22 @@ export default function NoticeTable() {
         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-4 bg-white px-3 py-1.5 rounded-lg border border-slate-200 w-72">
             <Search size={18} className="text-slate-400" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               name="keyword"
               value={searchParams.keyword}
               onChange={handleSearchChange}
-              placeholder="搜索公告标题..." 
+              onKeyDown={handleKeyDown}
+              placeholder="搜索公告标题..."
               className="bg-transparent border-none outline-none text-sm w-full"
             />
           </div>
+          <button
+            onClick={handleSearch}
+            className="flex items-center gap-2 px-4 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all"
+          >
+            查询
+          </button>
           <div className="flex items-center gap-2">
             <select 
               name="type"

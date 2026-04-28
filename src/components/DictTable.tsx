@@ -478,7 +478,7 @@ export default function DictTable() {
   const handleDictItemDelete = async () => {
     if (!dictItemModal.data) return;
     try {
-      const response = await fetch(`/api/dict/items?` + new URLSearchParams({ id: dictItemModal.data.id.toString() }), {
+      const response = await fetch('/api/dict/items/delete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

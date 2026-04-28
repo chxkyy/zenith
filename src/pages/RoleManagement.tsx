@@ -93,7 +93,17 @@ export default function RoleManagement() {
 
   useEffect(() => {
     fetchRoles();
-  }, [searchKeyword, filters, sortConfig]);
+  }, []);
+
+  const handleSearch = () => {
+    fetchRoles(1);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   const handleSaveRole = (role: any) => {
     setLoading(true);
@@ -301,14 +311,21 @@ export default function RoleManagement() {
         <div className="p-4 border-b border-slate-100 flex flex-wrap items-center gap-4 bg-slate-50/50">
           <div className="flex items-center gap-4 bg-white px-3 py-1.5 rounded-lg border border-slate-200 w-72">
             <Search size={16} className="text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="搜索角色..." 
+            <input
+              type="text"
+              placeholder="搜索角色..."
               className="text-sm outline-none w-full"
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </div>
+          <button
+            onClick={handleSearch}
+            className="flex items-center gap-2 px-4 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all"
+          >
+            查询
+          </button>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -345,8 +362,8 @@ export default function RoleManagement() {
                     >
                       重置
                     </button>
-                    <button 
-                      onClick={() => setIsFilterOpen(false)}
+                    <button
+                      onClick={() => { setIsFilterOpen(false); handleSearch(); }}
                       className="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                     >
                       应用
@@ -530,7 +547,7 @@ export default function RoleManagement() {
 
       {/* 角色编辑弹窗 */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/15 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <h3 className="text-lg font-bold text-slate-900">

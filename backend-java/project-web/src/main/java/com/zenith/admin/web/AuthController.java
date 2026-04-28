@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,7 +28,6 @@ public class AuthController {
             Cookie cookie = new Cookie("ZENITH_TOKEN", token);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
-            cookie.setMaxAge((int) TimeUnit.DAYS.toSeconds(7));
             response.addCookie(cookie);
         }
 

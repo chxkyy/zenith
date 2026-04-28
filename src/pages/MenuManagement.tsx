@@ -48,7 +48,7 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/15 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <h3 className="text-lg font-bold text-slate-900">
@@ -254,7 +254,7 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/15 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <h3 className="text-lg font-bold text-slate-900">
@@ -341,126 +341,140 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
   const [selectedPermission, setSelectedPermission] = useState<Permission | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // 模拟获取权限数据
+  // 根据选中的菜单动态查询其功能权限与字段权限（按钮类型作为权限）
+  const fetchPermissions = async (menuId: number) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/menus/page', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parentId: menuId, pageIndex: 1, pageSize: 100 })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch permissions');
+      }
+      const data = await response.json();
+      if (data.success && data.data) {
+        const permissionList = (data.data || []).map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          code: item.permission || item.name?.toUpperCase() || '',
+          type: item.type === 'field' ? 'FIELD' : 'FUNCTION',
+          menuId: item.parentId || menuId,
+          status: item.status ?? 1
+        }));
+        setPermissions(permissionList);
+      } else {
+        setPermissions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+      setPermissions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   React.useEffect(() => {
     if (selectedMenu) {
-      setLoading(true);
-      // 模拟API调用
-      setTimeout(() => {
-        setPermissions([
-          {
-            id: 1,
-            name: '查看',
-            code: 'VIEW',
-            type: 'FUNCTION',
-            menuId: selectedMenu.id,
-            status: 1
-          },
-          {
-            id: 2,
-            name: '新增',
-            code: 'ADD',
-            type: 'FUNCTION',
-            menuId: selectedMenu.id,
-            status: 1
-          },
-          {
-            id: 3,
-            name: '编辑',
-            code: 'EDIT',
-            type: 'FUNCTION',
-            menuId: selectedMenu.id,
-            status: 1
-          },
-          {
-            id: 4,
-            name: '删除',
-            code: 'DELETE',
-            type: 'FUNCTION',
-            menuId: selectedMenu.id,
-            status: 1
-          },
-          {
-            id: 5,
-            name: '用户名',
-            code: 'USERNAME',
-            type: 'FIELD',
-            menuId: selectedMenu.id,
-            status: 1
-          },
-          {
-            id: 6,
-            name: '邮箱',
-            code: 'EMAIL',
-            type: 'FIELD',
-            menuId: selectedMenu.id,
-            status: 1
-          },
-          {
-            id: 7,
-            name: '手机号',
-            code: 'PHONE',
-            type: 'FIELD',
-            menuId: selectedMenu.id,
-            status: 0
-          }
-        ]);
-        setLoading(false);
-      }, 500);
+      fetchPermissions(selectedMenu.id);
     } else {
       setPermissions([]);
     }
   }, [selectedMenu]);
 
-  const handleSavePermission = (permissionData: Partial<Permission>) => {
+  const handleSavePermission = async (permissionData: Partial<Permission>) => {
     setLoading(true);
-    // 模拟API调用
-    setTimeout(() => {
-      if (modalMode === 'add') {
-        const newPermission: Permission = {
-          id: permissions.length + 1,
-          name: permissionData.name || '',
-          code: permissionData.code || '',
-          type: permissionData.type || 'FUNCTION',
-          menuId: permissionData.menuId || 0,
-          status: permissionData.status || 1
-        };
-        setPermissions([...permissions, newPermission]);
-        setNotification({ message: '权限新增成功', type: 'success' });
-      } else if (modalMode === 'edit' && selectedPermission) {
-        setPermissions(permissions.map(p => 
-          p.id === selectedPermission.id ? { ...p, ...permissionData } : p
-        ));
-        setNotification({ message: '权限编辑成功', type: 'success' });
+    try {
+      const menuDTO = {
+        id: permissionData.id,
+        parentId: selectedMenu?.id,
+        name: permissionData.name,
+        path: '',
+        component: '',
+        icon: '',
+        sort: 0,
+        type: permissionData.type === 'FIELD' ? 'field' : 'button',
+        permission: permissionData.code,
+        remark: ''
+      };
+      const response = await fetch('/api/menus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(menuDTO)
+      });
+      if (!response.ok) throw new Error('Failed to save permission');
+      const data = await response.json();
+      if (data.success) {
+        setNotification({ message: modalMode === 'add' ? '权限新增成功' : '权限编辑成功', type: 'success' });
+        setIsModalOpen(false);
+        if (selectedMenu) {
+          fetchPermissions(selectedMenu.id);
+        }
+      } else {
+        throw new Error(data.errMessage || '保存失败');
       }
-      setIsModalOpen(false);
+    } catch (error: any) {
+      console.error('Error saving permission:', error);
+      setNotification({ message: error.message || '保存权限失败', type: 'error' });
+    } finally {
       setLoading(false);
-    }, 500);
-  };
-
-  const handleDeletePermission = (id: number) => {
-    if (window.confirm('删除后权限数据不可恢复，是否确认删除？')) {
-      setLoading(true);
-      // 模拟API调用
-      setTimeout(() => {
-        setPermissions(permissions.filter(p => p.id !== id));
-        setNotification({ message: '权限删除成功', type: 'success' });
-        setLoading(false);
-      }, 500);
     }
   };
 
-  const handleChangeStatus = (id: number, currentStatus: number) => {
+  const handleDeletePermission = async (id: number) => {
+    if (window.confirm('删除后权限数据不可恢复，是否确认删除？')) {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/menus/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        if (!response.ok) throw new Error('Failed to delete permission');
+        const data = await response.json();
+        if (data.success) {
+          setNotification({ message: '权限删除成功', type: 'success' });
+          if (selectedMenu) {
+            fetchPermissions(selectedMenu.id);
+          }
+        } else {
+          throw new Error(data.errMessage || '删除失败');
+        }
+      } catch (error: any) {
+        console.error('Error deleting permission:', error);
+        setNotification({ message: error.message || '删除权限失败', type: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleChangeStatus = async (id: number, currentStatus: number) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
     setLoading(true);
-    // 模拟API调用
-    setTimeout(() => {
-      setPermissions(permissions.map(p => 
-        p.id === id ? { ...p, status: newStatus } : p
-      ));
-      setNotification({ message: `权限状态已切换为${newStatus === 1 ? '启用' : '禁用'}`, type: 'success' });
+    try {
+      const response = await fetch('/api/menus/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: newStatus })
+      });
+      if (!response.ok) throw new Error('Failed to update permission status');
+      const data = await response.json();
+      if (data.success) {
+        setNotification({ message: `权限状态已切换为${newStatus === 1 ? '启用' : '禁用'}`, type: 'success' });
+        if (selectedMenu) {
+          fetchPermissions(selectedMenu.id);
+        }
+      } else {
+        throw new Error(data.errMessage || '状态更新失败');
+      }
+    } catch (error: any) {
+      console.error('Error changing permission status:', error);
+      setNotification({ message: error.message || '切换权限状态失败', type: 'error' });
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   if (!selectedMenu) {
@@ -694,6 +708,16 @@ export default function MenuManagement() {
     fetchMenus();
   }, []);
 
+  const handleSearch = () => {
+    fetchMenus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   const handleSaveMenu = async (menuData: Partial<Menu>) => {
     setLoading(true);
     try {
@@ -899,12 +923,13 @@ export default function MenuManagement() {
         <div className="p-4 border-b border-slate-200">
           <div className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg">
             <Search size={16} className="text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="搜索菜单..." 
+            <input
+              type="text"
+              placeholder="搜索菜单..."
               className="text-sm outline-none w-full bg-transparent"
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </div>
         </div>
