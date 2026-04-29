@@ -217,7 +217,6 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
   const [formData, setFormData] = useState<Partial<Permission>>({
     id: permission?.id,
     name: permission?.name || '',
-    code: permission?.code || '',
     type: permissionType,
     menuId,
     status: permission?.status || 1
@@ -229,7 +228,6 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
       setFormData({
         id: permission.id,
         name: permission.name || '',
-        code: permission.code || '',
         type: permission.type || permissionType,
         menuId: permission.menuId || menuId,
         status: permission.status || 1
@@ -238,7 +236,6 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
       setFormData({
         id: undefined,
         name: '',
-        code: '',
         type: permissionType,
         menuId,
         status: 1
@@ -276,19 +273,7 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
               className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
               placeholder={`请输入${permissionType === 'FUNCTION' ? '功能' : '字段'}权限名称`}
             />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700">权限标识</label>
-            <input
-              required
-              type="text"
-              value={formData.code || ''}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-              className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all font-mono"
-              placeholder={`请输入${permissionType === 'FUNCTION' ? '功能' : '字段'}权限标识（大写英文+下划线）`}
-              disabled={mode === 'edit'}
-            />
+            <p className="text-xs text-slate-400 mt-1">权限标识将由系统自动生成</p>
           </div>
 
           <div className="space-y-1.5">
@@ -395,7 +380,6 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
         icon: '',
         sort: 0,
         type: permissionData.type === 'FIELD' ? 'field' : 'button',
-        permission: permissionData.code,
         remark: ''
       };
       const response = await fetch('/api/menus', {
@@ -543,7 +527,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
                   <div key={permission.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className={cn(
-                        "px-3 py-1 rounded-full text-xs font-medium",
+                        "px-3 py-1 rounded-full text-xs font-medium font-mono",
                         permission.status === 1 ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
                       )}>
                         {permission.code}
