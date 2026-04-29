@@ -197,10 +197,15 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
 interface Permission {
   id: number;
   name: string;
-  code: string;
+  permission: string;
   type: 'FUNCTION' | 'FIELD';
-  menuId: number;
+  parentId: number;
+  sort: number;
   status: number;
+  createTime: string;
+  createUserId: number | null;
+  updateTime: string;
+  updateUserId: number | null;
 }
 
 interface PermissionModalProps {
@@ -209,16 +214,16 @@ interface PermissionModalProps {
   onSave: (permission: Partial<Permission>) => void;
   permission?: Permission;
   mode: 'add' | 'edit';
-  menuId: number;
+  parentId: number;
   permissionType: 'FUNCTION' | 'FIELD';
 }
 
-const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSave, permission, mode, menuId, permissionType }) => {
+const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSave, permission, mode, parentId, permissionType }) => {
   const [formData, setFormData] = useState<Partial<Permission>>({
     id: permission?.id,
     name: permission?.name || '',
     type: permissionType,
-    menuId,
+    parentId,
     status: permission?.status || 1
   });
 
@@ -229,7 +234,7 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
         id: permission.id,
         name: permission.name || '',
         type: permission.type || permissionType,
-        menuId: permission.menuId || menuId,
+        parentId: permission.parentId || parentId,
         status: permission.status || 1
       });
     } else {
@@ -237,11 +242,11 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
         id: undefined,
         name: '',
         type: permissionType,
-        menuId,
+        parentId,
         status: 1
       });
     }
-  }, [permission, menuId, permissionType]);
+  }, [permission, parentId, permissionType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -343,10 +348,15 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
         const permissionList = (data.data || []).map((item: any) => ({
           id: item.id,
           name: item.name,
-          code: item.permission || item.name?.toUpperCase() || '',
+          permission: item.permission || '',
           type: item.type === 'field' ? 'FIELD' : 'FUNCTION',
-          menuId: item.parentId || menuId,
-          status: item.status ?? 1
+          parentId: item.parentId || menuId,
+          sort: item.sort || 0,
+          status: item.status ?? 1,
+          createTime: formatDateTime(item.createdAt),
+          createUserId: item.createUserId || null,
+          updateTime: formatDateTime(item.updatedAt),
+          updateUserId: item.updateUserId || null
         }));
         setPermissions(permissionList);
       } else {
@@ -520,52 +530,77 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="space-y-2">
-              {permissions
-                .filter(p => p.type === activeTab)
-                .map(permission => (
-                  <div key={permission.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "px-3 py-1 rounded-full text-xs font-medium font-mono",
-                        permission.status === 1 ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
-                      )}>
-                        {permission.code}
-                      </div>
-                      <span className="text-sm font-medium text-slate-900">{permission.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handleChangeStatus(permission.id, permission.status)}
-                        className={cn(
-                          "p-1.5 text-sm font-medium rounded-lg transition-colors px-3 py-1",
-                          permission.status === 1 ? "text-emerald-600 bg-emerald-50" : "text-slate-600 bg-slate-100"
-                        )}
-                        title={permission.status === 1 ? '禁用' : '启用'}
-                      >
-                        {permission.status === 1 ? '启用' : '禁用'}
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setSelectedPermission(permission);
-                          setModalMode('edit');
-                          setIsModalOpen(true);
-                        }}
-                        className="p-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors px-3 py-1"
-                        title="编辑"
-                      >
-                        编辑
-                      </button>
-                      <button 
-                        onClick={() => handleDeletePermission(permission.id)}
-                        className="p-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg transition-colors px-3 py-1"
-                        title="删除"
-                      >
-                        删除
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">权限名称</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">权限标识</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">类型</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">排序</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">状态</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">创建人</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">修改人</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">修改时间</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {permissions
+                    .filter(p => p.type === activeTab)
+                    .map(permission => (
+                      <tr key={permission.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3 text-sm font-medium text-slate-900">{permission.name}</td>
+                        <td className="px-4 py-3 text-sm font-mono text-slate-600">{permission.permission || '-'}</td>
+                        <td className="px-4 py-3">
+                          <span className={cn(
+                            "px-2 py-1 text-xs font-medium rounded-md",
+                            permission.type === 'FUNCTION' ? "bg-blue-50 text-blue-600" : "bg-purple-50 text-purple-600"
+                          )}>
+                            {permission.type === 'FUNCTION' ? '功能权限' : '字段权限'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{permission.sort}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleChangeStatus(permission.id, permission.status)}
+                            className={cn(
+                              "px-2 py-1 text-xs font-medium rounded-md transition-colors",
+                              permission.status === 1 ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" : "text-slate-600 bg-slate-100 hover:bg-slate-200"
+                            )}
+                          >
+                            {permission.status === 1 ? '启用' : '禁用'}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{permission.createUserId || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{permission.createTime || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{permission.updateUserId || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{permission.updateTime || '-'}</td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedPermission(permission);
+                                setModalMode('edit');
+                                setIsModalOpen(true);
+                              }}
+                              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              编辑
+                            </button>
+                            <button
+                              onClick={() => handleDeletePermission(permission.id)}
+                              className="text-sm text-red-600 hover:text-red-800 font-medium"
+                            >
+                              删除
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -577,7 +612,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
         onSave={handleSavePermission}
         permission={selectedPermission || undefined}
         mode={modalMode}
-        menuId={selectedMenu.id}
+        parentId={selectedMenu.id}
         permissionType={activeTab}
       />
 
