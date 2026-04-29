@@ -609,7 +609,7 @@ export default function PermissionTable() {
           <table className="w-full text-left">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">权限名称</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">权限名称2</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">权限标识</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">类型</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">所属菜单</th>

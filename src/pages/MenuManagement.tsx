@@ -353,9 +353,9 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
           parentId: item.parentId || menuId,
           sort: item.sort || 0,
           status: item.status ?? 1,
-          createTime: formatDateTime(item.createdAt),
+          createTime: formatDateTime(item.createdTime),
           createUserId: item.createUserId || null,
-          updateTime: formatDateTime(item.updatedAt),
+          updateTime: formatDateTime(item.updateTime),
           updateUserId: item.updateUserId || null
         }));
         setPermissions(permissionList);
