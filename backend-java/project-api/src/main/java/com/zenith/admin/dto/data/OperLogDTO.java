@@ -1,6 +1,7 @@
 package com.zenith.admin.dto.data;
 
 import com.alibaba.cola.dto.DTO;
+import com.zenith.admin.annotation.UserName;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -16,5 +17,9 @@ public class OperLogDTO extends DTO {
     private LocalDateTime createdTime;
     private LocalDateTime updateTime;
     private Long createUserId;
+    @UserName(userId = "createUserId")
+    private String createUserName;
     private Long updateUserId;
+    @UserName(userId = "updateUserId")
+    private String updateUserName;
 }

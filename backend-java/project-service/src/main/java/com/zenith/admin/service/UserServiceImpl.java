@@ -32,7 +32,6 @@ public class UserServiceImpl implements UserService {
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
             wrapper.like("username", query.getKeyword())
-                   .or().like("nickname", query.getKeyword())
                    .or().like("email", query.getKeyword());
         }
 
