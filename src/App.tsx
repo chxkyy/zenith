@@ -11,7 +11,6 @@ const MenuManagement = lazy(() => import('./components/MenuManagement'));
 const OrgUserManagement = lazy(() => import('./components/OrgUserManagement'));
 const Profile = lazy(() => import('./components/Profile'));
 const NoticeTable = lazy(() => import('./components/NoticeTable'));
-const PermissionTable = lazy(() => import('./components/PermissionTable'));
 const LogOper = lazy(() => import('./components/LogOper'));
 const LogLogin = lazy(() => import('./components/LogLogin'));
 const LogError = lazy(() => import('./components/LogError'));
