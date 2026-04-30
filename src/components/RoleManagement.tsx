@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { MoreHorizontal, Search, Filter, Plus, ChevronUp, ChevronDown, X, Edit, Trash2, Shield, UserPlus } from 'lucide-react';
 import { cn, formatDateTime } from '../lib/utils';
-import PermissionAssignModal from '../components/PermissionAssignModal';
-import UserAssignModal from '../components/UserAssignModal';
+import PermissionAssignModal from './PermissionAssignModal';
+import UserAssignModal from './UserAssignModal';
 
 export default function RoleManagement() {
   const [roles, setRoles] = useState<any[]>([]);

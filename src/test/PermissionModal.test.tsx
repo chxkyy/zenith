@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
-import MenuManagement from '../pages/MenuManagement';
+import MenuManagement from '../components/MenuManagement';
 
 describe('功能权限弹窗测试', () => {
   const mockOnSave = vi.fn();

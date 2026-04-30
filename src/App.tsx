@@ -6,8 +6,8 @@ import Login from './Login';
 
 // 懒加载组件
 const Dashboard = lazy(() => import('./components/Dashboard'));
-const RoleManagement = lazy(() => import('./pages/RoleManagement'));
-const MenuManagement = lazy(() => import('./pages/MenuManagement'));
+const RoleManagement = lazy(() => import('./components/RoleManagement'));
+const MenuManagement = lazy(() => import('./components/MenuManagement'));
 const OrgUserManagement = lazy(() => import('./components/OrgUserManagement'));
 const Profile = lazy(() => import('./components/Profile'));
 const NoticeTable = lazy(() => import('./components/NoticeTable'));

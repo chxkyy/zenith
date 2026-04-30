@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, Menu as MenuIcon, Layout, Square, ChevronRight, ChevronDown, Trash2, Edit, MoveUp, MoveDown, Filter, X, Eye, EyeOff, Settings, Shield } from 'lucide-react';
 import { cn, formatDateTime } from '../lib/utils';
-import Notification from '../components/Notification';
+import Notification from './Notification';
 
 interface Menu {
   id: number;
