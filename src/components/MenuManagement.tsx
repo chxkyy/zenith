@@ -1,7 +1,26 @@
 import React, { useState } from 'react';
-import { Search, Plus, Menu as MenuIcon, Layout, ChevronRight, ChevronDown, Trash2, Edit, MoveUp, MoveDown, Filter, X, Eye, EyeOff, Settings, Shield } from 'lucide-react';
+import { Search, Plus, Menu as MenuIcon, Layout, ChevronRight, ChevronDown, Trash2, Edit, MoveUp, MoveDown, Filter, X, Eye, EyeOff, Settings, Shield, GripVertical } from 'lucide-react';
 import { cn, formatDateTime } from '../lib/utils';
 import Notification from './Notification';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Menu {
   id: number;
@@ -25,20 +44,37 @@ interface MenuModalProps {
   menu?: Menu;
   mode: 'add' | 'edit';
   allMenus: Menu[];
+  hideParentSelect?: boolean;
 }
 
-const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mode, allMenus }) => {
+const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mode, allMenus, hideParentSelect }) => {
   const [formData, setFormData] = useState<Partial<Menu>>({
     id: menu?.id,
     name: menu?.name || '',
     type: menu?.type || 'MENU',
-    parentId: menu?.parentId || null,
+    parentId: mode === 'add' && hideParentSelect && menu?.id ? menu.id : (menu?.parentId || null),
     path: menu?.path || '',
     icon: menu?.icon || 'LayoutDashboard',
     order: menu?.order || 1,
     status: menu?.status || 1,
     remark: menu?.remark || ''
   });
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        id: menu?.id,
+        name: menu?.name || '',
+        type: menu?.type || 'MENU',
+        parentId: mode === 'add' && hideParentSelect && menu?.id ? menu.id : (menu?.parentId || null),
+        path: menu?.path || '',
+        icon: menu?.icon || 'LayoutDashboard',
+        order: menu?.order || 1,
+        status: menu?.status || 1,
+        remark: menu?.remark || ''
+      });
+    }
+  }, [isOpen, menu, mode, hideParentSelect]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,23 +121,25 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
             </select>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700">父菜单</label>
-            <select
-              value={formData.parentId || ''}
-              onChange={(e) => setFormData({ ...formData, parentId: e.target.value ? parseInt(e.target.value) : null })}
-              className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all bg-white"
-            >
-              <option value="">顶级菜单</option>
-              {allMenus
-                .filter(m => m.type === 'DIR' && (!formData.id || m.id !== formData.id))
-                .map(parentMenu => (
-                  <option key={parentMenu.id} value={parentMenu.id}>
-                    {parentMenu.name}
-                  </option>
-                ))}
-            </select>
-          </div>
+          {!hideParentSelect && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-slate-700">父菜单</label>
+              <select
+                value={formData.parentId || ''}
+                onChange={(e) => setFormData({ ...formData, parentId: e.target.value ? parseInt(e.target.value) : null })}
+                className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all bg-white"
+              >
+                <option value="">顶级菜单</option>
+                {allMenus
+                  .filter(m => m.type === 'DIR' && (!formData.id || m.id !== formData.id))
+                  .map(parentMenu => (
+                    <option key={parentMenu.id} value={parentMenu.id}>
+                      {parentMenu.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-slate-700">路由路径</label>
@@ -615,6 +653,85 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
   );
 };
 
+interface SortableMenuItemProps {
+  menu: Menu;
+  level: number;
+  isSelected: boolean;
+  isExpanded: boolean;
+  hasChildren: boolean;
+  onSelect: (menu: Menu) => void;
+  onToggleExpand: (id: number) => void;
+  onRightClick: (e: React.MouseEvent, menu: Menu) => void;
+}
+
+const SortableMenuItem: React.FC<SortableMenuItemProps> = ({
+  menu,
+  level,
+  isSelected,
+  isExpanded,
+  hasChildren,
+  onSelect,
+  onToggleExpand,
+  onRightClick,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: menu.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "flex items-center gap-2 p-2 rounded-lg transition-colors cursor-pointer",
+        isSelected ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100',
+        isDragging && 'shadow-md z-50'
+      )}
+      onClick={() => onSelect(menu)}
+      onContextMenu={(e) => onRightClick(e, menu)}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="p-1 hover:bg-slate-200 rounded transition-colors cursor-grab active:cursor-grabbing touch-none"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GripVertical size={14} className="text-slate-400" />
+      </button>
+      {hasChildren && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleExpand(menu.id);
+          }}
+          className="p-1 hover:bg-slate-200 rounded transition-colors"
+        >
+          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </button>
+      )}
+      {!hasChildren && (
+        <div className="w-4"></div>
+      )}
+      {menu.type === 'DIR' && <Layout size={16} className="text-blue-600" />}
+      {menu.type === 'MENU' && <MenuIcon size={16} className="text-slate-600" />}
+      <span className={level === 0 ? "font-semibold text-slate-900" : "text-sm text-slate-700"}>
+        {menu.name}
+      </span>
+    </div>
+  );
+};
+
 export default function MenuManagement() {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [expanded, setExpanded] = useState<number[]>([]);
@@ -629,6 +746,18 @@ export default function MenuManagement() {
   });
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const toggleExpand = (id: number) => {
     setExpanded(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -656,7 +785,7 @@ export default function MenuManagement() {
           const menu: Menu = {
             id: menuDTO.id,
             name: menuDTO.name,
-            type: menuDTO.type === 'menu' ? 'MENU' : 'DIR',
+            type: menuDTO.type?.toUpperCase() === 'MENU' ? 'MENU' : 'DIR',
             path: menuDTO.path || '',
             icon: menuDTO.icon || 'LayoutDashboard',
             parentId: menuDTO.parentId,
@@ -873,6 +1002,116 @@ export default function MenuManagement() {
     setRightClickMenu(null);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setDraggingId(event.active.id as number);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setDraggingId(null);
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const draggedId = active.id as number;
+    const targetId = over.id as number;
+
+    const findMenuById = (menuList: Menu[], id: number): Menu | null => {
+      for (const menu of menuList) {
+        if (menu.id === id) return menu;
+        if (menu.children) {
+          const found = findMenuById(menu.children, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const findParentId = (menuList: Menu[], targetId: number, excludeId: number): number | null => {
+      for (const menu of menuList) {
+        if (menu.id === excludeId) continue;
+        if (menu.children && menu.children.some(child => child.id === targetId)) {
+          return menu.id;
+        }
+        if (menu.children) {
+          const found = findParentId(menu.children, targetId, excludeId);
+          if (found !== null) return found;
+        }
+      }
+      return null;
+    };
+
+    const getSiblingIndex = (menuList: Menu[], parentId: number | null, targetId: number): number => {
+      let siblings: Menu[] = [];
+      const collectSiblings = (list: Menu[]) => {
+        for (const menu of list) {
+          if ((parentId === null && !menu.parentId) || (parentId !== null && menu.parentId === parentId)) {
+            siblings.push(menu);
+          }
+          if (menu.children) collectSiblings(menu.children);
+        }
+      };
+      collectSiblings(menuList);
+      return siblings.findIndex(m => m.id === targetId);
+    };
+
+    const draggedMenu = findMenuById(menus, draggedId);
+    const targetMenu = findMenuById(menus, targetId);
+
+    if (!draggedMenu || !targetMenu) return;
+
+    const draggedOriginalParentId = draggedMenu.parentId;
+    const targetParentId = findParentId(menus, targetId, draggedId);
+
+    setLoading(true);
+    try {
+      if (draggedOriginalParentId !== targetParentId) {
+        const response = await fetch('/api/menus/update-parent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: draggedId,
+            newParentId: targetParentId
+          })
+        });
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.errMessage || '移动菜单失败');
+        }
+      } else {
+        const siblingIndex = getSiblingIndex(menus, targetParentId, targetId);
+        const response = await fetch('/api/menus/reorder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: draggedId,
+            targetIndex: siblingIndex
+          })
+        });
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.errMessage || '调整顺序失败');
+        }
+      }
+
+      setNotification({
+        message: '菜单排序已更新',
+        type: 'success'
+      });
+
+      await fetchMenus();
+    } catch (error: any) {
+      console.error('Error during drag:', error);
+      setNotification({
+        message: error.message || '操作失败',
+        type: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 监听点击事件，点击外部关闭右键菜单
   React.useEffect(() => {
     document.addEventListener('click', handleClickOutside);
@@ -882,40 +1121,29 @@ export default function MenuManagement() {
   }, []);
 
   const renderMenuTree = (menuList: Menu[], level = 0) => {
-    return menuList.map(menu => (
-      <React.Fragment key={menu.id}>
-        <div 
-          className={`flex items-center gap-2 p-2 rounded-lg transition-colors cursor-pointer ${selectedMenu?.id === menu.id ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'}`}
-          onClick={() => setSelectedMenu(menu)}
-          onContextMenu={(e) => handleRightClick(e, menu)}
-        >
-          {menu.children && menu.children.length > 0 && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExpand(menu.id);
-              }} 
-              className="p-1 hover:bg-slate-200 rounded transition-colors"
-            >
-              {expanded.includes(menu.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            </button>
-          )}
-          {!menu.children || menu.children.length === 0 && (
-            <div className="w-4"></div>
-          )}
-          {menu.type === 'DIR' && <Layout size={16} className="text-blue-600" />}
-          {menu.type === 'MENU' && <MenuIcon size={16} className="text-slate-600" />}
-          <span className={level === 0 ? "font-semibold text-slate-900" : "text-sm text-slate-700"}>
-            {menu.name}
-          </span>
-        </div>
-        {menu.children && menu.children.length > 0 && expanded.includes(menu.id) && (
-          <div className={`ml-4 border-l-2 border-slate-200 pl-2 mt-1`}>
-            {renderMenuTree(menu.children, level + 1)}
-          </div>
-        )}
-      </React.Fragment>
-    ));
+    return (
+      <SortableContext items={menuList.map(m => m.id)} strategy={verticalListSortingStrategy}>
+        {menuList.map(menu => (
+          <React.Fragment key={menu.id}>
+            <SortableMenuItem
+              menu={menu}
+              level={level}
+              isSelected={selectedMenu?.id === menu.id}
+              isExpanded={expanded.includes(menu.id)}
+              hasChildren={!!(menu.children && menu.children.length > 0)}
+              onSelect={setSelectedMenu}
+              onToggleExpand={toggleExpand}
+              onRightClick={handleRightClick}
+            />
+            {menu.children && menu.children.length > 0 && expanded.includes(menu.id) && (
+              <div className={`ml-4 border-l-2 border-slate-200 pl-2 mt-1`}>
+                {renderMenuTree(menu.children, level + 1)}
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </SortableContext>
+    );
   };
 
   return (
@@ -944,11 +1172,17 @@ export default function MenuManagement() {
         <div className="p-4 border-b border-slate-200 flex justify-between items-center">
           <button 
             onClick={() => {
-              setModalMode('add');
-              setSelectedMenu(null);
-              setIsModalOpen(true);
+              if (selectedMenu?.type === 'DIR') {
+                setModalMode('add');
+                setIsModalOpen(true);
+              }
             }}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-all shadow-md"
+            disabled={selectedMenu?.type !== 'DIR'}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md ${
+              selectedMenu?.type === 'DIR'
+                ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
+                : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+            }`}
           >
             <Plus size={16} />
             新增菜单
@@ -973,7 +1207,14 @@ export default function MenuManagement() {
               <p className="text-slate-500">暂无菜单数据</p>
             </div>
           ) : (
-            renderMenuTree(menus)
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              {renderMenuTree(menus)}
+            </DndContext>
           )}
         </div>
       </div>
@@ -989,6 +1230,19 @@ export default function MenuManagement() {
           className="fixed z-50 bg-white rounded-lg shadow-lg border border-slate-200 py-2 min-w-48"
           style={{ left: rightClickMenu.x, top: rightClickMenu.y }}
         >
+          {rightClickMenu.menu.type === 'DIR' && (
+            <button 
+              onClick={() => {
+                setSelectedMenu(rightClickMenu.menu);
+                setModalMode('add');
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <Plus size={14} />
+              新增子菜单
+            </button>
+          )}
           <button 
             onClick={() => {
               setSelectedMenu(rightClickMenu.menu);
@@ -1025,6 +1279,7 @@ export default function MenuManagement() {
         menu={selectedMenu || undefined}
         mode={modalMode}
         allMenus={menus}
+        hideParentSelect={modalMode === 'edit' || (modalMode === 'add' && selectedMenu?.type === 'DIR')}
       />
 
       {notification && (

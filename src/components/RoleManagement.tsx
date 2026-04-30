@@ -158,8 +158,12 @@ export default function RoleManagement() {
   const handleDeleteRole = (id: number) => {
     if (window.confirm('删除后，该角色关联的用户权限将全部解除，是否确认删除？')) {
       setLoading(true);
-      fetch(`/api/roles?roleId=${id}`, {
-        method: 'POST'
+      fetch('/api/roles/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
       })
         .then(res => {
           if (!res.ok) {
