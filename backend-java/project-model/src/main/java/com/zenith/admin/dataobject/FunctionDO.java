@@ -7,19 +7,16 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("t_sys_menu")
-public class MenuDO {
+@TableName("t_sys_function")
+public class FunctionDO {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private Long parentId;
+    private Long menuId;
     private String name;
-    private String path;
-    private String component;
-    private String icon;
-    private Integer sort;
-    private Integer status;
     private String type;
     private String permission;
+    private Integer sort;
+    private Integer status;
     private LocalDateTime createdTime;
     private LocalDateTime updateTime;
     private Long createUserId;

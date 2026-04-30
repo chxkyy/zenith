@@ -10,7 +10,6 @@ import com.zenith.admin.dto.data.MenuPageQuery;
 import com.zenith.admin.MenuConvertor;
 import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.mapper.MenuMapper;
-import com.zenith.admin.util.PinyinUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +25,6 @@ public class MenuServiceImpl implements MenuService {
     @Override
     public MultiResponse<MenuDTO> listAll() {
         LambdaQueryWrapper<MenuDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.in(MenuDO::getType, "DIR", "MENU", "dir", "menu");
         queryWrapper.orderByAsc(MenuDO::getSort);
         List<MenuDO> menuDOS = menuMapper.selectList(queryWrapper);
         List<MenuDTO> dtos = menuConvertor.toDTOList(menuDOS);
@@ -71,16 +69,6 @@ public class MenuServiceImpl implements MenuService {
     public void save(MenuDTO menuDTO) {
         MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
         Long currentUserId = 1L;
-
-        // Auto-generate permission identifier for button type based on pinyin first letters
-        if ("button".equalsIgnoreCase(menuDO.getType()) && menuDO.getParentId() != null) {
-            MenuDO parentMenu = menuMapper.selectById(menuDO.getParentId());
-            if (parentMenu != null && parentMenu.getName() != null) {
-                String parentInitials = PinyinUtil.getFirstLetters(parentMenu.getName());
-                String nameInitials = PinyinUtil.getFirstLetters(menuDO.getName());
-                menuDO.setPermission(parentInitials + "_" + nameInitials);
-            }
-        }
 
         if (menuDO.getId() == null) {
             menuDO.setCreateUserId(currentUserId);

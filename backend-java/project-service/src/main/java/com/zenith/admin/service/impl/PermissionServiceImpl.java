@@ -2,9 +2,11 @@ package com.zenith.admin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.api.PermissionService;
+import com.zenith.admin.dataobject.RoleFunctionDO;
 import com.zenith.admin.dataobject.RoleMenuDO;
 import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.MenuDTO;
+import com.zenith.admin.mapper.RoleFunctionMapper;
 import com.zenith.admin.mapper.RoleMenuMapper;
 import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class PermissionServiceImpl implements PermissionService {
 
     private final UserRoleMapper userRoleMapper;
     private final RoleMenuMapper roleMenuMapper;
+    private final RoleFunctionMapper roleFunctionMapper;
 
     @Override
     public List<String> getUserRoles(Long userId) {
@@ -60,6 +63,15 @@ public class PermissionServiceImpl implements PermissionService {
         );
         return roleMenus.stream()
                 .map(RoleMenuDO::getMenuId)
+                .collect(Collectors.toList());
+    }
+
+    public List<Long> getFunctionsByRoleId(Long roleId) {
+        List<RoleFunctionDO> roleFunctions = roleFunctionMapper.selectList(
+                new LambdaQueryWrapper<RoleFunctionDO>().eq(RoleFunctionDO::getRoleId, roleId)
+        );
+        return roleFunctions.stream()
+                .map(RoleFunctionDO::getFunctionId)
                 .collect(Collectors.toList());
     }
 

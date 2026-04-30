@@ -4,17 +4,14 @@ import com.alibaba.cola.dto.DTO;
 import lombok.Data;
 
 @Data
-public class MenuDTO extends DTO {
+public class FunctionDTO extends DTO {
     private Long id;
-    private Long parentId;
+    private Long menuId;
     private String name;
-    private String path;
-    private String component;
-    private String icon;
-    private Integer sort;
-    private Integer status;
     private String type;
     private String permission;
+    private Integer sort;
+    private Integer status;
     private java.time.LocalDateTime createdTime;
     private java.time.LocalDateTime updateTime;
     private Long createUserId;

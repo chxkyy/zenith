@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Search, Plus, Menu as MenuIcon, Layout, Square, ChevronRight, ChevronDown, Trash2, Edit, MoveUp, MoveDown, Filter, X, Eye, EyeOff, Settings, Shield } from 'lucide-react';
+import { Search, Plus, Menu as MenuIcon, Layout, ChevronRight, ChevronDown, Trash2, Edit, MoveUp, MoveDown, Filter, X, Eye, EyeOff, Settings, Shield } from 'lucide-react';
 import { cn, formatDateTime } from '../lib/utils';
 import Notification from './Notification';
 
 interface Menu {
   id: number;
   name: string;
-  type: 'DIR' | 'MENU' | 'BUTTON';
+  type: 'DIR' | 'MENU';
   path: string;
   icon: string;
   parentId: number | null;
@@ -77,12 +77,11 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
             <select
               required
               value={formData.type || 'MENU'}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as 'DIR' | 'MENU' | 'BUTTON' })}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as 'DIR' | 'MENU' })}
               className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all bg-white"
             >
               <option value="DIR">目录</option>
               <option value="MENU">菜单</option>
-              <option value="BUTTON">按钮</option>
             </select>
           </div>
 
@@ -104,19 +103,17 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
             </select>
           </div>
 
-          {(formData.type === 'MENU' || formData.type === 'DIR') && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-slate-700">路由路径</label>
-              <input
-                required
-                type="text"
-                value={formData.path || ''}
-                onChange={(e) => setFormData({ ...formData, path: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
-                placeholder="请输入路由路径，如 /dashboard"
-              />
-            </div>
-          )}
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700">路由路径</label>
+            <input
+              required
+              type="text"
+              value={formData.path || ''}
+              onChange={(e) => setFormData({ ...formData, path: e.target.value })}
+              className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
+              placeholder="请输入路由路径，如 /dashboard"
+            />
+          </div>
 
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-slate-700">图标</label>
@@ -199,7 +196,7 @@ interface Permission {
   name: string;
   permission: string;
   type: 'FUNCTION' | 'FIELD';
-  parentId: number;
+  menuId: number;
   sort: number;
   status: number;
   createTime: string;
@@ -214,16 +211,16 @@ interface PermissionModalProps {
   onSave: (permission: Partial<Permission>) => void;
   permission?: Permission;
   mode: 'add' | 'edit';
-  parentId: number;
+  menuId: number;
   permissionType: 'FUNCTION' | 'FIELD';
 }
 
-const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSave, permission, mode, parentId, permissionType }) => {
+const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSave, permission, mode, menuId, permissionType }) => {
   const [formData, setFormData] = useState<Partial<Permission>>({
     id: permission?.id,
     name: permission?.name || '',
     type: permissionType,
-    parentId,
+    menuId,
     status: permission?.status || 1
   });
 
@@ -234,7 +231,7 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
         id: permission.id,
         name: permission.name || '',
         type: permission.type || permissionType,
-        parentId: permission.parentId || parentId,
+        menuId: permission.menuId || menuId,
         status: permission.status || 1
       });
     } else {
@@ -242,11 +239,11 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
         id: undefined,
         name: '',
         type: permissionType,
-        parentId,
+        menuId,
         status: 1
       });
     }
-  }, [permission, parentId, permissionType]);
+  }, [permission, menuId, permissionType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -331,15 +328,11 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
   const [selectedPermission, setSelectedPermission] = useState<Permission | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // 根据选中的菜单动态查询其功能权限与字段权限（按钮类型作为权限）
+  // 根据选中的菜单动态查询其功能权限与字段权限
   const fetchPermissions = async (menuId: number) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/menus/page', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ parentId: menuId, pageIndex: 1, pageSize: 100 })
-      });
+      const response = await fetch(`/api/functions/list?menuId=${menuId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch permissions');
       }
@@ -350,7 +343,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
           name: item.name,
           permission: item.permission || '',
           type: item.type === 'field' ? 'FIELD' : 'FUNCTION',
-          parentId: item.parentId || menuId,
+          menuId: item.menuId || menuId,
           sort: item.sort || 0,
           status: item.status ?? 1,
           createTime: formatDateTime(item.createdTime),
@@ -381,21 +374,18 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
   const handleSavePermission = async (permissionData: Partial<Permission>) => {
     setLoading(true);
     try {
-      const menuDTO = {
+      const functionDTO = {
         id: permissionData.id,
-        parentId: selectedMenu?.id,
+        menuId: selectedMenu?.id,
         name: permissionData.name,
-        path: '',
-        component: '',
-        icon: '',
-        sort: 0,
         type: permissionData.type === 'FIELD' ? 'field' : 'button',
-        remark: ''
+        sort: 0,
+        status: permissionData.status
       };
-      const response = await fetch('/api/menus', {
+      const response = await fetch('/api/functions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(menuDTO)
+        body: JSON.stringify(functionDTO)
       });
       if (!response.ok) throw new Error('Failed to save permission');
       const data = await response.json();
@@ -420,7 +410,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
     if (window.confirm('删除后权限数据不可恢复，是否确认删除？')) {
       setLoading(true);
       try {
-        const response = await fetch('/api/menus/delete', {
+        const response = await fetch('/api/functions/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
@@ -448,7 +438,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
     const newStatus = currentStatus === 1 ? 0 : 1;
     setLoading(true);
     try {
-      const response = await fetch('/api/menus/update', {
+      const response = await fetch('/api/functions/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: newStatus })
@@ -612,7 +602,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
         onSave={handleSavePermission}
         permission={selectedPermission || undefined}
         mode={modalMode}
-        parentId={selectedMenu.id}
+        menuId={selectedMenu.id}
         permissionType={activeTab}
       />
 
@@ -666,7 +656,7 @@ export default function MenuManagement() {
           const menu: Menu = {
             id: menuDTO.id,
             name: menuDTO.name,
-            type: menuDTO.type === 'menu' ? 'MENU' : menuDTO.type === 'button' ? 'BUTTON' : 'DIR',
+            type: menuDTO.type === 'menu' ? 'MENU' : 'DIR',
             path: menuDTO.path || '',
             icon: menuDTO.icon || 'LayoutDashboard',
             parentId: menuDTO.parentId,
@@ -750,8 +740,7 @@ export default function MenuManagement() {
           component: menu.type === 'MENU' ? 'Layout' : '',
           icon: menu.icon,
           sort: menu.order,
-          type: menu.type === 'DIR' ? 'menu' : menu.type === 'MENU' ? 'menu' : 'button',
-          permission: menu.type === 'BUTTON' ? menu.name : '',
+          type: menu.type === 'DIR' ? 'dir' : 'menu',
           remark: menu.remark
         };
       };
@@ -916,7 +905,6 @@ export default function MenuManagement() {
           )}
           {menu.type === 'DIR' && <Layout size={16} className="text-blue-600" />}
           {menu.type === 'MENU' && <MenuIcon size={16} className="text-slate-600" />}
-          {menu.type === 'BUTTON' && <Square size={16} className="text-slate-400" />}
           <span className={level === 0 ? "font-semibold text-slate-900" : "text-sm text-slate-700"}>
             {menu.name}
           </span>

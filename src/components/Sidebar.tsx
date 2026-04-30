@@ -18,9 +18,7 @@ import {
   UserCheck,
   FolderOpen,
   Activity,
-  User,
-  Server,
-  RefreshCw
+  User
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -79,24 +77,6 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
-  const [backendStatus, setBackendStatus] = React.useState<'loading' | 'online' | 'offline'>('loading');
-
-  const checkStatus = React.useCallback(() => {
-    setBackendStatus('loading');
-    fetch('/api/stats/health')
-      .then(res => {
-        if (res.ok) setBackendStatus('online');
-        else setBackendStatus('offline');
-      })
-      .catch(() => setBackendStatus('offline'));
-  }, []);
-
-  React.useEffect(() => {
-    checkStatus();
-    const timer = setInterval(checkStatus, 30000); // 每30秒检查一次
-    return () => clearInterval(timer);
-  }, [checkStatus]);
-
   return (
     <aside className="w-64 bg-white border-r border-slate-200 h-screen flex flex-col sticky top-0 overflow-y-auto custom-scrollbar">
       <div className="p-6 flex items-center gap-3 shrink-0">
@@ -138,27 +118,6 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-slate-100 shrink-0 space-y-2">
-        <div className="px-4 py-2 rounded-xl bg-slate-50 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Server size={14} className={cn(
-              backendStatus === 'online' ? "text-emerald-500" : 
-              backendStatus === 'loading' ? "text-amber-500 animate-pulse" : "text-rose-500"
-            )} />
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-              后端状态: {
-                backendStatus === 'online' ? "已连接" : 
-                backendStatus === 'loading' ? "启动中..." : "未连接"
-              }
-            </span>
-          </div>
-          <button 
-            onClick={checkStatus}
-            className="p-1 hover:bg-slate-200 rounded-md transition-colors"
-            title="刷新状态"
-          >
-            <RefreshCw size={12} className={cn(backendStatus === 'loading' && "animate-spin")} />
-          </button>
-        </div>
         <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
           <LogOut size={20} />
           <span className="font-medium">退出登录</span>

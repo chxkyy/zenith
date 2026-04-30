@@ -95,8 +95,6 @@ export default function App() {
         return <Profile />;
       case 'notices':
         return <NoticeTable />;
-      case 'permissions':
-        return <PermissionTable />;
       case 'menus':
         return <MenuManagement />;
       case 'logs_oper':
