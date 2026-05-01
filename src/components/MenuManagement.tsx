@@ -239,6 +239,7 @@ interface Permission {
   status: number;
   createTime: string;
   createUserId: number | null;
+  createUserName: string;
   updateTime: string;
   updateUserId: number | null;
 }
@@ -386,6 +387,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
           status: item.status ?? 1,
           createTime: formatDateTime(item.createdTime),
           createUserId: item.createUserId || null,
+          createUserName: item.createUserName,
           updateTime: formatDateTime(item.updateTime),
           updateUserId: item.updateUserId || null
         }));
@@ -565,7 +567,6 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
                     <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">权限名称</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">权限标识</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">类型</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">排序</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">状态</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">创建人</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
@@ -589,7 +590,6 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
                             {permission.type === 'FUNCTION' ? '功能权限' : '字段权限'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{permission.sort}</td>
                         <td className="px-4 py-3">
                           <button
                             onClick={() => handleChangeStatus(permission.id, permission.status)}
@@ -601,7 +601,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
                             {permission.status === 1 ? '启用' : '禁用'}
                           </button>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{permission.createUserId || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{permission.createUserName || '-'}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">{permission.createTime || '-'}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">{permission.updateUserId || '-'}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">{permission.updateTime || '-'}</td>
