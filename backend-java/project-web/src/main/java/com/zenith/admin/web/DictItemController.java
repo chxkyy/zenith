@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/dict/items")
 @RequiredArgsConstructor
@@ -21,7 +23,8 @@ public class DictItemController {
 
     @GetMapping("/list")
     public MultiResponse<DictItemDTO> list(@RequestParam String type) {
-        return dictService.listItemsByType(type);
+        List<DictItemDTO> list = dictService.listItemsByType(type);
+        return MultiResponse.of(list);
     }
 
     @PostMapping("/page")

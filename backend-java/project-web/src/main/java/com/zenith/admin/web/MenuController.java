@@ -15,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/menus")
 @RequiredArgsConstructor
@@ -35,7 +37,8 @@ public class MenuController {
 
     @GetMapping
     public MultiResponse<MenuDTO> list() {
-        return menuService.listAll();
+        List<MenuDTO> list = menuService.listAll();
+        return MultiResponse.of(list);
     }
 
     @PostMapping("/page")

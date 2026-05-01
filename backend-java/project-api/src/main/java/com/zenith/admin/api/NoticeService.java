@@ -1,12 +1,13 @@
 package com.zenith.admin.api;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.NoticeDTO;
 import com.zenith.admin.dto.data.NoticePageQuery;
 
+import java.util.List;
+
 public interface NoticeService {
-    MultiResponse<NoticeDTO> listAll();
+    List<NoticeDTO> listAll();
     PageInfo<NoticeDTO> page(NoticePageQuery query);
     void save(NoticeDTO noticeDTO);
     void delete(Long id);

@@ -1,6 +1,5 @@
 package com.zenith.admin.service;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.NoticeService;
@@ -23,10 +22,10 @@ public class NoticeServiceImpl implements NoticeService {
     private final NoticeConvertor noticeConvertor;
 
     @Override
-    public MultiResponse<NoticeDTO> listAll() {
+    public List<NoticeDTO> listAll() {
         List<NoticeDO> noticeDOS = noticeMapper.selectList(null);
         List<NoticeDTO> noticeDTOS = noticeConvertor.toDTOList(noticeDOS);
-        return MultiResponse.of(noticeDTOS);
+        return noticeDTOS;
     }
 
     @Override

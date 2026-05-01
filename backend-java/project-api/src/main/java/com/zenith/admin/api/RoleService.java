@@ -1,12 +1,13 @@
 package com.zenith.admin.api;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.RoleDTO;
 import com.zenith.admin.dto.data.RolePageQuery;
 
+import java.util.List;
+
 public interface RoleService {
-    MultiResponse<RoleDTO> listAll();
+    List<RoleDTO> listAll();
     PageInfo<RoleDTO> listByPage(RolePageQuery query);
     void save(RoleDTO roleDTO);
     void update(RoleDTO roleDTO);

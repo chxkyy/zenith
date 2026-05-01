@@ -740,6 +740,7 @@ export default function MenuManagement() {
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
   const [rightClickMenu, setRightClickMenu] = useState<{ x: number; y: number; menu: Menu } | null>(null);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [filteredMenus, setFilteredMenus] = useState<Menu[] | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
@@ -847,7 +848,47 @@ export default function MenuManagement() {
   }, []);
 
   const handleSearch = () => {
-    fetchMenus();
+    if (!searchKeyword.trim()) {
+      setFilteredMenus(null);
+      return;
+    }
+
+    const keyword = searchKeyword.trim().toLowerCase();
+
+    const filterMenuTree = (menuList: Menu[]): Menu[] => {
+      return menuList.reduce((result: Menu[], menu) => {
+        const filteredChildren = menu.children?.length
+          ? filterMenuTree(menu.children)
+          : [];
+
+        const isNameMatched = menu.name.toLowerCase().includes(keyword);
+
+        if (isNameMatched || filteredChildren.length > 0) {
+          result.push({
+            ...menu,
+            children: isNameMatched ? menu.children : filteredChildren
+          });
+        }
+
+        return result;
+      }, []);
+    };
+
+    const result = filterMenuTree(menus);
+    setFilteredMenus(result);
+
+    if (result.length > 0) {
+      const collectAllIds = (menuList: Menu[]): number[] => {
+        return menuList.reduce((ids: number[], menu) => {
+          ids.push(menu.id);
+          if (menu.children?.length) {
+            ids.push(...collectAllIds(menu.children));
+          }
+          return ids;
+        }, []);
+      };
+      setExpanded(collectAllIds(result));
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -1120,6 +1161,8 @@ export default function MenuManagement() {
     };
   }, []);
 
+  const displayMenus = filteredMenus !== null ? filteredMenus : menus;
+
   const renderMenuTree = (menuList: Menu[], level = 0) => {
     return (
       <SortableContext items={menuList.map(m => m.id)} strategy={verticalListSortingStrategy}>
@@ -1187,8 +1230,12 @@ export default function MenuManagement() {
             <Plus size={16} />
             新增菜单
           </button>
-          <button 
-            onClick={() => fetchMenus()}
+          <button
+            onClick={() => {
+              setSearchKeyword('');
+              setFilteredMenus(null);
+              fetchMenus();
+            }}
             className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
             title="刷新"
           >
@@ -1201,7 +1248,7 @@ export default function MenuManagement() {
             <div className="flex items-center justify-center h-40">
               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ) : menus.length === 0 ? (
+          ) : displayMenus.length === 0 ? (
             <div className="text-center py-12">
               <MenuIcon size={48} className="mx-auto text-slate-300 mb-4" />
               <p className="text-slate-500">暂无菜单数据</p>
@@ -1213,7 +1260,7 @@ export default function MenuManagement() {
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
-              {renderMenuTree(menus)}
+              {renderMenuTree(displayMenus)}
             </DndContext>
           )}
         </div>

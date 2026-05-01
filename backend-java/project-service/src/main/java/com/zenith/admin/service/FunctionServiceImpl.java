@@ -1,6 +1,5 @@
 package com.zenith.admin.service;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -27,13 +26,13 @@ public class FunctionServiceImpl implements FunctionService {
     private final FunctionConvertor functionConvertor;
 
     @Override
-    public MultiResponse<FunctionDTO> listByMenuId(Long menuId) {
+    public List<FunctionDTO> listByMenuId(Long menuId) {
         LambdaQueryWrapper<FunctionDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(FunctionDO::getMenuId, menuId);
         queryWrapper.orderByAsc(FunctionDO::getSort, FunctionDO::getId);
         List<FunctionDO> functionDOS = functionMapper.selectList(queryWrapper);
         List<FunctionDTO> dtos = functionConvertor.toDTOList(functionDOS);
-        return MultiResponse.of(dtos);
+        return dtos;
     }
 
     @Override

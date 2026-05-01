@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
@@ -22,7 +24,8 @@ public class RoleController {
 
     @GetMapping("/list")
     public MultiResponse<RoleDTO> list() {
-        return roleService.listAll();
+        List<RoleDTO> list = roleService.listAll();
+        return MultiResponse.of(list);
     }
 
     @PostMapping("/page")

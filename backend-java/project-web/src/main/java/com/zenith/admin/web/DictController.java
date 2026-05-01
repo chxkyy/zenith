@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/dicts")
 @RequiredArgsConstructor
@@ -21,12 +23,14 @@ public class DictController {
 
     @GetMapping("/list")
     public MultiResponse<DictDTO> list() {
-        return dictService.listAll();
+        List<DictDTO> list = dictService.listAll();
+        return MultiResponse.of(list);
     }
 
     @GetMapping("/list-by-type")
     public MultiResponse<DictDTO> listByType(@RequestParam String type) {
-        return dictService.listByType(type);
+        List<DictDTO> list = dictService.listByType(type);
+        return MultiResponse.of(list);
     }
 
     @PostMapping

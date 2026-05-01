@@ -1,6 +1,5 @@
 package com.zenith.admin.service;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -23,10 +22,10 @@ public class RoleServiceImpl implements RoleService {
     private final RoleConvertor roleConvertor;
 
     @Override
-    public MultiResponse<RoleDTO> listAll() {
+    public List<RoleDTO> listAll() {
         List<RoleDO> roleDOS = roleMapper.selectList(null);
         List<RoleDTO> dtos = roleConvertor.toDTOList(roleDOS);
-        return MultiResponse.of(dtos);
+        return dtos;
     }
 
     @Override

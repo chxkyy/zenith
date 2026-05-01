@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/functions")
 @RequiredArgsConstructor
@@ -32,7 +34,8 @@ public class FunctionController {
 
     @GetMapping("/list")
     public MultiResponse<FunctionDTO> list(@RequestParam Long menuId) {
-        return functionService.listByMenuId(menuId);
+        List<FunctionDTO> list = functionService.listByMenuId(menuId);
+        return MultiResponse.of(list);
     }
 
     @PostMapping("/page")

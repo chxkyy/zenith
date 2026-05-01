@@ -1,6 +1,5 @@
 package com.zenith.admin.service;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.OrgConvertor;
 import com.zenith.admin.dataobject.OrgDO;
@@ -18,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,11 +57,11 @@ class OrgServiceImplTest {
         when(orgMapper.selectList(null)).thenReturn(Arrays.asList(testOrg));
         when(orgConvertor.toDTOList(anyList())).thenReturn(Arrays.asList(testOrgDTO));
 
-        MultiResponse<OrgDTO> result = orgService.listAll();
+        List<OrgDTO> result = orgService.listAll();
 
-        assertTrue(result.isSuccess());
-        assertNotNull(result.getData());
-        assertEquals(1, result.getData().size());
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("研发中心", result.get(0).getName());
     }
 
     @Test

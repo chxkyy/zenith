@@ -1,12 +1,13 @@
 package com.zenith.admin.api;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.FunctionDTO;
 import com.zenith.admin.dto.data.FunctionPageQuery;
 
+import java.util.List;
+
 public interface FunctionService {
-    MultiResponse<FunctionDTO> listByMenuId(Long menuId);
+    List<FunctionDTO> listByMenuId(Long menuId);
     PageInfo<FunctionDTO> page(FunctionPageQuery query);
     void save(FunctionDTO functionDTO);
     void update(FunctionDTO functionDTO);

@@ -1,6 +1,5 @@
 package com.zenith.admin.service;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.DictService;
@@ -27,19 +26,19 @@ public class DictServiceImpl implements DictService {
     private final DictConvertor dictConvertor;
 
     @Override
-    public MultiResponse<DictDTO> listAll() {
+    public List<DictDTO> listAll() {
         List<DictDO> dictDOS = dictMapper.selectList(null);
         List<DictDTO> dtos = dictConvertor.toDTOList(dictDOS);
-        return MultiResponse.of(dtos);
+        return dtos;
     }
 
     @Override
-    public MultiResponse<DictDTO> listByType(String type) {
+    public List<DictDTO> listByType(String type) {
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictDO::getType, type);
         List<DictDO> dictDOS = dictMapper.selectList(queryWrapper);
         List<DictDTO> dtos = dictConvertor.toDTOList(dictDOS);
-        return MultiResponse.of(dtos);
+        return dtos;
     }
 
     @Override
@@ -118,12 +117,12 @@ public class DictServiceImpl implements DictService {
     }
 
     @Override
-    public MultiResponse<DictItemDTO> listItemsByType(String type) {
+    public List<DictItemDTO> listItemsByType(String type) {
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, type).orderByAsc(DictItemDO::getSort);
         List<DictItemDO> dictItemDOS = dictItemMapper.selectList(queryWrapper);
         List<DictItemDTO> dtos = dictConvertor.toItemDTOList(dictItemDOS);
-        return MultiResponse.of(dtos);
+        return dtos;
     }
 
     @Override

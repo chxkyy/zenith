@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/notices")
 @RequiredArgsConstructor
@@ -23,7 +25,8 @@ public class NoticeController {
 
     @GetMapping
     public MultiResponse<NoticeDTO> list() {
-        return noticeService.listAll();
+        List<NoticeDTO> list = noticeService.listAll();
+        return MultiResponse.of(list);
     }
 
     @PostMapping("/page")

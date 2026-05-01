@@ -1,6 +1,5 @@
 package com.zenith.admin.service;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -23,10 +22,10 @@ public class OrgServiceImpl implements OrgService {
     private final OrgConvertor orgConvertor;
 
     @Override
-    public MultiResponse<OrgDTO> listAll() {
+    public List<OrgDTO> listAll() {
         List<OrgDO> orgDOS = orgMapper.selectList(null);
         List<OrgDTO> dtos = orgConvertor.toDTOList(orgDOS);
-        return MultiResponse.of(dtos);
+        return dtos;
     }
 
     @Override

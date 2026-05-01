@@ -242,7 +242,219 @@
 - 配置 CI/CD 流水线，实现自动化构建和部署
 - 提供健康检查端点，监控应用状态
 
-## 15. 总结
+## 15. Service 层返回类型规范
+
+### 15.1 核心原则
+
+| 层级 | 职责 | 返回类型 |
+|------|------|----------|
+| **Controller 层** | HTTP 接口适配、响应格式化、参数校验 | ✅ COLA 响应对象（`MultiResponse`/`SingleResponse`/`PageResponse`/`Response`）|
+| **Service 层** | 业务逻辑处理、数据查询与转换 | ❌ **禁止**返回 COLA 响应对象<br>✅ 应返回原始数据类型 |
+
+### 15.2 Service 层允许的返回类型
+
+#### ✅ 推荐返回类型
+
+| 返回类型 | 适用场景 | 示例 |
+|---------|---------|------|
+| `List<DTO>` | 列表查询（不分页） | `List<UserDTO> listAll()` |
+| `DTO` | 单对象查询 | `UserDTO getById(Long id)` |
+| `PageInfo<DTO>` | 分页查询（MyBatis PageHelper） | `PageInfo<UserDTO> page(query)` |
+| `void` | 增删改操作 | `void save(UserDTO dto)` |
+| `boolean` / 基本类型 | 简单判断逻辑 | `boolean hasPermission(...)` |
+
+#### ❌ 禁止返回类型
+
+| 违规类型 | 错误示例 | 正确示例 |
+|---------|---------|---------|
+| `MultiResponse<T>` | ❌ `MultiResponse<UserDTO> listAll()` | ✅ `List<UserDTO> listAll()` |
+| `SingleResponse<T>` | ❌ `SingleResponse<UserDTO> getById()` | ✅ `UserDTO getById(Long id)` |
+| `PageResponse<T>` | ❌ `PageResponse<UserDTO> page()` | ✅ `PageInfo<UserDTO> page(query)` |
+| `Response` | ❌ `Response save(UserDTO dto)` | ✅ `void save(UserDTO dto)` |
+
+### 15.3 代码示例对比
+
+#### ❌ 错误写法
+
+```java
+// Service 接口 - 违反分层原则
+public interface UserService {
+    MultiResponse<UserDTO> listAll();  // ❌ 返回COLA响应对象
+}
+
+// Service 实现 - 违反职责边界
+@Service
+public class UserServiceImpl implements UserService {
+    @Override
+    public MultiResponse<UserDTO> listAll() {  // ❌ 返回类型错误
+        List<UserDO> users = userMapper.selectList(null);
+        List<UserDTO> dtos = convertor.toDTOList(users);
+        return MultiResponse.of(dtos);  // ❌ 在Service层包装响应
+    }
+}
+
+// Controller - 直接透传
+@RestController
+public class UserController {
+    @GetMapping("/list")
+    public MultiResponse<UserDTO> list() {
+        return userService.listAll();  // ❌ 直接返回Service结果，跳过AOP处理
+    }
+}
+```
+
+**后果**：
+- ❌ AOP 切面（如字段翻译）无法正确拦截和处理
+- ❌ `@UserName` 注解失效，createUserName/updateUserName 为 null
+- ❌ 违反架构分层原则，Service层承担了Controller的职责
+
+#### ✅ 正确写法
+
+```java
+// Service 接口 - 只关注业务数据
+public interface UserService {
+    List<UserDTO> listAll();  // ✅ 返回原始List
+}
+
+// Service 实现 - 只负责业务逻辑
+@Service
+public class UserServiceImpl implements UserService {
+    @Override
+    public List<UserDTO> listAll() {  // ✅ 返回List
+        List<UserDO> users = userMapper.selectList(null);
+        List<UserDTO> dtos = convertor.toDTOList(users);
+        return dtos;  // ✅ 直接返回数据，不包装响应
+    }
+}
+
+// Controller - 负责HTTP响应格式化
+@RestController
+public class UserController {
+    @GetMapping("/list")
+    public MultiResponse<UserDTO> list() {
+        List<UserDTO> list = userService.listAll();  // ✅ 先接收数据
+        return MultiResponse.of(list);               // ✅ 再包装成COLA响应
+    }
+}
+```
+
+**优势**：
+- ✅ AOP 切面能正确拦截 `List` 类型并执行字段翻译
+- ✅ `@UserName` / `@RoleName` / `@DictName` 等注解自动生效
+- ✅ 职责清晰：Service管业务，Controller管响应格式
+
+### 15.4 架构流程图
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Controller 层                             │
+│  职责：接收请求 → 调用Service → 包装响应 → 返回给前端         │
+│                                                             │
+│  @GetMapping("/list")                                       │
+│  public MultiResponse<UserDTO> list() {                     │
+│      List<UserDTO> data = userService.listAll();            │
+│      return MultiResponse.of(data);  ← 在此包装响应          │
+│  }                                                          │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ 返回 List<UserDTO>
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│              TranslateAspect (AOP切面)                       │
+│  职责：拦截Service返回值 → 执行字段翻译                       │
+│                                                             │
+│  result instanceof List<?> → 遍历每个DTO                     │
+│      → fieldTranslateProcessor.process(dto)                │
+│      → UserNameTranslateConverter.translate(dto, field)     │
+│      → 查询数据库填充 createUserName/updateUserName         │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ 返回处理后的 List<UserDTO>
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Service 层                               │
+│  职责：业务逻辑 → 数据查询 → DTO转换                          │
+│                                                             │
+│  public List<UserDTO> listAll() {                           │
+│      1. 查询数据库 (List<UserDO>)                            │
+│      2. 转换为DTO   (List<UserDTO>)                         │
+│      3. 返回数据    (return dtos)                           │
+│      // 不关心响应格式，只关心业务数据                        │
+│  }                                                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 15.5 强制规则清单
+
+#### 【强制】Service 层禁止事项
+
+- ❌ **禁止**导入和使用 `com.alibaba.cola.dto.*` 相关类
+- ❌ **禁止**方法签名返回 `MultiResponse<T>` / `SingleResponse<T>` / `PageResponse<T>` / `Response`
+- ❌ **禁止**在实现类中调用 `MultiResponse.of()` / `SingleResponse.of()` 等静态方法
+- ❌ **禁止**在 Service 层进行 HTTP 响应格式化
+
+#### 【强制】Service 层必须遵守
+
+- ✅ 方法签名使用纯数据类型（`List<T>` / `T` / `PageInfo<T>` / `void`）
+- ✅ 实现类直接返回转换后的数据对象
+- ✅ 将响应包装的责任交给 Controller 层
+
+#### 【强制】Controller 层必须遵守
+
+- ✅ 所有接口必须返回 COLA 响应对象
+- ✅ 在调用 Service 后立即包装成对应的 COLA 响应
+- ✅ 使用标准构造方法：`MultiResponse.of(data)` / `SingleResponse.of(data)` 等
+
+### 15.6 异常处理说明
+
+| 场景 | 处理方式 |
+|------|---------|
+| **业务异常** | Service 层抛出 `BizException`，由全局异常处理器捕获并转换为失败响应 |
+| **系统异常** | Service 层抛出 `SysException` 或运行时异常，由全局异常处理器统一处理 |
+| **正常返回** | Service 返回数据对象，Controller 包装成成功响应 |
+
+```java
+// Service 层 - 抛出业务异常
+public void delete(Long id) {
+    if (id == null) {
+        throw new BizException("USER_001", "用户ID不能为空");
+    }
+    userMapper.deleteById(id);
+}
+
+// Controller 层 - 无需try-catch，异常由全局处理器处理
+@DeleteMapping("/{id}")
+public Response delete(@PathVariable Long id) {
+    userService.delete(id);
+    return Response.buildSuccess();
+}
+```
+
+### 15.7 编译检查与验证
+
+可通过以下正则表达式扫描代码库，检测违规情况：
+
+```regex
+# 检测 Service 接口中违规的返回类型
+(public|private|protected)\s+(MultiResponse|SingleResponse|PageResponse|Response)<[^>]+>\s+\w+\(
+
+# 检测 ServiceImpl 中违规的 return 语句
+return\s+(MultiResponse|SingleResponse|PageResponse|Response)\.(of|buildSuccess|buildFailure)
+```
+
+建议在项目中添加 Code Inspection 规则：
+- 当在 `*ServiceImpl.java` 中发现 `return MultiResponse.of(...)` 时显示警告
+- 当在 `*Service.java` 接口中发现返回类型包含 `Response` 时显示错误
+
+### 15.8 违规后果与影响
+
+| 影响维度 | 说明 |
+|---------|------|
+| **功能缺陷** | AOP 切面（字段翻译）失效，导致 `@UserName` 等注解不生效 |
+| **数据缺失** | 前端展示时 createUserName/updateUserName 等字段为 null |
+| **架构混乱** | Service 层承担 Controller 职责，违反单一职责原则 |
+| **维护困难** | 新开发者容易效仿错误模式，导致问题扩散 |
+| **测试复杂度增加** | Service 层单元测试需要模拟 HTTP 响应结构 |
+
+## 16. 总结
 
 本编码规范旨在提高代码质量和可维护性，确保团队成员在开发过程中遵循一致的标准。所有团队成员应该熟悉并遵守本规范，共同维护高质量的代码库。
 
