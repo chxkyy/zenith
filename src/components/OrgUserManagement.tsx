@@ -13,11 +13,35 @@ import {
     Trash2,
     RefreshCw as ResetIcon,
     User,
-    Shield
+    Shield,
+    Eye,
+    EyeOff,
+    MoveUp,
+    GripVertical
 } from 'lucide-react';
 import {cn, formatDateTime} from '../lib/utils';
 import UserModal from './UserModal';
 import RoleAssignModal from './RoleAssignModal';
+import OrgModal from './OrgModal';
+import Notification from './Notification';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Org {
     id: number;
@@ -27,72 +51,110 @@ interface Org {
     leader: string;
     memberCount: number;
     parentId?: number;
+    sort?: number;
+    status?: number;
     children?: Org[];
 }
 
-interface OrgItemProps {
+interface SortableOrgItemProps {
     org: Org;
     level: number;
-    onSelectOrg: (org: Org) => void;
-    selectedOrgId: number | null;
-    key?: React.Key;
+    isSelected: boolean;
+    isExpanded: boolean;
+    hasChildren: boolean;
+    onSelect: (org: Org) => void;
+    onToggleExpand: (id: number) => void;
+    onRightClick: (e: React.MouseEvent, org: Org) => void;
 }
 
-function OrgTreeItem({org, level, onSelectOrg, selectedOrgId}: OrgItemProps) {
-    const [isExpanded, setIsExpanded] = useState(true);
-    const hasChildren = org.children && org.children.length > 0;
+const SortableOrgItem: React.FC<SortableOrgItemProps> = ({
+    org,
+    level,
+    isSelected,
+    isExpanded,
+    hasChildren,
+    onSelect,
+    onToggleExpand,
+    onRightClick,
+}) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: org.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
 
     return (
-        <>
-            <div
-                className={cn(
-                    "flex items-center gap-1.5 py-1.5 px-3 cursor-pointer rounded-lg transition-colors",
-                    selectedOrgId === org.id ? "bg-blue-50 text-blue-600" : "hover:bg-slate-50"
-                )}
-                style={{paddingLeft: `${level * 20 + 12}px`}}
-                onClick={() => onSelectOrg(org)}
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={cn(
+                "flex items-center gap-2 p-2 rounded-lg transition-colors cursor-pointer",
+                isSelected ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100',
+                isDragging && 'shadow-md z-50'
+            )}
+            onClick={() => onSelect(org)}
+            onContextMenu={(e) => onRightClick(e, org)}
+        >
+            <button
+                {...attributes}
+                {...listeners}
+                className="p-1 hover:bg-slate-200 rounded transition-colors cursor-grab active:cursor-grabbing touch-none"
+                onClick={(e) => e.stopPropagation()}
             >
+                <GripVertical size={14} className="text-slate-400" />
+            </button>
+            {hasChildren && (
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        setIsExpanded(!isExpanded);
+                        onToggleExpand(org.id);
                     }}
-                    className={cn(
-                        "p-0.5 hover:bg-slate-200 rounded transition-colors",
-                        !hasChildren && "invisible"
-                    )}
+                    className="p-1 hover:bg-slate-200 rounded transition-colors"
                 >
-                    {isExpanded ? <ChevronDown size={12}/> : <ChevronRight size={12}/>}
+                    {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 </button>
-                <div className={cn(
-                    "w-5 h-5 rounded-lg flex items-center justify-center",
-                    level === 0 ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-600"
-                )}>
-                    <Building2 size={12}/>
-                </div>
-                <div className="flex-1">
-                    <span className="text-xs font-medium">{org.name}</span>
-                    <span className="text-xs text-slate-400 ml-1.5">({org.memberCount}人)</span>
-                </div>
-            </div>
-            {isExpanded && hasChildren && org.children.map((child) => (
-                <OrgTreeItem
-                    key={child.id}
-                    org={child}
-                    level={level + 1}
-                    onSelectOrg={onSelectOrg}
-                    selectedOrgId={selectedOrgId}
-                />
-            ))}
-        </>
+            )}
+            {!hasChildren && (
+                <div className="w-4"></div>
+            )}
+            <Building2 size={16} className={level === 0 ? "text-blue-600" : "text-slate-600"} />
+            <span className={level === 0 ? "font-semibold text-slate-900" : "text-sm text-slate-700"}>
+                {org.name}
+            </span>
+            <span className="text-xs text-slate-400 ml-1">({org.memberCount}人)</span>
+            {org.status === 0 && (
+                <span className="px-1.5 py-0.5 text-[10px] bg-red-100 text-red-600 rounded font-medium">
+                    已禁用
+                </span>
+            )}
+        </div>
     );
-}
+};
 
 export default function OrgUserManagement() {
     // 部门相关状态
     const [orgs, setOrgs] = useState<Org[]>([]);
     const [selectedOrg, setSelectedOrg] = useState<Org | null>(null);
     const [orgLoading, setOrgLoading] = useState(true);
+    const [expanded, setExpanded] = useState<number[]>([]);
+
+    // 新增状态：搜索、过滤、右键菜单、组织弹窗、拖拽
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [filteredOrgs, setFilteredOrgs] = useState<Org[] | null>(null);
+    const [rightClickMenu, setRightClickMenu] = useState<{ x: number; y: number; org: Org } | null>(null);
+    const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
+    const [orgModalMode, setOrgModalMode] = useState<'add' | 'add-sub' | 'edit'>('add');
+    const [selectedOrgForEdit, setSelectedOrgForEdit] = useState<Org | null>(null);
+    const [draggingId, setDraggingId] = useState<number | null>(null);
 
     // 用户相关状态
     const [users, setUsers] = useState<any[]>([]);
@@ -103,78 +165,111 @@ export default function OrgUserManagement() {
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
     const [selectedUserForRoles, setSelectedUserForRoles] = useState<any>(null);
-    const [searchKeyword, setSearchKeyword] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
+    // Notification状态
+    const [notification, setNotification] = useState<{
+        message: string;
+        type: 'success' | 'error' | 'info';
+        key: number;
+    } | null>(null);
+
+    // DnD sensors 配置
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    // 切换展开/折叠
+    const toggleExpand = (id: number) => {
+        setExpanded(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
     // 从后端获取组织数据
-    useEffect(() => {
-        const fetchOrgs = async () => {
-            setOrgLoading(true);
-            try {
-                const response = await fetch('/api/orgs/page', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        pageIndex: 1,
-                        pageSize: 1000
-                    })
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch orgs');
-                }
-                const data = await response.json();
-                if (data.success && data.data) {
-                    // 将扁平的组织列表转换为树形结构
-                    const buildOrgTree = (orgList: any[]): Org[] => {
-                        const orgMap = new Map<number, Org>();
-
-                        // 首先创建所有组织的映射
-                        orgList.forEach(org => {
-                            orgMap.set(org.id, {
-                                id: org.id,
-                                name: org.name,
-                                code: org.code || '',
-                                type: org.type || '部门',
-                                leader: org.leader || '',
-                                memberCount: org.memberCount || 0,
-                                parentId: org.parentId,
-                                children: []
-                            });
-                        });
-
-                        // 构建树形结构
-                        const rootOrgs: Org[] = [];
-                        orgMap.forEach(org => {
-                            if (!org.parentId) {
-                                rootOrgs.push(org);
-                            } else {
-                                const parentOrg = orgMap.get(org.parentId);
-                                if (parentOrg) {
-                                    parentOrg.children?.push(org);
-                                }
-                            }
-                        });
-
-                        return rootOrgs;
-                    };
-
-                    const orgTree = buildOrgTree(data.data);
-                    setOrgs(orgTree);
-                    // 默认选择第一个组织
-                    if (orgTree.length > 0) {
-                        setSelectedOrg(orgTree[0]);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching orgs:', error);
-            } finally {
-                setOrgLoading(false);
+    const fetchOrgs = async () => {
+        setOrgLoading(true);
+        try {
+            const response = await fetch('/api/orgs/page', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    pageIndex: 1,
+                    pageSize: 1000
+                })
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch orgs');
             }
-        };
+            const data = await response.json();
+            if (data.success && data.data) {
+                // 将扁平的组织列表转换为树形结构
+                const buildOrgTree = (orgList: any[]): { orgs: Org[]; expandedIds: number[] } => {
+                    const orgMap = new Map<number, Org>();
+                    const expandedIds: number[] = [];
 
+                    // 首先创建所有组织的映射
+                    orgList.forEach(org => {
+                        orgMap.set(org.id, {
+                            id: org.id,
+                            name: org.name,
+                            code: org.code || '',
+                            type: org.type || '部门',
+                            leader: org.leader || '',
+                            memberCount: org.memberCount || 0,
+                            parentId: org.parentId,
+                            sort: org.sort || 1,
+                            status: org.status ?? 1,
+                            children: []
+                        });
+                        expandedIds.push(org.id); // 收集所有ID用于默认展开
+                    });
+
+                    // 构建树形结构
+                    const rootOrgs: Org[] = [];
+                    orgMap.forEach(org => {
+                        if (!org.parentId) {
+                            rootOrgs.push(org);
+                        } else {
+                            const parentOrg = orgMap.get(org.parentId);
+                            if (parentOrg) {
+                                parentOrg.children?.push(org);
+                            }
+                        }
+                    });
+
+                    return { orgs: rootOrgs, expandedIds };
+                };
+
+                const result = buildOrgTree(data.data);
+                setOrgs(result.orgs);
+                setExpanded(result.expandedIds); // 设置所有组织为默认展开状态
+                // 默认选择第一个组织
+                if (result.orgs.length > 0 && !selectedOrg) {
+                    setSelectedOrg(result.orgs[0]);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching orgs:', error);
+            setNotification({
+                message: '获取组织列表失败',
+                type: 'error',
+                key: Date.now()
+            });
+        } finally {
+            setOrgLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchOrgs();
     }, []);
 
@@ -185,15 +280,207 @@ export default function OrgUserManagement() {
         }
     }, [selectedOrg]);
 
-    const handleSearch = () => {
-        if (selectedOrg) {
-            fetchUsersByOrg(selectedOrg.id, 1);
+    // 搜索组织功能
+    const handleSearchOrgs = () => {
+        if (!searchKeyword.trim()) {
+            setFilteredOrgs(null);
+            return;
+        }
+
+        const keyword = searchKeyword.trim().toLowerCase();
+
+        const filterOrgTree = (orgList: Org[]): Org[] => {
+            return orgList.reduce((result: Org[], org) => {
+                const filteredChildren = org.children?.length
+                    ? filterOrgTree(org.children)
+                    : [];
+
+                const isNameMatched = org.name.toLowerCase().includes(keyword);
+
+                if (isNameMatched || filteredChildren.length > 0) {
+                    result.push({
+                        ...org,
+                        children: isNameMatched ? org.children : filteredChildren
+                    });
+                }
+
+                return result;
+            }, []);
+        };
+
+        const result = filterOrgTree(orgs);
+        setFilteredOrgs(result);
+
+        // 展开所有匹配的节点
+        if (result.length > 0) {
+            const collectAllIds = (orgList: Org[]): number[] => {
+                return orgList.reduce((ids: number[], org) => {
+                    ids.push(org.id);
+                    if (org.children?.length) {
+                        ids.push(...collectAllIds(org.children));
+                    }
+                    return ids;
+                }, []);
+            };
+            setExpanded(collectAllIds(result));
         }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
-            handleSearch();
+            handleSearchOrgs();
+        }
+    };
+
+    // 刷新组织树
+    const handleRefreshOrgs = async () => {
+        setSearchKeyword('');
+        setFilteredOrgs(null);
+        await fetchOrgs();
+    };
+
+    // 右键菜单处理
+    const handleRightClick = (e: React.MouseEvent, org: Org) => {
+        e.preventDefault();
+        setRightClickMenu({
+            x: e.clientX,
+            y: e.clientY,
+            org
+        });
+    };
+
+    // 点击外部关闭右键菜单
+    const handleClickOutside = (e: React.MouseEvent) => {
+        setRightClickMenu(null);
+    };
+
+    // 监听点击事件关闭右键菜单
+    useEffect(() => {
+        document.addEventListener('click', handleClickOutside as unknown as EventListener);
+        return () => {
+            document.removeEventListener('click', handleClickOutside as unknown as EventListener);
+        };
+    }, []);
+
+    // ========== 拖拽相关方法 ==========
+
+    // 拖拽开始
+    const handleDragStart = (event: DragStartEvent) => {
+        setDraggingId(event.active.id as number);
+    };
+
+    // 拖拽结束
+    const handleDragEnd = async (event: DragEndEvent) => {
+        setDraggingId(null);
+        const { active, over } = event;
+
+        if (!over || active.id === over.id) {
+            return;
+        }
+
+        const draggedId = active.id as number;
+        const targetId = over.id as number;
+
+        // 在树中查找节点
+        const findOrgById = (orgList: Org[], id: number): Org | null => {
+            for (const org of orgList) {
+                if (org.id === id) return org;
+                if (org.children) {
+                    const found = findOrgById(org.children, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        // 查找父节点ID
+        const findParentId = (orgList: Org[], targetId: number, excludeId: number): number | null => {
+            for (const org of orgList) {
+                if (org.id === excludeId) continue;
+                if (org.children && org.children.some(child => child.id === targetId)) {
+                    return org.id;
+                }
+                if (org.children) {
+                    const found = findParentId(org.children, targetId, excludeId);
+                    if (found !== null) return found;
+                }
+            }
+            return null;
+        };
+
+        // 获取同级节点的索引位置
+        const getSiblingIndex = (orgList: Org[], parentId: number | null, targetId: number): number => {
+            let siblings: Org[] = [];
+            const collectSiblings = (list: Org[]) => {
+                for (const org of list) {
+                    if ((parentId === null && !org.parentId) || (parentId !== null && org.parentId === parentId)) {
+                        siblings.push(org);
+                    }
+                    if (org.children) collectSiblings(org.children);
+                }
+            };
+            collectSiblings(orgList);
+            return siblings.findIndex(m => m.id === targetId);
+        };
+
+        const draggedOrg = findOrgById(orgs, draggedId);
+        const targetOrg = findOrgById(orgs, targetId);
+
+        if (!draggedOrg || !targetOrg) return;
+
+        const draggedOriginalParentId = draggedOrg.parentId;
+        const targetParentId = findParentId(orgs, targetId, draggedId);
+
+        setOrgLoading(true);
+        try {
+            // 判断是移动到不同父节点还是调整排序
+            if (draggedOriginalParentId !== targetParentId) {
+                // 移动到新的父节点下
+                const response = await fetch('/api/orgs/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: draggedId,
+                        parentId: targetParentId
+                    })
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.errMessage || '移动组织失败');
+                }
+            } else {
+                // 调整同级排序
+                const siblingIndex = getSiblingIndex(orgs, targetParentId, targetId);
+                const response = await fetch('/api/orgs/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: draggedId,
+                        sort: siblingIndex + 1
+                    })
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.errMessage || '调整排序失败');
+                }
+            }
+
+            setNotification({
+                message: '组织排序已更新',
+                type: 'success',
+                key: Date.now()
+            });
+
+            await fetchOrgs(); // 刷新组织树
+        } catch (error: any) {
+            console.error('Error during drag:', error);
+            setNotification({
+                message: error.message || '操作失败',
+                type: 'error',
+                key: Date.now()
+            });
+        } finally {
+            setOrgLoading(false);
         }
     };
 
@@ -286,13 +573,26 @@ export default function OrgUserManagement() {
                         fetchUsersByOrg(selectedOrg.id); // 重新加载当前组织的用户列表
                     }
                     setIsModalOpen(false);
+                    setNotification({
+                        message: isEdit ? '用户编辑成功' : '用户添加成功',
+                        type: 'success',
+                        key: Date.now()
+                    });
                 } else {
-                    alert(`${isEdit ? '编辑用户失败' : '添加用户失败'}: ${res.errMessage}`);
+                    setNotification({
+                        message: `${isEdit ? '编辑用户失败' : '添加用户失败'}: ${res.errMessage}`,
+                        type: 'error',
+                        key: Date.now()
+                    });
                 }
             })
             .catch(err => {
                 console.error(`${isEdit ? 'Error updating user' : 'Error adding user'}:`, err);
-                alert(`${isEdit ? '编辑用户失败' : '添加用户失败'}，请检查网络`);
+                setNotification({
+                    message: `${isEdit ? '编辑用户失败' : '添加用户失败'}，请检查网络`,
+                    type: 'error',
+                    key: Date.now()
+                });
             })
             .finally(() => {
                 setUserLoading(false);
@@ -335,13 +635,26 @@ export default function OrgUserManagement() {
                         if (selectedOrg) {
                             fetchUsersByOrg(selectedOrg.id); // 重新加载当前组织的用户列表
                         }
+                        setNotification({
+                            message: '用户删除成功',
+                            type: 'success',
+                            key: Date.now()
+                        });
                     } else {
-                        alert('删除用户失败: ' + res.errMessage);
+                        setNotification({
+                            message: '删除用户失败: ' + res.errMessage,
+                            type: 'error',
+                            key: Date.now()
+                        });
                     }
                 })
                 .catch(err => {
                     console.error('Error deleting user:', err);
-                    alert('删除用户失败，请检查网络');
+                    setNotification({
+                        message: '删除用户失败，请检查网络',
+                        type: 'error',
+                        key: Date.now()
+                    });
                 })
                 .finally(() => {
                     setUserLoading(false);
@@ -364,14 +677,26 @@ export default function OrgUserManagement() {
                 })
                 .then(res => {
                     if (res.success) {
-                        alert('密码重置成功，默认密码为 123456，请通知用户及时修改');
+                        setNotification({
+                            message: '密码重置成功，默认密码为 123456，请通知用户及时修改',
+                            type: 'success',
+                            key: Date.now()
+                        });
                     } else {
-                        alert('重置密码失败: ' + res.errMessage);
+                        setNotification({
+                            message: '重置密码失败: ' + res.errMessage,
+                            type: 'error',
+                            key: Date.now()
+                        });
                     }
                 })
                 .catch(err => {
                     console.error('Error resetting password:', err);
-                    alert('重置密码失败，请检查网络');
+                    setNotification({
+                        message: '重置密码失败，请检查网络',
+                        type: 'error',
+                        key: Date.now()
+                    });
                 })
                 .finally(() => {
                     setUserLoading(false);
@@ -402,13 +727,26 @@ export default function OrgUserManagement() {
                         if (selectedOrg) {
                             fetchUsersByOrg(selectedOrg.id); // 重新加载当前组织的用户列表
                         }
+                        setNotification({
+                            message: `用户状态已切换为${newStatus === 1 ? '活跃' : '禁用'}`,
+                            type: 'success',
+                            key: Date.now()
+                        });
                     } else {
-                        alert('状态切换失败: ' + res.errMessage);
+                        setNotification({
+                            message: '状态切换失败: ' + res.errMessage,
+                            type: 'error',
+                            key: Date.now()
+                        });
                     }
                 })
                 .catch(err => {
                     console.error('Error changing status:', err);
-                    alert('状态切换失败，请检查网络');
+                    setNotification({
+                        message: '状态切换失败，请检查网络',
+                        type: 'error',
+                        key: Date.now()
+                    });
                 })
                 .finally(() => {
                     setUserLoading(false);
@@ -424,16 +762,211 @@ export default function OrgUserManagement() {
 
     // 处理保存角色
     const handleSaveRoles = (roles: string[]) => {
-        // 这里简化处理，实际应该调用后端 API 来更新角色
         setUserLoading(true);
-        // 由于后端 API 尚未实现角色分配功能，这里只是模拟成功
         setTimeout(() => {
-            alert('角色分配成功');
+            setNotification({
+                message: '角色分配成功',
+                type: 'success',
+                key: Date.now()
+            });
             if (selectedOrg) {
                 fetchUsersByOrg(selectedOrg.id); // 重新加载当前组织的用户列表
             }
             setUserLoading(false);
         }, 500);
+    };
+
+    // ========== 组织管理相关方法 ==========
+
+    // 打开新增组织弹窗（从顶部按钮）
+    const handleAddOrgFromTopButton = () => {
+        setOrgModalMode('add');
+        setSelectedOrgForEdit(null);
+        setIsOrgModalOpen(true);
+    };
+
+    // 打开新增子组织弹窗（从右键菜单）
+    const handleAddSubOrg = (parentOrg: Org) => {
+        setSelectedOrg(parentOrg);
+        setSelectedOrgForEdit(parentOrg);
+        setOrgModalMode('add-sub');
+        setIsOrgModalOpen(true);
+        setRightClickMenu(null);
+    };
+
+    // 打开编辑组织弹窗
+    const handleEditOrg = (org: Org) => {
+        setSelectedOrg(org);
+        setSelectedOrgForEdit(org);
+        setOrgModalMode('edit');
+        setIsOrgModalOpen(true);
+        setRightClickMenu(null);
+    };
+
+    // 保存组织（新增或编辑）
+    const handleSaveOrg = async (orgData: Partial<Org>) => {
+        setOrgLoading(true);
+        try {
+            const isEdit = orgModalMode === 'edit';
+            const url = isEdit ? '/api/orgs/update' : '/api/orgs';
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orgData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                setIsOrgModalOpen(false);
+                setRightClickMenu(null);
+                setNotification({
+                    message: isEdit ? '组织编辑成功' : '组织新增成功',
+                    type: 'success',
+                    key: Date.now()
+                });
+                await fetchOrgs(); // 刷新组织树
+            } else {
+                throw new Error(data.errMessage || '保存失败');
+            }
+        } catch (error: any) {
+            console.error('Error saving org:', error);
+            setNotification({
+                message: error.message || '保存组织失败',
+                type: 'error',
+                key: Date.now()
+            });
+        } finally {
+            setOrgLoading(false);
+        }
+    };
+
+    // 删除组织
+    const handleDeleteOrg = async (id: number) => {
+        if (window.confirm('删除该组织后，其下所有子组织和关联用户将一并删除且不可恢复，是否确认删除？')) {
+            setOrgLoading(true);
+            try {
+                const response = await fetch('/api/orgs/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    setRightClickMenu(null);
+                    if (selectedOrg?.id === id) {
+                        setSelectedOrg(null);
+                    }
+                    setNotification({
+                        message: '组织删除成功',
+                        type: 'success',
+                        key: Date.now()
+                    });
+                    await fetchOrgs(); // 刷新组织树
+                } else {
+                    throw new Error(data.errMessage || '删除失败');
+                }
+            } catch (error: any) {
+                console.error('Error deleting org:', error);
+                setNotification({
+                    message: error.message || '删除组织失败',
+                    type: 'error',
+                    key: Date.now()
+                });
+            } finally {
+                setOrgLoading(false);
+            }
+        }
+    };
+
+    // 切换组织状态（启用/禁用）
+    const handleChangeOrgStatus = async (id: number, currentStatus: number) => {
+        const newStatus = currentStatus === 1 ? 0 : 1;
+        setOrgLoading(true);
+        try {
+            const response = await fetch('/api/orgs/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id,
+                    status: newStatus
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                setRightClickMenu(null);
+                setNotification({
+                    message: `组织状态已切换为${newStatus === 1 ? '启用' : '禁用'}`,
+                    type: 'success',
+                    key: Date.now()
+                });
+                await fetchOrgs(); // 刷新组织树
+            } else {
+                throw new Error(data.errMessage || '状态更新失败');
+            }
+        } catch (error: any) {
+            console.error('Error changing org status:', error);
+            setNotification({
+                message: error.message || '切换组织状态失败',
+                type: 'error',
+                key: Date.now()
+            });
+        } finally {
+            setOrgLoading(false);
+        }
+    };
+
+    // 获取显示的组织数据（原始或过滤后）
+    const displayOrgs = filteredOrgs !== null ? filteredOrgs : orgs;
+
+    // 渲染组织树（递归）
+    const renderOrgTree = (orgList: Org[], level = 0) => {
+        return (
+            <SortableContext items={orgList.map(o => o.id)} strategy={verticalListSortingStrategy}>
+                {orgList.map(org => (
+                    <React.Fragment key={org.id}>
+                        <SortableOrgItem
+                            org={org}
+                            level={level}
+                            isSelected={selectedOrg?.id === org.id}
+                            isExpanded={expanded.includes(org.id)}
+                            hasChildren={!!(org.children && org.children.length > 0)}
+                            onSelect={setSelectedOrg}
+                            onToggleExpand={toggleExpand}
+                            onRightClick={handleRightClick}
+                        />
+                        {org.children && org.children.length > 0 && expanded.includes(org.id) && (
+                            <div className={`ml-4 border-l-2 border-slate-200 pl-2 mt-1`}>
+                                {renderOrgTree(org.children, level + 1)}
+                            </div>
+                        )}
+                    </React.Fragment>
+                ))}
+            </SortableContext>
+        );
     };
 
     return (
@@ -466,40 +999,80 @@ export default function OrgUserManagement() {
                 userRoles={selectedUserForRoles ? [selectedUserForRoles.role] : []}
             />
 
+            <OrgModal
+                isOpen={isOrgModalOpen}
+                onClose={() => setIsOrgModalOpen(false)}
+                onSave={handleSaveOrg}
+                org={selectedOrgForEdit || undefined}
+                mode={orgModalMode}
+                allOrgs={displayOrgs}
+                hideParentSelect={orgModalMode === 'add-sub'}
+            />
+
             <div className="grid grid-cols-12 gap-6">
                 {/* 左侧组织树 */}
                 <div className="col-span-12 lg:col-span-3">
                     <div
                         className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-[calc(100vh-300px)]">
-                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        {/* 标题 */}
+                        <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                             <h3 className="font-medium text-slate-900">组织树</h3>
+                        </div>
+
+                        {/* 搜索框 */}
+                        <div className="p-4 border-b border-slate-100">
+                            <div className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg">
+                                <Search size={16} className="text-slate-400"/>
+                                <input
+                                    type="text"
+                                    placeholder="搜索组织..."
+                                    className="text-sm outline-none w-full bg-transparent"
+                                    value={searchKeyword}
+                                    onChange={(e) => setSearchKeyword(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 工具栏：新增按钮 + 刷新按钮 */}
+                        <div className="p-4 border-b border-slate-100 flex justify-between items-center">
                             <button
-                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                                onClick={handleAddOrgFromTopButton}
+                                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-all shadow-md"
+                            >
                                 <Plus size={16}/>
+                                新增组织
+                            </button>
+                            <button
+                                onClick={handleRefreshOrgs}
+                                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                                title="刷新"
+                            >
+                                <MoveUp size={16}/>
                             </button>
                         </div>
-                        <div className="p-4 overflow-y-auto h-[calc(100%-64px)]">
+
+                        {/* 组织树内容 */}
+                        <div className="p-4 overflow-y-auto h-[calc(100%-220px)]">
                             {orgLoading ? (
                                 <div className="flex items-center justify-center py-12">
                                     <div
                                         className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                                 </div>
-                            ) : orgs.length === 0 ? (
+                            ) : displayOrgs.length === 0 ? (
                                 <div className="text-center py-12 text-slate-500">
-                                    暂无部门数据
+                                    <Building2 size={48} className="mx-auto text-slate-300 mb-4"/>
+                                    <p>暂无组织数据</p>
                                 </div>
                             ) : (
-                                <div className="space-y-1">
-                                    {orgs.map((org) => (
-                                        <OrgTreeItem
-                                            key={org.id}
-                                            org={org}
-                                            level={0}
-                                            onSelectOrg={handleSelectOrg}
-                                            selectedOrgId={selectedOrg?.id || null}
-                                        />
-                                    ))}
-                                </div>
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragStart={handleDragStart}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    {renderOrgTree(displayOrgs)}
+                                </DndContext>
                             )}
                         </div>
                     </div>
@@ -518,11 +1091,21 @@ export default function OrgUserManagement() {
                                     className="text-sm outline-none w-full"
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
-                                    onKeyDown={handleKeyDown}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            if (selectedOrg) {
+                                                fetchUsersByOrg(selectedOrg.id, 1);
+                                            }
+                                        }
+                                    }}
                                 />
                             </div>
                             <button
-                                onClick={handleSearch}
+                                onClick={() => {
+                                    if (selectedOrg) {
+                                        fetchUsersByOrg(selectedOrg.id, 1);
+                                    }
+                                }}
                                 disabled={!selectedOrg || userLoading}
                                 className="flex items-center gap-2 bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
                             >
@@ -708,6 +1291,59 @@ export default function OrgUserManagement() {
                     </div>
                 </div>
             </div>
+
+            {/* 右键菜单 */}
+            {rightClickMenu && (
+                <div
+                    className="fixed z-50 bg-white rounded-lg shadow-lg border border-slate-200 py-2 min-w-48"
+                    style={{ left: rightClickMenu.x, top: rightClickMenu.y }}
+                >
+                    <button
+                        onClick={() => handleAddSubOrg(rightClickMenu.org)}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Plus size={14}/>
+                        新增子组织
+                    </button>
+                    <button
+                        onClick={() => handleEditOrg(rightClickMenu.org)}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Edit size={14}/>
+                        编辑
+                    </button>
+                    <button
+                        onClick={() => {
+                            handleChangeOrgStatus(rightClickMenu.org.id, rightClickMenu.org.status ?? 1);
+                            setRightClickMenu(null);
+                        }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {rightClickMenu.org.status === 1 ? <EyeOff size={14}/> : <Eye size={14}/>}
+                        {rightClickMenu.org.status === 1 ? '禁用' : '启用'}
+                    </button>
+                    <div className="border-t border-slate-100 my-1"></div>
+                    <button
+                        onClick={() => {
+                            handleDeleteOrg(rightClickMenu.org.id);
+                            setRightClickMenu(null);
+                        }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                        <Trash2 size={14}/>
+                        删除
+                    </button>
+                </div>
+            )}
+
+            {/* Notification 组件 */}
+            {notification && (
+                <Notification
+                    key={notification.key}
+                    message={notification.message}
+                    type={notification.type}
+                />
+            )}
         </div>
     );
 }

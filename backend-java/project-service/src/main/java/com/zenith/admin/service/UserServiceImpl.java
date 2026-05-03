@@ -14,6 +14,7 @@ import com.zenith.admin.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -40,9 +41,16 @@ public class UserServiceImpl implements UserService {
         }
 
         if (query.getOrgId() != null) {
-            OrgDO orgDO = orgMapper.selectById(query.getOrgId());
-            if (orgDO != null) {
-                wrapper.eq("org_name", orgDO.getName());
+            List<Long> allOrgIds = getChildOrgIds(query.getOrgId());
+            List<String> orgNames = new ArrayList<>();
+            for (Long orgId : allOrgIds) {
+                OrgDO org = orgMapper.selectById(orgId);
+                if (org != null) {
+                    orgNames.add(org.getName());
+                }
+            }
+            if (!orgNames.isEmpty()) {
+                wrapper.in("org_name", orgNames);
             }
         }
 
@@ -135,5 +143,17 @@ public class UserServiceImpl implements UserService {
             userDO.setUpdateTime(java.time.LocalDateTime.now());
             userMapper.updateById(userDO);
         }
+    }
+
+    private List<Long> getChildOrgIds(Long parentId) {
+        List<Long> ids = new ArrayList<>();
+        ids.add(parentId);
+        QueryWrapper<OrgDO> wrapper = new QueryWrapper<>();
+        wrapper.eq("parent_id", parentId);
+        List<OrgDO> children = orgMapper.selectList(wrapper);
+        for (OrgDO child : children) {
+            ids.addAll(getChildOrgIds(child.getId()));
+        }
+        return ids;
     }
 }
