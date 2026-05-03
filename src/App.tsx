@@ -27,6 +27,18 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState<{ username?: string; email?: string } | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const toggleSidebar = () => {
+    setIsCollapsed(prev => {
+      const newValue = !prev;
+      localStorage.setItem('sidebar-collapsed', JSON.stringify(newValue));
+      return newValue;
+    });
+  };
 
   useEffect(() => {
     checkAuth();
@@ -132,13 +144,15 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isCollapsed={isCollapsed} />
 
       <main className="flex-1 flex flex-col min-w-0">
         <Header
           username={currentUser?.username}
           email={currentUser?.email}
           onLogout={handleLogout}
+          onToggleSidebar={toggleSidebar}
+          isCollapsed={isCollapsed}
         />
         
         <div className="flex-1 overflow-y-auto">

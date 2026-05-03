@@ -36,21 +36,10 @@ public class UserServiceImpl implements UserService {
                    .or().like("email", query.getKeyword());
         }
 
-        if (query.getOrgName() != null && !query.getOrgName().isEmpty()) {
-            wrapper.eq("org_name", query.getOrgName());
-        }
-
         if (query.getOrgId() != null) {
             List<Long> allOrgIds = getChildOrgIds(query.getOrgId());
-            List<String> orgNames = new ArrayList<>();
-            for (Long orgId : allOrgIds) {
-                OrgDO org = orgMapper.selectById(orgId);
-                if (org != null) {
-                    orgNames.add(org.getName());
-                }
-            }
-            if (!orgNames.isEmpty()) {
-                wrapper.in("org_name", orgNames);
+            if (!allOrgIds.isEmpty()) {
+                wrapper.in("org_id", allOrgIds);
             }
         }
 

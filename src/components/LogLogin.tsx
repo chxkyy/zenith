@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, RotateCcw, Download, Trash2 } from 'lucide-react';
 import { formatDateTime } from '../lib/utils';
 
@@ -20,6 +20,7 @@ const LogLogin: React.FC = () => {
   const [logs, setLogs] = useState<LoginLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedLogs = useRef(false);
   const [searchParams, setSearchParams] = useState({
     username: '',
     status: '',
@@ -67,6 +68,8 @@ const LogLogin: React.FC = () => {
   };
 
   useEffect(() => {
+    if (hasFetchedLogs.current) return;
+    hasFetchedLogs.current = true;
     fetchLogs();
   }, []);
 

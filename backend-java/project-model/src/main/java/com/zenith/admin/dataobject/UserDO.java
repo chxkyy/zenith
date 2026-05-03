@@ -6,6 +6,11 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * 系统用户数据对象
+ * 
+ * 对应数据库表：t_sys_user
+ */
 @Data
 @TableName("t_sys_user")
 public class UserDO {
@@ -16,7 +21,13 @@ public class UserDO {
     private String password;
     private Integer status;
     private String role;
-    private String orgName;
+    
+    /**
+     * 所属组织ID
+     * 关联 t_sys_org.id
+     */
+    private Long orgId;
+    
     private LocalDateTime createdTime;
     private LocalDateTime updateTime;
     private Long updateUserId;

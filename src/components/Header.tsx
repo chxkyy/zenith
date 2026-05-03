@@ -1,22 +1,33 @@
 import React from 'react';
-import { Search, Bell, User, LogOut } from 'lucide-react';
+import { Search, Bell, User, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 interface HeaderProps {
   username?: string;
   email?: string;
   onLogout?: () => void;
+  onToggleSidebar: () => void;
+  isCollapsed: boolean;
 }
 
-export default function Header({ username, email, onLogout }: HeaderProps) {
+export default function Header({ username, email, onLogout, onToggleSidebar, isCollapsed }: HeaderProps) {
   return (
     <header className="h-16 bg-white border-bottom border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10">
-      <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 w-96">
-        <Search size={18} className="text-slate-400" />
-        <input
-          type="text"
-          placeholder="搜索任何内容..."
-          className="bg-transparent border-none outline-none text-sm w-full text-slate-600 placeholder:text-slate-400"
-        />
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onToggleSidebar}
+          className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-all"
+          title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+        >
+          {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+        </button>
+        <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 w-96">
+          <Search size={18} className="text-slate-400" />
+          <input
+            type="text"
+            placeholder="搜索任何内容..."
+            className="bg-transparent border-none outline-none text-sm w-full text-slate-600 placeholder:text-slate-400"
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-6">

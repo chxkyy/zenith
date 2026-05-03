@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Plus, Menu as MenuIcon, Layout, ChevronRight, ChevronDown, Trash2, Edit, MoveUp, MoveDown, Filter, X, Eye, EyeOff, Settings, Shield, GripVertical } from 'lucide-react';
 import { cn, formatDateTime } from '../lib/utils';
 import Notification from './Notification';
@@ -747,6 +747,7 @@ export default function MenuManagement() {
   });
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [loading, setLoading] = useState(true);
+  const hasFetchedMenus = useRef(false);
   const [draggingId, setDraggingId] = useState<number | null>(null);
 
   const sensors = useSensors(
@@ -844,6 +845,8 @@ export default function MenuManagement() {
 
   // 组件挂载时获取菜单列表
   React.useEffect(() => {
+    if (hasFetchedMenus.current) return;
+    hasFetchedMenus.current = true;
     fetchMenus();
   }, []);
 

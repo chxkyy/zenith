@@ -11,6 +11,12 @@ public class OrgDTO extends DTO {
     private String name;
     private Integer sort;
     private Integer status;
+
+    /**
+     * 成员数量（实时统计）
+     */
+    private Integer memberCount;
+
     private java.time.LocalDateTime createdTime;
     private java.time.LocalDateTime updateTime;
     private Long createUserId;

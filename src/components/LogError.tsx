@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, RotateCcw, Trash2, Eye, Eraser } from 'lucide-react';
 import { formatDateTime } from '../lib/utils';
 
@@ -18,6 +18,7 @@ const LogError: React.FC = () => {
   const [logs, setLogs] = useState<ErrorLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedLogs = useRef(false);
   const [searchParams, setSearchParams] = useState({
     module: '',
     ip: ''
@@ -64,6 +65,8 @@ const LogError: React.FC = () => {
   };
 
   useEffect(() => {
+    if (hasFetchedLogs.current) return;
+    hasFetchedLogs.current = true;
     fetchLogs();
   }, []);
 

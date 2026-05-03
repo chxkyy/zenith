@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
     MoreHorizontal,
     Search,
@@ -155,6 +155,7 @@ export default function OrgUserManagement() {
     const [orgModalMode, setOrgModalMode] = useState<'add' | 'add-sub' | 'edit'>('add');
     const [selectedOrgForEdit, setSelectedOrgForEdit] = useState<Org | null>(null);
     const [draggingId, setDraggingId] = useState<number | null>(null);
+    const hasFetchedOrgs = useRef(false);
 
     // 用户相关状态
     const [users, setUsers] = useState<any[]>([]);
@@ -270,6 +271,8 @@ export default function OrgUserManagement() {
     };
 
     useEffect(() => {
+        if (hasFetchedOrgs.current) return;
+        hasFetchedOrgs.current = true;
         fetchOrgs();
     }, []);
 

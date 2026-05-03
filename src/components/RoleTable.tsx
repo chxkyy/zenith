@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MoreHorizontal, Search, ShieldCheck, Plus, Lock, Unlock, Edit, Trash2, User, Shield } from 'lucide-react';
 import { cn, formatDateTime } from '../lib/utils';
 
@@ -18,9 +18,11 @@ interface Role {
 export default function RoleTable() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const hasFetchedRoles = useRef(false);
 
-  // 从后端获取角色数据
   useEffect(() => {
+    if (hasFetchedRoles.current) return;
+    hasFetchedRoles.current = true;
     const fetchRoles = async () => {
       setLoading(true);
       try {

@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+interface Org {
+  id: number;
+  name: string;
+  parentId?: number;
+}
+
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,13 +22,59 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
     username: '',
     email: '',
     role: 'USER',
-    orgName: '',
+    orgId: undefined as number | undefined,
     status: 1,
     createUserId: undefined,
     updateUserId: undefined,
     createdTime: undefined,
     updateTime: undefined
   });
+
+  const [orgs, setOrgs] = useState<Org[]>([]);
+  const [orgLoading, setOrgLoading] = useState(false);
+
+  // 从 API 动态加载组织列表
+  const fetchOrgs = async () => {
+    setOrgLoading(true);
+    try {
+      const response = await fetch('/api/orgs/page', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pageIndex: 1,
+          pageSize: 1000
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) return;
+      
+      try {
+        const data = JSON.parse(text);
+        if (data.success && data.data) {
+          setOrgs(data.data);
+        }
+      } catch (e) {
+        console.error('Failed to parse org list:', e);
+      }
+    } catch (error) {
+      console.error('Error fetching orgs:', error);
+    } finally {
+      setOrgLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchOrgs();
+    }
+  }, [isOpen]);
 
   // 当用户数据变化时，更新表单数据
   useEffect(() => {
@@ -32,7 +84,7 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
         username: user.username || '',
         email: user.email || '',
         role: user.role || 'USER',
-        orgName: user.orgName || '',
+        orgId: user.orgId,
         status: user.status || 1,
         createUserId: user.createUserId,
         updateUserId: user.updateUserId,
@@ -45,7 +97,7 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
         username: '',
         email: '',
         role: 'USER',
-        orgName: '',
+        orgId: undefined,
         status: 1,
         createUserId: undefined,
         updateUserId: undefined,
@@ -134,13 +186,25 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
 
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">所属组织</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
-                  placeholder="例如：研发中心"
-                  value={formData.orgName}
-                  onChange={e => setFormData({ ...formData, orgName: e.target.value })}
-                />
+                {orgLoading ? (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-sm text-slate-500">正在加载组织列表...</span>
+                  </div>
+                ) : (
+                  <select
+                    className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all bg-white"
+                    value={formData.orgId || ''}
+                    onChange={e => setFormData({ ...formData, orgId: Number(e.target.value) })}
+                  >
+                    <option value="">请选择组织</option>
+                    {orgs.map(org => (
+                      <option key={org.id} value={org.id}>
+                        {org.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="pt-4 flex gap-3">

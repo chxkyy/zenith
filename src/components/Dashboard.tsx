@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   AreaChart, 
   Area, 
@@ -15,8 +15,11 @@ export default function Dashboard() {
   const [stats, setStats] = useState<any>(null);
 
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedStats = useRef(false);
 
   useEffect(() => {
+    if (hasFetchedStats.current) return;
+    hasFetchedStats.current = true;
     fetch('/api/stats/overview')
       .then(async res => {
         const text = await res.text();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MoreHorizontal, Search, Building2, Plus, ChevronDown, ChevronRight, Users2 } from 'lucide-react';
 import { cn, formatDateTime } from '../lib/utils';
 
@@ -77,9 +77,11 @@ function OrgRow({ org, level }: OrgItemProps) {
 export default function OrgTable() {
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [loading, setLoading] = useState(true);
+  const hasFetchedOrgs = useRef(false);
 
-  // 从后端获取组织数据
   useEffect(() => {
+    if (hasFetchedOrgs.current) return;
+    hasFetchedOrgs.current = true;
     const fetchOrgs = async () => {
       setLoading(true);
       try {

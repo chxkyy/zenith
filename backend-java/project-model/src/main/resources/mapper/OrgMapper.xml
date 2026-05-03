@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zenith.admin.mapper.OrgMapper">
+
+    <!--
+        统计指定组织的成员数量
+
+        功能说明:
+            查询 t_sys_user 表中属于指定组织的用户总数
+
+        参数:
+            orgId (Long) - 组织ID
+
+        返回:
+            Integer - 成员数量
+
+        SQL逻辑:
+            使用 COUNT(*) 聚合函数统计记录数
+            WHERE 条件过滤指定组织的用户
+    -->
+    <select id="selectCountMemberByOrgId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_sys_user
+        WHERE org_id = #{orgId}
+    </select>
+
+    <!--
+        统计多个组织的成员总数（递归统计：包含指定组织及其所有子组织的成员）
+
+        功能说明:
+            查询 t_sys_user 表中属于多个组织的用户总数
+
+        参数:
+            orgIds (List<Long>) - 组织ID列表（包含自身及所有子组织ID）
+
+        返回:
+            Integer - 成员总数
+
+        SQL逻辑:
+            使用 IN 条件批量查询多个组织中的用户数量
+    -->
+    <select id="countMembersByOrgIds" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_sys_user
+        WHERE org_id IN
+        <foreach collection="orgIds" item="orgId" open="(" separator="," close=")">
+            #{orgId}
+        </foreach>
+    </select>
+
+</mapper>

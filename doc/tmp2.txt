@@ -1,0 +1,314 @@
+================================================================================
+REQUEST: POST http://localhost:5173/api/orgs/page
+================================================================================
+
+## BASIC INFO
+Method: POST
+URL: http://localhost:5173/api/orgs/page
+Status: 200 OK
+Type: application/json
+Size: 5.00 KB
+Time: 36.19ms
+Timestamp: 2026-05-03T13:28:28.138Z
+
+## REQUEST HEADERS
+Accept: */*
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+Connection: keep-alive
+Content-Length: 31
+Content-Type: application/json
+Cookie: ZENITH_TOKEN=3150f3504b3c487584a924e1dd597f44
+Host: localhost:5173
+Origin: http://localhost:5173
+Referer: http://localhost:5173/
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: same-origin
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36
+sec-ch-ua: "Google Chrome";v="147", "Not.A/Brand";v="8", "Chromium";v="147"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Windows"
+
+## REQUEST BODY
+{
+  "pageIndex": 1,
+  "pageSize": 1000
+}
+
+## RESPONSE HEADERS
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+connection: close
+content-length: 5124
+content-type: application/json;charset=UTF-8
+date: Sun, 03 May 2026 13:28:28 GMT
+
+## RESPONSE BODY
+{
+  "data": [
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776638,
+      "id": 11,
+      "memberCount": 2,
+      "name": "国内销售组",
+      "parentId": 10,
+      "sort": 1,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776633,
+      "id": 1,
+      "memberCount": 28,
+      "name": "Zenith 集团总部",
+      "parentId": 0,
+      "sort": 1,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776639,
+      "id": 17,
+      "memberCount": 2,
+      "name": "会计组",
+      "parentId": 16,
+      "sort": 1,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776639,
+      "id": 14,
+      "memberCount": 2,
+      "name": "招聘组",
+      "parentId": 13,
+      "sort": 1,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776637,
+      "id": 8,
+      "memberCount": 2,
+      "name": "市场策划组",
+      "parentId": 7,
+      "sort": 1,
+      "status": 1,
+      "updateTime": 1777807668724,
+      "updateUserId": 1,
+      "updateUserName": "ROLE_ADMIN"
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776635,
+      "id": 2,
+      "memberCount": 12,
+      "name": "研发中心",
+      "parentId": 1,
+      "sort": 1,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776637,
+      "id": 9,
+      "memberCount": 2,
+      "name": "品牌推广组",
+      "parentId": 7,
+      "sort": 1,
+      "status": 1,
+      "updateTime": 1777807650365,
+      "updateUserId": 1,
+      "updateUserName": "ROLE_ADMIN"
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776640,
+      "id": 18,
+      "memberCount": 1,
+      "name": "出纳组",
+      "parentId": 16,
+      "sort": 2,
+      "status": 1,
+      "updateTime": 1777814340395,
+      "updateUserId": 1,
+      "updateUserName": "ROLE_ADMIN"
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776636,
+      "id": 4,
+      "memberCount": 4,
+      "name": "后端开发组",
+      "parentId": 2,
+      "sort": 2,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776637,
+      "id": 7,
+      "memberCount": 4,
+      "name": "市场部",
+      "parentId": 1,
+      "sort": 2,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776638,
+      "id": 12,
+      "memberCount": 2,
+      "name": "国际销售组",
+      "parentId": 10,
+      "sort": 2,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776639,
+      "id": 15,
+      "memberCount": 1,
+      "name": "培训组",
+      "parentId": 13,
+      "sort": 2,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776635,
+      "id": 3,
+      "memberCount": 3,
+      "name": "前端开发组",
+      "parentId": 2,
+      "sort": 2,
+      "status": 1,
+      "updateTime": 1777807633088,
+      "updateUserId": 1,
+      "updateUserName": "ROLE_ADMIN"
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776636,
+      "id": 5,
+      "memberCount": 2,
+      "name": "测试组",
+      "parentId": 2,
+      "sort": 3,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776638,
+      "id": 10,
+      "memberCount": 4,
+      "name": "销售部",
+      "parentId": 1,
+      "sort": 3,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776638,
+      "id": 13,
+      "memberCount": 3,
+      "name": "人力资源部",
+      "parentId": 1,
+      "sort": 4,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776636,
+      "id": 6,
+      "memberCount": 2,
+      "name": "运维组",
+      "parentId": 2,
+      "sort": 4,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    },
+    {
+      "createUserId": null,
+      "createUserName": null,
+      "createdTime": 1776687776639,
+      "id": 16,
+      "memberCount": 3,
+      "name": "财务部",
+      "parentId": 1,
+      "sort": 5,
+      "status": 1,
+      "updateTime": 1776865679972,
+      "updateUserId": null,
+      "updateUserName": null
+    }
+  ],
+  "empty": false,
+  "errCode": null,
+  "errMessage": null,
+  "notEmpty": true,
+  "pageIndex": 1,
+  "pageSize": 1000,
+  "success": true,
+  "totalCount": 18,
+  "totalPages": 1
+}
+
+================================================================================

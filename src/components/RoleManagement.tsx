@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MoreHorizontal, Search, Filter, Plus, ChevronUp, ChevronDown, X, Edit, Trash2, Shield, UserPlus } from 'lucide-react';
 import { cn, formatDateTime } from '../lib/utils';
 import PermissionAssignModal from './PermissionAssignModal';
@@ -32,6 +32,7 @@ export default function RoleManagement() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const hasFetchedRoles = useRef(false);
 
 
   const fetchRoles = (pageIndex = 1) => {
@@ -92,6 +93,8 @@ export default function RoleManagement() {
   };
 
   useEffect(() => {
+    if (hasFetchedRoles.current) return;
+    hasFetchedRoles.current = true;
     fetchRoles();
   }, []);
 

@@ -6,6 +6,7 @@ export default function SystemLogs() {
   const [loading, setLoading] = useState(true);
   const [autoScroll, setAutoScroll] = useState(true);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const hasFetchedLogs = useRef(false);
 
   const fetchLogs = () => {
     setLoading(true);
@@ -22,8 +23,10 @@ export default function SystemLogs() {
   };
 
   useEffect(() => {
+    if (hasFetchedLogs.current) return;
+    hasFetchedLogs.current = true;
     fetchLogs();
-    const interval = setInterval(fetchLogs, 5000); // 每5秒自动刷新
+    const interval = setInterval(fetchLogs, 5000);
     return () => clearInterval(interval);
   }, []);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, RotateCcw, Download, Trash2, Eye } from 'lucide-react';
 import { formatDateTime } from '../lib/utils';
 
@@ -20,6 +20,7 @@ const LogOper: React.FC = () => {
   const [logs, setLogs] = useState<OperLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedLogs = useRef(false);
   const [searchParams, setSearchParams] = useState({
     operator: '',
     module: '',
@@ -67,6 +68,8 @@ const LogOper: React.FC = () => {
   };
 
   useEffect(() => {
+    if (hasFetchedLogs.current) return;
+    hasFetchedLogs.current = true;
     fetchLogs();
   }, []);
 

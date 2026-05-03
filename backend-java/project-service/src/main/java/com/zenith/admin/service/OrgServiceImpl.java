@@ -12,6 +12,7 @@ import com.zenith.admin.mapper.OrgMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,6 +26,14 @@ public class OrgServiceImpl implements OrgService {
     public List<OrgDTO> listAll() {
         List<OrgDO> orgDOS = orgMapper.selectList(null);
         List<OrgDTO> dtos = orgConvertor.toDTOList(orgDOS);
+
+        for (OrgDTO dto : dtos) {
+            List<Long> allOrgIds = getAllChildOrgIds(dto.getId());
+            allOrgIds.add(dto.getId());
+            Integer memberCount = orgMapper.countMembersByOrgIds(allOrgIds);
+            dto.setMemberCount(memberCount);
+        }
+
         return dtos;
     }
 
@@ -41,6 +50,13 @@ public class OrgServiceImpl implements OrgService {
         List<OrgDO> orgDOS = orgMapper.selectList(queryWrapper);
         PageInfo<OrgDO> pageInfo = new PageInfo<>(orgDOS);
         List<OrgDTO> dtos = orgConvertor.toDTOList(pageInfo.getList());
+
+        for (OrgDTO dto : dtos) {
+            List<Long> allOrgIds = getAllChildOrgIds(dto.getId());
+            allOrgIds.add(dto.getId());
+            Integer memberCount = orgMapper.countMembersByOrgIds(allOrgIds);
+            dto.setMemberCount(memberCount);
+        }
 
         PageInfo<OrgDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -84,5 +100,23 @@ public class OrgServiceImpl implements OrgService {
     public OrgDTO getById(Long id) {
         OrgDO orgDO = orgMapper.selectById(id);
         return orgConvertor.toDTO(orgDO);
+    }
+
+    /**
+     * 递归获取指定组织的所有子组织ID（不包含自身）
+     * @param parentId 父组织ID
+     * @return 所有子组织ID列表
+     */
+    private List<Long> getAllChildOrgIds(Long parentId) {
+        List<Long> ids = new ArrayList<>();
+        LambdaQueryWrapper<OrgDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OrgDO::getParentId, parentId);
+        List<OrgDO> children = orgMapper.selectList(wrapper);
+
+        for (OrgDO child : children) {
+            ids.add(child.getId());
+            ids.addAll(getAllChildOrgIds(child.getId()));
+        }
+        return ids;
     }
 }
