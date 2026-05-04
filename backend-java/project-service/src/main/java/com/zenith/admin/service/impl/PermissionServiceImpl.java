@@ -1,16 +1,22 @@
 package com.zenith.admin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zenith.admin.api.PermissionService;
+import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.RoleFunctionDO;
 import com.zenith.admin.dataobject.RoleMenuDO;
 import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.mapper.RoleFunctionMapper;
 import com.zenith.admin.mapper.RoleMenuMapper;
+import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +28,7 @@ public class PermissionServiceImpl implements PermissionService {
     private final UserRoleMapper userRoleMapper;
     private final RoleMenuMapper roleMenuMapper;
     private final RoleFunctionMapper roleFunctionMapper;
+    private final RoleMapper roleMapper;
 
     @Override
     public List<String> getUserRoles(Long userId) {
@@ -88,5 +95,23 @@ public class PermissionServiceImpl implements PermissionService {
         );
 
         return !roleMenus.isEmpty();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserRoles(Long userId, List<Long> roleIds) {
+        LambdaQueryWrapper<UserRoleDO> deleteWrapper = new LambdaQueryWrapper<>();
+        deleteWrapper.eq(UserRoleDO::getUserId, userId);
+        userRoleMapper.delete(deleteWrapper);
+
+        if (roleIds != null && !roleIds.isEmpty()) {
+            for (Long roleId : roleIds) {
+                UserRoleDO userRole = new UserRoleDO();
+                userRole.setUserId(userId);
+                userRole.setRoleId(roleId);
+                userRole.setCreatedTime(LocalDateTime.now());
+                userRoleMapper.insert(userRole);
+            }
+        }
     }
 }

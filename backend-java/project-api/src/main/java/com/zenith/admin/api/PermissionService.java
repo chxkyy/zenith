@@ -8,4 +8,5 @@ public interface PermissionService {
     List<String> getUserPermissions(Long userId);
     List<MenuDTO> getAccessibleMenus(Long userId);
     boolean hasPermission(Long userId, String permission);
+    void updateUserRoles(Long userId, List<Long> roleIds);
 }

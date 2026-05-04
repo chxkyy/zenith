@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface RoleService {
     List<RoleDTO> listAll();
+    List<RoleDTO> listActiveRoles();
     PageInfo<RoleDTO> listByPage(RolePageQuery query);
     void save(RoleDTO roleDTO);
     void update(RoleDTO roleDTO);

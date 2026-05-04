@@ -29,6 +29,16 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public List<RoleDTO> listActiveRoles() {
+        QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", 1);
+
+        List<RoleDO> roleDOS = roleMapper.selectList(wrapper);
+        List<RoleDTO> dtos = roleConvertor.toDTOList(roleDOS);
+        return dtos;
+    }
+
+    @Override
     public PageInfo<RoleDTO> listByPage(RolePageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
 

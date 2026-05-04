@@ -148,7 +148,8 @@ export default function OrgUserManagement() {
     const [expanded, setExpanded] = useState<number[]>([]);
 
     // 新增状态：搜索、过滤、右键菜单、组织弹窗、拖拽
-    const [searchKeyword, setSearchKeyword] = useState('');
+    const [orgSearchKeyword, setOrgSearchKeyword] = useState('');
+    const [userSearchKeyword, setUserSearchKeyword] = useState('');
     const [filteredOrgs, setFilteredOrgs] = useState<Org[] | null>(null);
     const [rightClickMenu, setRightClickMenu] = useState<{ x: number; y: number; org: Org } | null>(null);
     const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
@@ -285,12 +286,12 @@ export default function OrgUserManagement() {
 
     // 搜索组织功能
     const handleSearchOrgs = () => {
-        if (!searchKeyword.trim()) {
+        if (!orgSearchKeyword.trim()) {
             setFilteredOrgs(null);
             return;
         }
 
-        const keyword = searchKeyword.trim().toLowerCase();
+        const keyword = orgSearchKeyword.trim().toLowerCase();
 
         const filterOrgTree = (orgList: Org[]): Org[] => {
             return orgList.reduce((result: Org[], org) => {
@@ -337,7 +338,7 @@ export default function OrgUserManagement() {
 
     // 刷新组织树
     const handleRefreshOrgs = async () => {
-        setSearchKeyword('');
+        setOrgSearchKeyword('');
         setFilteredOrgs(null);
         await fetchOrgs();
     };
@@ -495,7 +496,7 @@ export default function OrgUserManagement() {
         const query = {
             pageIndex,
             pageSize: 10,
-            keyword: searchKeyword,
+            keyword: userSearchKeyword,
             orgId
         };
 
@@ -764,19 +765,57 @@ export default function OrgUserManagement() {
     };
 
     // 处理保存角色
-    const handleSaveRoles = (roles: string[]) => {
+    const handleSaveRoles = async (roleIds: string[]) => {
+        if (!selectedUserForRoles) return;
+
         setUserLoading(true);
-        setTimeout(() => {
+
+        try {
+            const response = await fetch('/api/user-roles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: selectedUserForRoles.id,
+                    roleIds: roleIds.map(id => parseInt(id))
+                })
+            });
+
+            const text = await response.text();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}. ${text}`);
+            }
+
+            const result = text ? JSON.parse(text) : { success: true };
+
+            if (result.success) {
+                setNotification({
+                    message: '角色分配成功',
+                    type: 'success',
+                    key: Date.now()
+                });
+
+                if (selectedOrg) {
+                    fetchUsersByOrg(selectedOrg.id);
+                }
+            } else {
+                setNotification({
+                    message: result.errMessage || '角色分配失败',
+                    type: 'error',
+                    key: Date.now()
+                });
+            }
+        } catch (error) {
+            console.error('Error saving roles:', error);
             setNotification({
-                message: '角色分配成功',
-                type: 'success',
+                message: '网络错误，请重试',
+                type: 'error',
                 key: Date.now()
             });
-            if (selectedOrg) {
-                fetchUsersByOrg(selectedOrg.id); // 重新加载当前组织的用户列表
-            }
+        } finally {
             setUserLoading(false);
-        }, 500);
+        }
     };
 
     // ========== 组织管理相关方法 ==========
@@ -999,7 +1038,7 @@ export default function OrgUserManagement() {
                 isOpen={isRoleModalOpen}
                 onClose={() => setIsRoleModalOpen(false)}
                 onSave={handleSaveRoles}
-                userRoles={selectedUserForRoles ? [selectedUserForRoles.role] : []}
+                userId={selectedUserForRoles?.id}
             />
 
             <OrgModal
@@ -1030,8 +1069,8 @@ export default function OrgUserManagement() {
                                     type="text"
                                     placeholder="搜索组织..."
                                     className="text-sm outline-none w-full bg-transparent"
-                                    value={searchKeyword}
-                                    onChange={(e) => setSearchKeyword(e.target.value)}
+                                    value={orgSearchKeyword}
+                                    onChange={(e) => setOrgSearchKeyword(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                 />
                             </div>
@@ -1092,8 +1131,8 @@ export default function OrgUserManagement() {
                                     type="text"
                                     placeholder="搜索用户..."
                                     className="text-sm outline-none w-full"
-                                    value={searchKeyword}
-                                    onChange={(e) => setSearchKeyword(e.target.value)}
+                                    value={userSearchKeyword}
+                                    onChange={(e) => setUserSearchKeyword(e.target.value)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             if (selectedOrg) {
@@ -1200,7 +1239,20 @@ export default function OrgUserManagement() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm text-slate-600">{user.roleNames}</span>
+                                            <div className="flex flex-wrap gap-1">
+                                                {user.roleNames ? (
+                                                    user.roleNames.split(',').map((name: string, index: number) => (
+                                                        <span
+                                                            key={index}
+                                                            className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium"
+                                                        >
+                                                            {name.trim()}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-sm text-slate-400">未分配</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                         <span className={cn(

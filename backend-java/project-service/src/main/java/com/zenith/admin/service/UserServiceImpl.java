@@ -1,21 +1,26 @@
 package com.zenith.admin.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.UserService;
 import com.zenith.admin.UserConvertor;
 import com.zenith.admin.dataobject.OrgDO;
+import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.UserDO;
+import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.dto.data.UserPageQuery;
 import com.zenith.admin.mapper.OrgMapper;
+import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.mapper.UserMapper;
+import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +29,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final OrgMapper orgMapper;
     private final UserConvertor userConvertor;
+    private final UserRoleMapper userRoleMapper;
+    private final RoleMapper roleMapper;
 
     @Override
     public PageInfo<UserDTO> listByPage(UserPageQuery query) {
@@ -43,10 +50,6 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        if (query.getRole() != null && !query.getRole().isEmpty()) {
-            wrapper.eq("role", query.getRole());
-        }
-
         if (query.getStatus() != null) {
             wrapper.eq("status", query.getStatus());
         }
@@ -59,7 +62,7 @@ public class UserServiceImpl implements UserService {
         List<UserDO> userDOS = userMapper.selectList(wrapper);
         PageInfo<UserDO> pageInfo = new PageInfo<>(userDOS);
 
-        List<UserDTO> dtos = userConvertor.toDTOList(userDOS);
+        List<UserDTO> dtos = convertToDTOsWithRoles(userDOS);
 
         PageInfo<UserDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -70,10 +73,107 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    private List<UserDTO> convertToDTOsWithRoles(List<UserDO> userDOS) {
+        if (userDOS == null || userDOS.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> userIds = userDOS.stream()
+                .map(UserDO::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<String>> userRolesMap = getUserRolesMap(userIds);
+        Map<String, String> roleCodeToNameMap = getRoleCodeToNameMap();
+
+        return userDOS.stream().map(userDO -> {
+            UserDTO dto = userConvertor.toDTO(userDO);
+
+            List<String> roleCodes = userRolesMap.getOrDefault(userDO.getId(), Collections.emptyList());
+            dto.setRoles(roleCodes);
+
+            String roleNames = roleCodes.stream()
+                    .map(code -> roleCodeToNameMap.getOrDefault(code, code))
+                    .collect(Collectors.joining(", "));
+            dto.setRoleNames(roleNames);
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    private Map<Long, List<String>> getUserRolesMap(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        LambdaQueryWrapper<UserRoleDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(UserRoleDO::getUserId, userIds);
+
+        List<UserRoleDO> userRoles = userRoleMapper.selectList(wrapper);
+
+        Map<Long, List<Long>> roleIdMap = userRoles.stream()
+                .collect(Collectors.groupingBy(
+                        UserRoleDO::getUserId,
+                        Collectors.mapping(UserRoleDO::getRoleId, Collectors.toList())
+                ));
+
+        if (roleIdMap.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Set<Long> allRoleIds = roleIdMap.values().stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
+        Map<Long, String> roleIdToCodeMap = getRoleIdToCodeMap(allRoleIds);
+
+        Map<Long, List<String>> result = new HashMap<>();
+        roleIdMap.forEach((userId, roleIds) -> {
+            List<String> roleCodes = roleIds.stream()
+                    .map(roleId -> roleIdToCodeMap.getOrDefault(roleId, "UNKNOWN"))
+                    .collect(Collectors.toList());
+            result.put(userId, roleCodes);
+        });
+
+        return result;
+    }
+
+    private Map<Long, String> getRoleIdToCodeSet(Set<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        LambdaQueryWrapper<RoleDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(RoleDO::getId, roleIds);
+
+        List<RoleDO> roles = roleMapper.selectList(wrapper);
+
+        return roles.stream()
+                .collect(Collectors.toMap(RoleDO::getId, RoleDO::getCode));
+    }
+
+    private Map<Long, String> getRoleIdToCodeMap(Collection<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Set<Long> roleIdSet = new HashSet<>(roleIds);
+        return getRoleIdToCodeSet(roleIdSet);
+    }
+
+    private Map<String, String> getRoleCodeToNameMap() {
+        QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", 1);
+
+        List<RoleDO> roles = roleMapper.selectList(wrapper);
+
+        return roles.stream()
+                .collect(Collectors.toMap(RoleDO::getCode, RoleDO::getName));
+    }
+
     @Override
     public void save(UserDTO userDTO) {
         UserDO userDO = userConvertor.toDataObject(userDTO);
-        Long currentUserId = 1L; // TODO: 从上下文获取当前登录用户ID
+        Long currentUserId = 1L;
         if (userDO.getId() == null) {
             userDO.setCreateUserId(currentUserId);
             userDO.setCreatedTime(java.time.LocalDateTime.now());
@@ -88,7 +188,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void update(UserDTO userDTO) {
         UserDO userDO = userConvertor.toDataObject(userDTO);
-        Long currentUserId = 1L; // TODO: 从上下文获取当前登录用户ID
+        Long currentUserId = 1L;
         userDO.setUpdateUserId(currentUserId);
         userDO.setUpdateTime(java.time.LocalDateTime.now());
         userMapper.updateById(userDO);
@@ -98,7 +198,7 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {
-            if ("admin".equals(userDO.getUsername()) || "ADMIN".equals(userDO.getRole())) {
+            if ("admin".equals(userDO.getUsername())) {
                 throw new RuntimeException("超级管理员账号不可删除");
             }
             userMapper.deleteById(id);
@@ -108,7 +208,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getById(Long id) {
         UserDO userDO = userMapper.selectById(id);
-        return userConvertor.toDTO(userDO);
+        if (userDO == null) {
+            return null;
+        }
+        List<UserDTO> dtos = convertToDTOsWithRoles(Collections.singletonList(userDO));
+        return dtos.isEmpty() ? null : dtos.get(0);
     }
 
     @Override
@@ -123,11 +227,11 @@ public class UserServiceImpl implements UserService {
     public void changeStatus(Long id, Integer status) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {
-            if (0 == status && ("admin".equals(userDO.getUsername()) || "ADMIN".equals(userDO.getRole()))) {
+            if (0 == status && "admin".equals(userDO.getUsername())) {
                 throw new RuntimeException("超级管理员账号不可禁用");
             }
             userDO.setStatus(status);
-            Long currentUserId = 1L; // TODO: 从上下文获取当前登录用户ID
+            Long currentUserId = 1L;
             userDO.setUpdateUserId(currentUserId);
             userDO.setUpdateTime(java.time.LocalDateTime.now());
             userMapper.updateById(userDO);

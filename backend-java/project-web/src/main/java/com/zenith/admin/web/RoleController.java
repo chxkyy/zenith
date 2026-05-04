@@ -28,6 +28,12 @@ public class RoleController {
         return MultiResponse.of(list);
     }
 
+    @GetMapping("/list-active")
+    public MultiResponse<RoleDTO> listActive() {
+        List<RoleDTO> list = roleService.listActiveRoles();
+        return MultiResponse.of(list);
+    }
+
     @PostMapping("/page")
     public com.alibaba.cola.dto.PageResponse<RoleDTO> page(@RequestBody @Valid RolePageQuery query) {
         PageInfo<RoleDTO> pageInfo = roleService.listByPage(query);

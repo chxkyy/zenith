@@ -20,14 +20,13 @@ public class UserDO {
     private String email;
     private String password;
     private Integer status;
-    private String role;
-    
+
     /**
      * 所属组织ID
      * 关联 t_sys_org.id
      */
     private Long orgId;
-    
+
     private LocalDateTime createdTime;
     private LocalDateTime updateTime;
     private Long updateUserId;
