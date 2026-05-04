@@ -4,14 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.RoleService;
+import com.zenith.admin.dto.data.RoleAddCmd;
 import com.zenith.admin.dto.data.RoleDTO;
 import com.zenith.admin.dto.data.RolePageQuery;
+import com.zenith.admin.dto.data.RoleUpdateCmd;
 import com.zenith.admin.RoleConvertor;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.mapper.RoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -73,35 +76,36 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public void save(RoleDTO roleDTO) {
-        RoleDO roleDO = roleConvertor.toDataObject(roleDTO);
-        Long currentUserId = 1L;
-        if (roleDO.getId() == null) {
-            roleDO.setCreateUserId(currentUserId);
-            roleDO.setCreatedTime(java.time.LocalDateTime.now());
-            roleMapper.insert(roleDO);
-        } else {
-            roleDO.setUpdateUserId(currentUserId);
-            roleDO.setUpdateTime(java.time.LocalDateTime.now());
-            roleMapper.updateById(roleDO);
-        }
+    public void save(RoleAddCmd cmd, Long currentUserId) {
+        RoleDO roleDO = new RoleDO();
+        roleDO.setName(cmd.getName());
+        roleDO.setCode(cmd.getCode());
+        roleDO.setStatus(cmd.getStatus());
+
+        roleDO.setCreateUserId(currentUserId);
+        roleDO.setCreatedTime(LocalDateTime.now());
+        roleMapper.insert(roleDO);
     }
 
     @Override
-    public void update(RoleDTO roleDTO) {
-        RoleDO existingRole = roleMapper.selectById(roleDTO.getId());
+    public void update(RoleUpdateCmd cmd, Long currentUserId) {
+        RoleDO existingRole = roleMapper.selectById(cmd.getId());
         if (existingRole != null && "ADMIN".equals(existingRole.getCode())) {
-            roleDTO.setCode(existingRole.getCode());
+            cmd.setCode(existingRole.getCode());
         }
-        RoleDO roleDO = roleConvertor.toDataObject(roleDTO);
-        Long currentUserId = 1L;
+        
+        RoleDO roleDO = new RoleDO();
+        roleDO.setId(cmd.getId());
+        roleDO.setName(cmd.getName());
+        roleDO.setCode(cmd.getCode());
+        roleDO.setStatus(cmd.getStatus());
         roleDO.setUpdateUserId(currentUserId);
-        roleDO.setUpdateTime(java.time.LocalDateTime.now());
+        roleDO.setUpdateTime(LocalDateTime.now());
         roleMapper.updateById(roleDO);
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id, Long currentUserId) {
         RoleDO role = roleMapper.selectById(id);
         if (role != null) {
             if ("ADMIN".equals(role.getCode())) {
@@ -118,16 +122,15 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public void changeStatus(Long id, Integer status) {
+    public void changeStatus(Long id, Integer status, Long currentUserId) {
         RoleDO role = roleMapper.selectById(id);
         if (role != null) {
             if (0 == status && "ADMIN".equals(role.getCode())) {
                 throw new RuntimeException("超级管理员角色不可禁用");
             }
             role.setStatus(status);
-            Long currentUserId = 1L;
             role.setUpdateUserId(currentUserId);
-            role.setUpdateTime(java.time.LocalDateTime.now());
+            role.setUpdateTime(LocalDateTime.now());
             roleMapper.updateById(role);
         }
     }

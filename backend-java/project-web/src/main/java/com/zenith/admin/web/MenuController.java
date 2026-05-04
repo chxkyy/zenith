@@ -5,9 +5,12 @@ import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.MenuService;
 import com.zenith.admin.PageResponseUtils;
+import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.IdQuery;
+import com.zenith.admin.dto.data.MenuAddCmd;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.MenuPageQuery;
+import com.zenith.admin.dto.data.MenuUpdateCmd;
 import com.zenith.admin.dto.data.MenuUpdateParentCmd;
 import com.zenith.admin.dto.data.MenuReorderCmd;
 import com.github.pagehelper.PageInfo;
@@ -25,9 +28,10 @@ public class MenuController {
     private final MenuService menuService;
 
     @PostMapping("/delete")
-    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
-        menuService.delete(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response delete(@RequestBody IdQuery query) {
+        Long currentUserId = UserContext.getUserId();
+        menuService.delete(query.getId(), currentUserId);
+        return Response.buildSuccess();
     }
 
     @GetMapping("/get")
@@ -48,26 +52,30 @@ public class MenuController {
     }
 
     @PostMapping
-    public com.alibaba.cola.dto.Response save(@RequestBody MenuDTO menuDTO) {
-        menuService.save(menuDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response save(@RequestBody @Valid MenuAddCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        menuService.save(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/update")
-    public Response update(@RequestBody MenuDTO menuDTO) {
-        menuService.update(menuDTO);
+    public Response update(@RequestBody @Valid MenuUpdateCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        menuService.update(cmd, currentUserId);
         return Response.buildSuccess();
     }
 
     @PostMapping("/update-parent")
     public Response updateParent(@RequestBody MenuUpdateParentCmd cmd) {
-        menuService.updateParent(cmd);
+        Long currentUserId = UserContext.getUserId();
+        menuService.updateParent(cmd, currentUserId);
         return Response.buildSuccess();
     }
 
     @PostMapping("/reorder")
     public Response reorder(@RequestBody MenuReorderCmd cmd) {
-        menuService.reorder(cmd);
+        Long currentUserId = UserContext.getUserId();
+        menuService.reorder(cmd, currentUserId);
         return Response.buildSuccess();
     }
 }

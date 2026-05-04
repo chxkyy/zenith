@@ -1,11 +1,15 @@
 package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.SingleResponse;
+import com.alibaba.cola.dto.Response;
 import com.zenith.admin.api.UserService;
 import com.zenith.admin.PageResponseUtils;
+import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.IdQuery;
+import com.zenith.admin.dto.data.UserAddCmd;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.dto.data.UserPageQuery;
+import com.zenith.admin.dto.data.UserUpdateCmd;
 import com.zenith.admin.dto.data.StatusUpdateQuery;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
@@ -26,21 +30,24 @@ public class UserController {
     }
 
     @PostMapping
-    public com.alibaba.cola.dto.Response save(@RequestBody UserDTO userDTO) {
-        userService.save(userDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response save(@RequestBody @Valid UserAddCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        userService.save(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/update")
-    public com.alibaba.cola.dto.Response update(@RequestBody UserDTO userDTO) {
-        userService.update(userDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response update(@RequestBody @Valid UserUpdateCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        userService.update(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/delete")
-    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
-        userService.delete(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response delete(@RequestBody IdQuery query) {
+        Long currentUserId = UserContext.getUserId();
+        userService.delete(query.getId(), currentUserId);
+        return Response.buildSuccess();
     }
 
     @GetMapping("/get")
@@ -49,14 +56,15 @@ public class UserController {
     }
 
     @PostMapping("/password")
-    public com.alibaba.cola.dto.Response resetPassword(@RequestBody IdQuery query) {
+    public Response resetPassword(@RequestBody IdQuery query) {
         userService.resetPassword(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+        return Response.buildSuccess();
     }
 
     @PostMapping("/status")
-    public com.alibaba.cola.dto.Response changeStatus(@RequestBody StatusUpdateQuery query) {
-        userService.changeStatus(query.getId(), query.getStatus());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response changeStatus(@RequestBody StatusUpdateQuery query) {
+        Long currentUserId = UserContext.getUserId();
+        userService.changeStatus(query.getId(), query.getStatus(), currentUserId);
+        return Response.buildSuccess();
     }
 }

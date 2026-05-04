@@ -4,14 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.OrgService;
+import com.zenith.admin.dto.data.OrgAddCmd;
 import com.zenith.admin.dto.data.OrgDTO;
 import com.zenith.admin.dto.data.OrgPageQuery;
+import com.zenith.admin.dto.data.OrgUpdateCmd;
 import com.zenith.admin.OrgConvertor;
 import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.mapper.OrgMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,31 +71,31 @@ public class OrgServiceImpl implements OrgService {
     }
 
     @Override
-    public void save(OrgDTO orgDTO) {
-        OrgDO orgDO = orgConvertor.toDataObject(orgDTO);
-        Long currentUserId = 1L;
-        if (orgDO.getId() == null) {
-            orgDO.setCreateUserId(currentUserId);
-            orgDO.setCreatedTime(java.time.LocalDateTime.now());
-            orgMapper.insert(orgDO);
-        } else {
-            orgDO.setUpdateUserId(currentUserId);
-            orgDO.setUpdateTime(java.time.LocalDateTime.now());
-            orgMapper.updateById(orgDO);
-        }
+    public void save(OrgAddCmd cmd, Long currentUserId) {
+        OrgDO orgDO = new OrgDO();
+        orgDO.setName(cmd.getName());
+        orgDO.setParentId(cmd.getParentId());
+        orgDO.setSort(cmd.getSort());
+
+        orgDO.setCreateUserId(currentUserId);
+        orgDO.setCreatedTime(LocalDateTime.now());
+        orgMapper.insert(orgDO);
     }
 
     @Override
-    public void update(OrgDTO orgDTO) {
-        OrgDO orgDO = orgConvertor.toDataObject(orgDTO);
-        Long currentUserId = 1L;
+    public void update(OrgUpdateCmd cmd, Long currentUserId) {
+        OrgDO orgDO = new OrgDO();
+        orgDO.setId(cmd.getId());
+        orgDO.setName(cmd.getName());
+        orgDO.setParentId(cmd.getParentId());
+        orgDO.setSort(cmd.getSort());
         orgDO.setUpdateUserId(currentUserId);
-        orgDO.setUpdateTime(java.time.LocalDateTime.now());
+        orgDO.setUpdateTime(LocalDateTime.now());
         orgMapper.updateById(orgDO);
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id, Long currentUserId) {
         orgMapper.deleteById(id);
     }
 
@@ -102,11 +105,6 @@ public class OrgServiceImpl implements OrgService {
         return orgConvertor.toDTO(orgDO);
     }
 
-    /**
-     * 递归获取指定组织的所有子组织ID（不包含自身）
-     * @param parentId 父组织ID
-     * @return 所有子组织ID列表
-     */
     private List<Long> getAllChildOrgIds(Long parentId) {
         List<Long> ids = new ArrayList<>();
         LambdaQueryWrapper<OrgDO> wrapper = new LambdaQueryWrapper<>();

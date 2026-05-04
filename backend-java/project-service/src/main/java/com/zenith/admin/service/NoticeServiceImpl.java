@@ -3,8 +3,10 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.NoticeService;
+import com.zenith.admin.dto.data.NoticeAddCmd;
 import com.zenith.admin.dto.data.NoticeDTO;
 import com.zenith.admin.dto.data.NoticePageQuery;
+import com.zenith.admin.dto.data.NoticeUpdateCmd;
 import com.zenith.admin.NoticeConvertor;
 import com.zenith.admin.dataobject.NoticeDO;
 import com.zenith.admin.mapper.NoticeMapper;
@@ -61,23 +63,33 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public void save(NoticeDTO noticeDTO) {
-        NoticeDO noticeDO = noticeConvertor.toDataObject(noticeDTO);
-        Long currentUserId = 1L;
+    public void save(NoticeAddCmd cmd, Long currentUserId) {
+        NoticeDO noticeDO = new NoticeDO();
+        noticeDO.setTitle(cmd.getTitle());
+        noticeDO.setContent(cmd.getContent());
+        noticeDO.setType(cmd.getType());
+        noticeDO.setStatus(cmd.getStatus());
 
-        if (noticeDO.getId() == null) {
-            noticeDO.setReadCount(0);
-            noticeDO.setIsPinned(false);
-            noticeDO.setCreateUserId(currentUserId);
-            noticeDO.setCreatedTime(LocalDateTime.now());
-            noticeDO.setUpdateUserId(currentUserId);
-            noticeDO.setUpdateTime(LocalDateTime.now());
-            noticeMapper.insert(noticeDO);
-        } else {
-            noticeDO.setUpdateUserId(currentUserId);
-            noticeDO.setUpdateTime(LocalDateTime.now());
-            noticeMapper.updateById(noticeDO);
-        }
+        noticeDO.setReadCount(0);
+        noticeDO.setIsPinned(false);
+        noticeDO.setCreateUserId(currentUserId);
+        noticeDO.setCreatedTime(LocalDateTime.now());
+        noticeDO.setUpdateUserId(currentUserId);
+        noticeDO.setUpdateTime(LocalDateTime.now());
+        noticeMapper.insert(noticeDO);
+    }
+
+    @Override
+    public void update(NoticeUpdateCmd cmd, Long currentUserId) {
+        NoticeDO noticeDO = new NoticeDO();
+        noticeDO.setId(cmd.getId());
+        noticeDO.setTitle(cmd.getTitle());
+        noticeDO.setContent(cmd.getContent());
+        noticeDO.setType(cmd.getType());
+        noticeDO.setStatus(cmd.getStatus());
+        noticeDO.setUpdateUserId(currentUserId);
+        noticeDO.setUpdateTime(LocalDateTime.now());
+        noticeMapper.updateById(noticeDO);
     }
 
     @Override
@@ -92,11 +104,10 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public void updateStatus(Long id, String status) {
+    public void updateStatus(Long id, String status, Long currentUserId) {
         NoticeDO noticeDO = noticeMapper.selectById(id);
         if (noticeDO != null) {
             noticeDO.setStatus(status);
-            Long currentUserId = 1L;
             noticeDO.setUpdateUserId(currentUserId);
             noticeDO.setUpdateTime(LocalDateTime.now());
             noticeMapper.updateById(noticeDO);

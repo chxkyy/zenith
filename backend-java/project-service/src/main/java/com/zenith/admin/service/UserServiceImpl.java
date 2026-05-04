@@ -10,8 +10,10 @@ import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dataobject.UserRoleDO;
+import com.zenith.admin.dto.data.UserAddCmd;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.dto.data.UserPageQuery;
+import com.zenith.admin.dto.data.UserUpdateCmd;
 import com.zenith.admin.mapper.OrgMapper;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.mapper.UserMapper;
@@ -19,6 +21,7 @@ import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -171,36 +174,76 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void save(UserDTO userDTO) {
-        UserDO userDO = userConvertor.toDataObject(userDTO);
-        Long currentUserId = 1L;
-        if (userDO.getId() == null) {
-            userDO.setCreateUserId(currentUserId);
-            userDO.setCreatedTime(java.time.LocalDateTime.now());
-            userMapper.insert(userDO);
-        } else {
-            userDO.setUpdateUserId(currentUserId);
-            userDO.setUpdateTime(java.time.LocalDateTime.now());
-            userMapper.updateById(userDO);
+    public void save(UserAddCmd cmd, Long currentUserId) {
+        UserDO userDO = new UserDO();
+        userDO.setUsername(cmd.getUsername());
+        userDO.setEmail(cmd.getEmail());
+        userDO.setOrgId(cmd.getOrgId());
+        userDO.setStatus(cmd.getStatus());
+
+        userDO.setCreateUserId(currentUserId);
+        userDO.setCreatedTime(LocalDateTime.now());
+        userMapper.insert(userDO);
+
+        if (cmd.getRoles() != null && !cmd.getRoles().isEmpty()) {
+            saveUserRoles(userDO.getId(), cmd.getRoles());
+        }
+    }
+
+    private void saveUserRoles(Long userId, List<String> roleCodes) {
+        for (String roleCode : roleCodes) {
+            QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
+            wrapper.eq("code", roleCode);
+            RoleDO roleDO = roleMapper.selectOne(wrapper);
+            if (roleDO != null) {
+                UserRoleDO userRoleDO = new UserRoleDO();
+                userRoleDO.setUserId(userId);
+                userRoleDO.setRoleId(roleDO.getId());
+                userRoleMapper.insert(userRoleDO);
+            }
         }
     }
 
     @Override
-    public void update(UserDTO userDTO) {
-        UserDO userDO = userConvertor.toDataObject(userDTO);
-        Long currentUserId = 1L;
-        userDO.setUpdateUserId(currentUserId);
-        userDO.setUpdateTime(java.time.LocalDateTime.now());
-        userMapper.updateById(userDO);
+    public void update(UserUpdateCmd cmd, Long currentUserId) {
+        UserDO userDO = userMapper.selectById(cmd.getId());
+        if (userDO != null) {
+            userDO.setUsername(cmd.getUsername());
+            userDO.setEmail(cmd.getEmail());
+            userDO.setOrgId(cmd.getOrgId());
+            userDO.setStatus(cmd.getStatus());
+            userDO.setUpdateUserId(currentUserId);
+            userDO.setUpdateTime(LocalDateTime.now());
+            userMapper.updateById(userDO);
+
+            if (cmd.getRoles() != null) {
+                updateUserRoles(userDO.getId(), cmd.getRoles());
+            }
+        }
+    }
+
+    private void updateUserRoles(Long userId, List<String> roleCodes) {
+        LambdaQueryWrapper<UserRoleDO> deleteWrapper = new LambdaQueryWrapper<>();
+        deleteWrapper.eq(UserRoleDO::getUserId, userId);
+        userRoleMapper.delete(deleteWrapper);
+
+        if (roleCodes != null && !roleCodes.isEmpty()) {
+            saveUserRoles(userId, roleCodes);
+        }
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id, Long currentUserId) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {
             if ("admin".equals(userDO.getUsername())) {
                 throw new RuntimeException("超级管理员账号不可删除");
             }
+            
+            LambdaQueryWrapper<UserRoleDO> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(UserRoleDO::getUserId, id);
+            userRoleMapper.delete(wrapper);
+            
             userMapper.deleteById(id);
         }
     }
@@ -224,16 +267,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changeStatus(Long id, Integer status) {
+    public void changeStatus(Long id, Integer status, Long currentUserId) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {
             if (0 == status && "admin".equals(userDO.getUsername())) {
                 throw new RuntimeException("超级管理员账号不可禁用");
             }
             userDO.setStatus(status);
-            Long currentUserId = 1L;
             userDO.setUpdateUserId(currentUserId);
-            userDO.setUpdateTime(java.time.LocalDateTime.now());
+            userDO.setUpdateTime(LocalDateTime.now());
             userMapper.updateById(userDO);
         }
     }

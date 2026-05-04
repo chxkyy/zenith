@@ -55,7 +55,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileDTO upload(byte[] fileContent, String originalName, String contentType, long fileSize) throws IOException {
+    public FileDTO upload(byte[] fileContent, String originalName, String contentType, long fileSize, Long currentUserId) throws IOException {
         String ext = "";
         if (originalName != null && originalName.contains(".")) {
             ext = originalName.substring(originalName.lastIndexOf("."));
@@ -81,7 +81,6 @@ public class FileServiceImpl implements FileService {
         fileDO.setType(ext.replace(".", "").toUpperCase());
         fileDO.setSize(fileSize);
         fileDO.setUploader("admin");
-        Long currentUserId = 1L;
         fileDO.setCreateUserId(currentUserId);
         fileDO.setCreatedTime(LocalDateTime.now());
 
@@ -91,7 +90,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id, Long currentUserId) {
         FileDO fileDO = fileMapper.selectById(id);
         if (fileDO != null) {
             String path = fileDO.getPath();

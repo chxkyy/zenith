@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public interface FileService {
     PageInfo<FileDTO> page(FilePageQuery query);
-    FileDTO upload(byte[] fileContent, String originalFilename, String contentType, long fileSize) throws IOException;
-    void delete(Long id);
+    FileDTO upload(byte[] fileContent, String originalFilename, String contentType, long fileSize, Long currentUserId) throws IOException;
+    void delete(Long id, Long currentUserId);
     FileDTO getById(Long id);
 }

@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.MenuService;
+import com.zenith.admin.dto.data.MenuAddCmd;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.MenuPageQuery;
+import com.zenith.admin.dto.data.MenuUpdateCmd;
 import com.zenith.admin.dto.data.MenuUpdateParentCmd;
 import com.zenith.admin.dto.data.MenuReorderCmd;
 import com.zenith.admin.MenuConvertor;
@@ -70,32 +72,47 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public void save(MenuDTO menuDTO) {
-        MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
-        Long currentUserId = 1L;
+    public void save(MenuAddCmd cmd, Long currentUserId) {
+        MenuDO menuDO = new MenuDO();
+        menuDO.setName(cmd.getName());
+        menuDO.setPath(cmd.getPath());
+        menuDO.setType(cmd.getType());
+        menuDO.setParentId(cmd.getParentId());
+        menuDO.setSort(cmd.getSort());
+        menuDO.setIcon(cmd.getIcon());
+        menuDO.setPermission(cmd.getPermission());
+        menuDO.setIsHidden(cmd.getIsHidden());
 
         if (menuDO.getId() == null) {
             menuDO.setCreateUserId(currentUserId);
-            menuDO.setCreatedTime(java.time.LocalDateTime.now());
+            menuDO.setCreatedTime(LocalDateTime.now());
             menuMapper.insert(menuDO);
         } else {
             menuDO.setUpdateUserId(currentUserId);
-            menuDO.setUpdateTime(java.time.LocalDateTime.now());
+            menuDO.setUpdateTime(LocalDateTime.now());
             menuMapper.updateById(menuDO);
         }
     }
 
     @Override
-    public void update(MenuDTO menuDTO) {
-        MenuDO menuDO = menuConvertor.toDataObject(menuDTO);
-        Long currentUserId = 1L;
+    public void update(MenuUpdateCmd cmd, Long currentUserId) {
+        MenuDO menuDO = new MenuDO();
+        menuDO.setId(cmd.getId());
+        menuDO.setName(cmd.getName());
+        menuDO.setPath(cmd.getPath());
+        menuDO.setType(cmd.getType());
+        menuDO.setParentId(cmd.getParentId());
+        menuDO.setSort(cmd.getSort());
+        menuDO.setIcon(cmd.getIcon());
+        menuDO.setPermission(cmd.getPermission());
+        menuDO.setIsHidden(cmd.getIsHidden());
         menuDO.setUpdateUserId(currentUserId);
-        menuDO.setUpdateTime(java.time.LocalDateTime.now());
+        menuDO.setUpdateTime(LocalDateTime.now());
         menuMapper.updateById(menuDO);
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id, Long currentUserId) {
         menuMapper.deleteById(id);
     }
 
@@ -106,7 +123,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public void updateParent(MenuUpdateParentCmd cmd) {
+    public void updateParent(MenuUpdateParentCmd cmd, Long currentUserId) {
         Long id = cmd.getId();
         Long newParentId = cmd.getNewParentId();
 
@@ -127,14 +144,14 @@ public class MenuServiceImpl implements MenuService {
 
         currentMenu.setParentId(newParentId);
         currentMenu.setUpdateTime(LocalDateTime.now());
-        currentMenu.setUpdateUserId(1L);
+        currentMenu.setUpdateUserId(currentUserId);
         menuMapper.updateById(currentMenu);
 
-        reorderSiblings(newParentId);
+        reorderSiblings(newParentId, currentUserId);
     }
 
     @Override
-    public void reorder(MenuReorderCmd cmd) {
+    public void reorder(MenuReorderCmd cmd, Long currentUserId) {
         Long id = cmd.getId();
         Integer targetIndex = cmd.getTargetIndex();
 
@@ -171,7 +188,7 @@ public class MenuServiceImpl implements MenuService {
         LocalDateTime now = LocalDateTime.now();
         for (MenuDO menu : siblings) {
             menu.setSort(sortValue);
-            menu.setUpdateUserId(1L);
+            menu.setUpdateUserId(currentUserId);
             menu.setUpdateTime(now);
             menuMapper.updateById(menu);
             sortValue += SORT_STEP;
@@ -194,7 +211,7 @@ public class MenuServiceImpl implements MenuService {
         return false;
     }
 
-    private void reorderSiblings(Long parentId) {
+    private void reorderSiblings(Long parentId, Long currentUserId) {
         LambdaQueryWrapper<MenuDO> queryWrapper = new LambdaQueryWrapper<>();
         if (parentId != null) {
             queryWrapper.eq(MenuDO::getParentId, parentId);
@@ -208,7 +225,7 @@ public class MenuServiceImpl implements MenuService {
         LocalDateTime now = LocalDateTime.now();
         for (MenuDO menu : siblings) {
             menu.setSort(sortValue);
-            menu.setUpdateUserId(1L);
+            menu.setUpdateUserId(currentUserId);
             menu.setUpdateTime(now);
             menuMapper.updateById(menu);
             sortValue += SORT_STEP;

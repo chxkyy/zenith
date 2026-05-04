@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.FunctionService;
+import com.zenith.admin.dto.data.FunctionAddCmd;
 import com.zenith.admin.dto.data.FunctionDTO;
 import com.zenith.admin.dto.data.FunctionPageQuery;
+import com.zenith.admin.dto.data.FunctionUpdateCmd;
 import com.zenith.admin.FunctionConvertor;
 import com.zenith.admin.dataobject.FunctionDO;
 import com.zenith.admin.dataobject.MenuDO;
@@ -15,6 +17,7 @@ import com.zenith.admin.util.PinyinUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -67,11 +70,15 @@ public class FunctionServiceImpl implements FunctionService {
     }
 
     @Override
-    public void save(FunctionDTO functionDTO) {
-        FunctionDO functionDO = functionConvertor.toDataObject(functionDTO);
-        Long currentUserId = 1L;
+    public void save(FunctionAddCmd cmd, Long currentUserId) {
+        FunctionDO functionDO = new FunctionDO();
+        functionDO.setName(cmd.getName());
+        functionDO.setCode(cmd.getCode());
+        functionDO.setType(cmd.getType());
+        functionDO.setMenuId(cmd.getMenuId());
+        functionDO.setPermission(cmd.getPermission());
+        functionDO.setSort(cmd.getSort());
 
-        // Auto-generate permission identifier for button type based on pinyin first letters
         if ("button".equalsIgnoreCase(functionDO.getType()) && functionDO.getMenuId() != null) {
             MenuDO parentMenu = menuMapper.selectById(functionDO.getMenuId());
             if (parentMenu != null && parentMenu.getName() != null) {
@@ -81,28 +88,28 @@ public class FunctionServiceImpl implements FunctionService {
             }
         }
 
-        if (functionDO.getId() == null) {
-            functionDO.setCreateUserId(currentUserId);
-            functionDO.setCreatedTime(java.time.LocalDateTime.now());
-            functionMapper.insert(functionDO);
-        } else {
-            functionDO.setUpdateUserId(currentUserId);
-            functionDO.setUpdateTime(java.time.LocalDateTime.now());
-            functionMapper.updateById(functionDO);
-        }
+        functionDO.setCreateUserId(currentUserId);
+        functionDO.setCreatedTime(LocalDateTime.now());
+        functionMapper.insert(functionDO);
     }
 
     @Override
-    public void update(FunctionDTO functionDTO) {
-        FunctionDO functionDO = functionConvertor.toDataObject(functionDTO);
-        Long currentUserId = 1L;
+    public void update(FunctionUpdateCmd cmd, Long currentUserId) {
+        FunctionDO functionDO = new FunctionDO();
+        functionDO.setId(cmd.getId());
+        functionDO.setName(cmd.getName());
+        functionDO.setCode(cmd.getCode());
+        functionDO.setType(cmd.getType());
+        functionDO.setMenuId(cmd.getMenuId());
+        functionDO.setPermission(cmd.getPermission());
+        functionDO.setSort(cmd.getSort());
         functionDO.setUpdateUserId(currentUserId);
-        functionDO.setUpdateTime(java.time.LocalDateTime.now());
+        functionDO.setUpdateTime(LocalDateTime.now());
         functionMapper.updateById(functionDO);
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id, Long currentUserId) {
         functionMapper.deleteById(id);
     }
 

@@ -1,13 +1,17 @@
 package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.MultiResponse;
+import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.NoticeService;
 import com.zenith.admin.PageResponseUtils;
+import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.IdQuery;
+import com.zenith.admin.dto.data.NoticeAddCmd;
 import com.zenith.admin.dto.data.NoticeDTO;
 import com.zenith.admin.dto.data.NoticePageQuery;
 import com.zenith.admin.dto.data.NoticeStatusUpdateCmd;
+import com.zenith.admin.dto.data.NoticeUpdateCmd;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,21 +40,23 @@ public class NoticeController {
     }
 
     @PostMapping
-    public com.alibaba.cola.dto.Response save(@RequestBody NoticeDTO noticeDTO) {
-        noticeService.save(noticeDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response save(@RequestBody @Valid NoticeAddCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        noticeService.save(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/update")
-    public com.alibaba.cola.dto.Response update(@RequestBody NoticeDTO noticeDTO) {
-        noticeService.save(noticeDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response update(@RequestBody @Valid NoticeUpdateCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        noticeService.update(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/delete")
-    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+    public Response delete(@RequestBody IdQuery query) {
         noticeService.delete(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+        return Response.buildSuccess();
     }
 
     @GetMapping("/get")
@@ -59,8 +65,9 @@ public class NoticeController {
     }
 
     @PostMapping("/status")
-    public com.alibaba.cola.dto.Response updateStatus(@RequestBody @Validated NoticeStatusUpdateCmd cmd) {
-        noticeService.updateStatus(cmd.getId(), cmd.getStatus());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response updateStatus(@RequestBody @Validated NoticeStatusUpdateCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        noticeService.updateStatus(cmd.getId(), cmd.getStatus(), currentUserId);
+        return Response.buildSuccess();
     }
 }

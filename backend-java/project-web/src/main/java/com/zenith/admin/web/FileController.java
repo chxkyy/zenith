@@ -1,7 +1,10 @@
 package com.zenith.admin.web;
 
+import com.alibaba.cola.dto.Response;
+import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.FileService;
 import com.zenith.admin.PageResponseUtils;
+import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.FileDTO;
 import com.zenith.admin.dto.data.FilePageQuery;
 import com.zenith.admin.dto.data.IdQuery;
@@ -34,14 +37,16 @@ public class FileController {
     }
 
     @PostMapping("/upload")
-    public com.alibaba.cola.dto.SingleResponse<FileDTO> upload(@RequestParam("file") MultipartFile file) throws IOException {
+    public SingleResponse<FileDTO> upload(@RequestParam("file") MultipartFile file) throws IOException {
+        Long currentUserId = UserContext.getUserId();
         FileDTO fileDTO = fileService.upload(
                 file.getBytes(),
                 file.getOriginalFilename(),
                 file.getContentType(),
-                file.getSize()
+                file.getSize(),
+                currentUserId
         );
-        return com.alibaba.cola.dto.SingleResponse.of(fileDTO);
+        return SingleResponse.of(fileDTO);
     }
 
     @GetMapping
@@ -68,8 +73,9 @@ public class FileController {
     }
 
     @PostMapping("/delete")
-    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
-        fileService.delete(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response delete(@RequestBody IdQuery query) {
+        Long currentUserId = UserContext.getUserId();
+        fileService.delete(query.getId(), currentUserId);
+        return Response.buildSuccess();
     }
 }

@@ -1,12 +1,16 @@
 package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.MultiResponse;
+import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.RoleService;
 import com.zenith.admin.PageResponseUtils;
+import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.IdQuery;
+import com.zenith.admin.dto.data.RoleAddCmd;
 import com.zenith.admin.dto.data.RoleDTO;
 import com.zenith.admin.dto.data.RolePageQuery;
+import com.zenith.admin.dto.data.RoleUpdateCmd;
 import com.zenith.admin.dto.data.StatusUpdateQuery;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
@@ -41,21 +45,24 @@ public class RoleController {
     }
 
     @PostMapping
-    public com.alibaba.cola.dto.Response save(@RequestBody RoleDTO roleDTO) {
-        roleService.save(roleDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response save(@RequestBody @Valid RoleAddCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        roleService.save(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/update")
-    public com.alibaba.cola.dto.Response update(@RequestBody RoleDTO roleDTO) {
-        roleService.update(roleDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response update(@RequestBody @Valid RoleUpdateCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        roleService.update(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/delete")
-    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
-        roleService.delete(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response delete(@RequestBody IdQuery query) {
+        Long currentUserId = UserContext.getUserId();
+        roleService.delete(query.getId(), currentUserId);
+        return Response.buildSuccess();
     }
 
     @GetMapping("/get")
@@ -64,8 +71,9 @@ public class RoleController {
     }
 
     @PostMapping("/status")
-    public com.alibaba.cola.dto.Response changeStatus(@RequestBody StatusUpdateQuery query) {
-        roleService.changeStatus(query.getId(), query.getStatus());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response changeStatus(@RequestBody StatusUpdateQuery query) {
+        Long currentUserId = UserContext.getUserId();
+        roleService.changeStatus(query.getId(), query.getStatus(), currentUserId);
+        return Response.buildSuccess();
     }
 }

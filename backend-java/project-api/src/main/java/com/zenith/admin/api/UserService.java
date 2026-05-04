@@ -1,13 +1,15 @@
 package com.zenith.admin.api;
 
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.dto.data.UserAddCmd;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.dto.data.UserPageQuery;
+import com.zenith.admin.dto.data.UserUpdateCmd;
 
 public interface UserService {
-    void changeStatus(Long id, Integer status);
+    void changeStatus(Long id, Integer status, Long currentUserId);
 
-    void delete(Long id);
+    void delete(Long id, Long currentUserId);
 
     UserDTO getById(Long id);
 
@@ -15,7 +17,7 @@ public interface UserService {
 
     void resetPassword(Long id);
 
-    void save(UserDTO userDTO);
+    void save(UserAddCmd cmd, Long currentUserId);
 
-    void update(UserDTO userDTO);
+    void update(UserUpdateCmd cmd, Long currentUserId);
 }

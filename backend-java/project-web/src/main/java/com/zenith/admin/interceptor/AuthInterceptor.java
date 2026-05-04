@@ -3,6 +3,7 @@ package com.zenith.admin.interceptor;
 import com.alibaba.cola.dto.Response;
 import com.alibaba.fastjson2.JSON;
 import com.zenith.admin.api.TokenService;
+import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.OnlineUserDTO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,8 +40,14 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         request.setAttribute("userId", onlineUser.getUserId());
         request.setAttribute("token", token);
+        UserContext.setUserId(onlineUser.getUserId());
 
         return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        UserContext.clear();
     }
 
     private String getTokenFromCookie(HttpServletRequest request) {

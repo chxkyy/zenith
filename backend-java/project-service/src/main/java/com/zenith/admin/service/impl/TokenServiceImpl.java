@@ -8,6 +8,7 @@ import com.zenith.admin.dto.data.OnlineUserDTO;
 import com.zenith.admin.mapper.OnlineUserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
@@ -15,6 +16,26 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class TokenServiceImpl extends ServiceImpl<OnlineUserMapper, OnlineUserDO> implements TokenService {
+
+    @Override
+    public void deleteToken(String token) {
+        if (token == null || token.isEmpty()) {
+            return;
+        }
+
+        remove(new LambdaQueryWrapper<OnlineUserDO>()
+                .eq(OnlineUserDO::getToken, token));
+    }
+
+    @Override
+    public void deleteTokenByUserId(Long userId) {
+        if (userId == null) {
+            return;
+        }
+
+        remove(new LambdaQueryWrapper<OnlineUserDO>()
+                .eq(OnlineUserDO::getUserId, userId));
+    }
 
     @Override
     public String generateToken(Long userId, String ip) {
@@ -43,23 +64,6 @@ public class TokenServiceImpl extends ServiceImpl<OnlineUserMapper, OnlineUserDO
     }
 
     @Override
-    public OnlineUserDTO validateToken(String token) {
-        if (token == null || token.isEmpty()) {
-            return null;
-        }
-
-        OnlineUserDO onlineUser = getOne(new LambdaQueryWrapper<OnlineUserDO>()
-                .eq(OnlineUserDO::getToken, token));
-
-        if (onlineUser != null) {
-            refreshToken(token);
-            return convertToDTO(onlineUser);
-        }
-
-        return null;
-    }
-
-    @Override
     public void refreshToken(String token) {
         if (token == null || token.isEmpty()) {
             return;
@@ -75,23 +79,20 @@ public class TokenServiceImpl extends ServiceImpl<OnlineUserMapper, OnlineUserDO
     }
 
     @Override
-    public void deleteToken(String token) {
+    public OnlineUserDTO validateToken(String token) {
         if (token == null || token.isEmpty()) {
-            return;
+            return null;
         }
 
-        remove(new LambdaQueryWrapper<OnlineUserDO>()
+        OnlineUserDO onlineUser = getOne(new LambdaQueryWrapper<OnlineUserDO>()
                 .eq(OnlineUserDO::getToken, token));
-    }
 
-    @Override
-    public void deleteTokenByUserId(Long userId) {
-        if (userId == null) {
-            return;
+        if (onlineUser != null) {
+            refreshToken(token);
+            return convertToDTO(onlineUser);
         }
 
-        remove(new LambdaQueryWrapper<OnlineUserDO>()
-                .eq(OnlineUserDO::getUserId, userId));
+        return null;
     }
 
     private OnlineUserDTO convertToDTO(OnlineUserDO onlineUserDO) {

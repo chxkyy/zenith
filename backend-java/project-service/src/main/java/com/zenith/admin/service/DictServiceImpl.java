@@ -3,10 +3,14 @@ package com.zenith.admin.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.DictService;
+import com.zenith.admin.dto.data.DictAddCmd;
 import com.zenith.admin.dto.data.DictDTO;
+import com.zenith.admin.dto.data.DictItemAddCmd;
 import com.zenith.admin.dto.data.DictItemDTO;
-import com.zenith.admin.dto.data.DictPageQuery;
 import com.zenith.admin.dto.data.DictItemPageQuery;
+import com.zenith.admin.dto.data.DictItemUpdateCmd;
+import com.zenith.admin.dto.data.DictPageQuery;
+import com.zenith.admin.dto.data.DictUpdateCmd;
 import com.zenith.admin.DictConvertor;
 import com.zenith.admin.dataobject.DictDO;
 import com.zenith.admin.dataobject.DictItemDO;
@@ -15,6 +19,7 @@ import com.zenith.admin.mapper.DictMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -42,11 +47,13 @@ public class DictServiceImpl implements DictService {
     }
 
     @Override
-    public void update(DictDTO dictDTO) {
-        DictDO dictDO = dictConvertor.toDataObject(dictDTO);
-        Long currentUserId = 1L;
+    public void update(DictUpdateCmd cmd, Long currentUserId) {
+        DictDO dictDO = new DictDO();
+        dictDO.setId(cmd.getId());
+        dictDO.setName(cmd.getName());
+        dictDO.setType(cmd.getType());
         dictDO.setUpdateUserId(currentUserId);
-        dictDO.setUpdateTime(java.time.LocalDateTime.now());
+        dictDO.setUpdateTime(LocalDateTime.now());
         dictMapper.updateById(dictDO);
     }
 
@@ -93,27 +100,22 @@ public class DictServiceImpl implements DictService {
     }
 
     @Override
-    public void save(DictDTO dictDTO) {
+    public void save(DictAddCmd cmd, Long currentUserId) {
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(DictDO::getType, dictDTO.getType());
-        if (dictDTO.getId() != null) {
-            queryWrapper.ne(DictDO::getId, dictDTO.getId());
-        }
+        queryWrapper.eq(DictDO::getType, cmd.getType());
+
         Long count = dictMapper.selectCount(queryWrapper);
         if (count > 0) {
             throw new com.alibaba.cola.exception.BizException("DICT_TYPE_EXIST", "字典类型编码已存在");
         }
-        DictDO dictDO = dictConvertor.toDataObject(dictDTO);
-        Long currentUserId = 1L;
-        if (dictDO.getId() == null) {
-            dictDO.setCreateUserId(currentUserId);
-            dictDO.setCreatedTime(java.time.LocalDateTime.now());
-            dictMapper.insert(dictDO);
-        } else {
-            dictDO.setUpdateUserId(currentUserId);
-            dictDO.setUpdateTime(java.time.LocalDateTime.now());
-            dictMapper.updateById(dictDO);
-        }
+        
+        DictDO dictDO = new DictDO();
+        dictDO.setName(cmd.getName());
+        dictDO.setType(cmd.getType());
+        
+        dictDO.setCreateUserId(currentUserId);
+        dictDO.setCreatedTime(LocalDateTime.now());
+        dictMapper.insert(dictDO);
     }
 
     @Override
@@ -150,36 +152,37 @@ public class DictServiceImpl implements DictService {
     }
 
     @Override
-    public void saveItem(DictItemDTO dictItemDTO) {
+    public void saveItem(DictItemAddCmd cmd, Long currentUserId) {
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(DictItemDO::getType, dictItemDTO.getType());
-        queryWrapper.eq(DictItemDO::getDictValue, dictItemDTO.getDictValue());
-        if (dictItemDTO.getId() != null) {
-            queryWrapper.ne(DictItemDO::getId, dictItemDTO.getId());
-        }
+        queryWrapper.eq(DictItemDO::getType, cmd.getType());
+        queryWrapper.eq(DictItemDO::getDictValue, cmd.getDictValue());
+
         Long count = dictItemMapper.selectCount(queryWrapper);
         if (count > 0) {
             throw new com.alibaba.cola.exception.BizException("DICT_ITEM_VALUE_EXIST", "同类型下字典项值已存在");
         }
-        DictItemDO dictItemDO = dictConvertor.toItemDataObject(dictItemDTO);
-        Long currentUserId = 1L;
-        if (dictItemDO.getId() == null) {
-            dictItemDO.setCreateUserId(currentUserId);
-            dictItemDO.setCreatedTime(java.time.LocalDateTime.now());
-            dictItemMapper.insert(dictItemDO);
-        } else {
-            dictItemDO.setUpdateUserId(currentUserId);
-            dictItemDO.setUpdateTime(java.time.LocalDateTime.now());
-            dictItemMapper.updateById(dictItemDO);
-        }
+        
+        DictItemDO dictItemDO = new DictItemDO();
+        dictItemDO.setType(cmd.getType());
+        dictItemDO.setLabel(cmd.getLabel());
+        dictItemDO.setDictValue(cmd.getDictValue());
+        dictItemDO.setSort(cmd.getSort());
+        
+        dictItemDO.setCreateUserId(currentUserId);
+        dictItemDO.setCreatedTime(LocalDateTime.now());
+        dictItemMapper.insert(dictItemDO);
     }
 
     @Override
-    public void updateItem(DictItemDTO dictItemDTO) {
-        DictItemDO dictItemDO = dictConvertor.toItemDataObject(dictItemDTO);
-        Long currentUserId = 1L;
+    public void updateItem(DictItemUpdateCmd cmd, Long currentUserId) {
+        DictItemDO dictItemDO = new DictItemDO();
+        dictItemDO.setId(cmd.getId());
+        dictItemDO.setType(cmd.getType());
+        dictItemDO.setLabel(cmd.getLabel());
+        dictItemDO.setDictValue(cmd.getDictValue());
+        dictItemDO.setSort(cmd.getSort());
         dictItemDO.setUpdateUserId(currentUserId);
-        dictItemDO.setUpdateTime(java.time.LocalDateTime.now());
+        dictItemDO.setUpdateTime(LocalDateTime.now());
         dictItemMapper.updateById(dictItemDO);
     }
 

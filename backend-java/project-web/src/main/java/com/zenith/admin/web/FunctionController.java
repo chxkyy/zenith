@@ -1,11 +1,15 @@
 package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.MultiResponse;
+import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.FunctionService;
 import com.zenith.admin.PageResponseUtils;
+import com.zenith.admin.context.UserContext;
+import com.zenith.admin.dto.data.FunctionAddCmd;
 import com.zenith.admin.dto.data.FunctionDTO;
 import com.zenith.admin.dto.data.FunctionPageQuery;
+import com.zenith.admin.dto.data.FunctionUpdateCmd;
 import com.zenith.admin.dto.data.IdQuery;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
@@ -22,9 +26,10 @@ public class FunctionController {
     private final FunctionService functionService;
 
     @PostMapping("/delete")
-    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
-        functionService.delete(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response delete(@RequestBody IdQuery query) {
+        Long currentUserId = UserContext.getUserId();
+        functionService.delete(query.getId(), currentUserId);
+        return Response.buildSuccess();
     }
 
     @GetMapping("/get")
@@ -45,14 +50,16 @@ public class FunctionController {
     }
 
     @PostMapping
-    public com.alibaba.cola.dto.Response save(@RequestBody FunctionDTO functionDTO) {
-        functionService.save(functionDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response save(@RequestBody @Valid FunctionAddCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        functionService.save(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/update")
-    public com.alibaba.cola.dto.Response update(@RequestBody FunctionDTO functionDTO) {
-        functionService.update(functionDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response update(@RequestBody @Valid FunctionUpdateCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        functionService.update(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 }
