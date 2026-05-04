@@ -603,7 +603,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600">{permission.createUserName || '-'}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">{permission.createTime || '-'}</td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{permission.updateUserId || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{permission.updateUserName || '-'}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">{permission.updateTime || '-'}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-2">

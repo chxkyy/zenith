@@ -616,9 +616,9 @@ export default function DictTable() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-500" onClick={() => handleDictTypeSelect(dictType)}>{dictType.remark}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.createUserId || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.createUserName || '-'}</td>
                     <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{formatDateTime(dictType.createdTime)}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.updateUserId || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{dictType.updateUserName || '-'}</td>
                     <td className="px-6 py-4 text-sm text-slate-600" onClick={() => handleDictTypeSelect(dictType)}>{formatDateTime(dictType.updateTime)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3">
@@ -751,9 +751,9 @@ export default function DictTable() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-500">{item.remark}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{item.createUserId || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{item.createUserName || '-'}</td>
                       <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(item.createdTime)}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{item.updateUserId || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{item.updateUserName || '-'}</td>
                       <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(item.updateTime)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">

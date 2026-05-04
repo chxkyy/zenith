@@ -460,13 +460,13 @@ export default function NoticeTable() {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{notice.readCount}</td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{notice.createUserId || '-'}</span>
+                      <span className="text-sm text-slate-600">{notice.createUserName || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-600">{formatDateTime(notice.createdTime)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{notice.updateUserId || '-'}</span>
+                      <span className="text-sm text-slate-600">{notice.updateUserName || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-600">{formatDateTime(notice.updateTime)}</span>

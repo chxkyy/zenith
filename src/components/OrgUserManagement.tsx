@@ -25,23 +25,23 @@ import RoleAssignModal from './RoleAssignModal';
 import OrgModal from './OrgModal';
 import Notification from './Notification';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+    DragStartEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import {CSS} from '@dnd-kit/utilities';
 
 interface Org {
     id: number;
@@ -68,15 +68,15 @@ interface SortableOrgItemProps {
 }
 
 const SortableOrgItem: React.FC<SortableOrgItemProps> = ({
-    org,
-    level,
-    isSelected,
-    isExpanded,
-    hasChildren,
-    onSelect,
-    onToggleExpand,
-    onRightClick,
-}) => {
+                                                             org,
+                                                             level,
+                                                             isSelected,
+                                                             isExpanded,
+                                                             hasChildren,
+                                                             onSelect,
+                                                             onToggleExpand,
+                                                             onRightClick,
+                                                         }) => {
     const {
         attributes,
         listeners,
@@ -84,7 +84,7 @@ const SortableOrgItem: React.FC<SortableOrgItemProps> = ({
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: org.id });
+    } = useSortable({id: org.id});
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -110,7 +110,7 @@ const SortableOrgItem: React.FC<SortableOrgItemProps> = ({
                 className="p-1 hover:bg-slate-200 rounded transition-colors cursor-grab active:cursor-grabbing touch-none"
                 onClick={(e) => e.stopPropagation()}
             >
-                <GripVertical size={14} className="text-slate-400" />
+                <GripVertical size={14} className="text-slate-400"/>
             </button>
             {hasChildren && (
                 <button
@@ -120,13 +120,13 @@ const SortableOrgItem: React.FC<SortableOrgItemProps> = ({
                     }}
                     className="p-1 hover:bg-slate-200 rounded transition-colors"
                 >
-                    {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    {isExpanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
                 </button>
             )}
             {!hasChildren && (
                 <div className="w-4"></div>
             )}
-            <Building2 size={16} className={level === 0 ? "text-blue-600" : "text-slate-600"} />
+            <Building2 size={16} className={level === 0 ? "text-blue-600" : "text-slate-600"}/>
             <span className={level === 0 ? "font-semibold text-slate-900" : "text-sm text-slate-700"}>
                 {org.name}
             </span>
@@ -248,7 +248,7 @@ export default function OrgUserManagement() {
                         }
                     });
 
-                    return { orgs: rootOrgs, expandedIds };
+                    return {orgs: rootOrgs, expandedIds};
                 };
 
                 const result = buildOrgTree(data.data);
@@ -376,7 +376,7 @@ export default function OrgUserManagement() {
     // 拖拽结束
     const handleDragEnd = async (event: DragEndEvent) => {
         setDraggingId(null);
-        const { active, over } = event;
+        const {active, over} = event;
 
         if (!over || active.id === over.id) {
             return;
@@ -442,7 +442,7 @@ export default function OrgUserManagement() {
                 // 移动到新的父节点下
                 const response = await fetch('/api/orgs/update', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         id: draggedId,
                         parentId: targetParentId
@@ -457,7 +457,7 @@ export default function OrgUserManagement() {
                 const siblingIndex = getSiblingIndex(orgs, targetParentId, targetId);
                 const response = await fetch('/api/orgs/update', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         id: draggedId,
                         sort: siblingIndex + 1
@@ -531,14 +531,12 @@ export default function OrgUserManagement() {
             } else {
                 setError(res.errMessage || '获取用户列表失败');
             }
-        })
-            .catch(err => {
-                console.error('Error fetching users:', err);
-                setError(err.message || '网络错误，请检查后端服务');
-            })
-            .finally(() => {
-                setUserLoading(false);
-            });
+        }).catch(err => {
+            console.error('Error fetching users:', err);
+            setError(err.message || '网络错误，请检查后端服务');
+        }).finally(() => {
+            setUserLoading(false);
+        });
     };
 
     // 处理部门选择
@@ -550,7 +548,7 @@ export default function OrgUserManagement() {
     const handleSaveUser = (user: any) => {
         setUserLoading(true);
         const isEdit = user.id !== undefined;
-        const url = isEdit ? '/api/users' : '/api/users';
+        const url = isEdit ? '/api/users/update' : '/api/users';
         const method = isEdit ? 'POST' : 'POST';
 
         // 如果是新增用户，且当前有选中的组织，则设置用户的组织ID
@@ -564,43 +562,39 @@ export default function OrgUserManagement() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(user)
-        })
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
+        }).then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.text().then(text => text ? JSON.parse(text) : {success: true});
+        }).then(res => {
+            if (res.success) {
+                if (selectedOrg) {
+                    fetchUsersByOrg(selectedOrg.id); // 重新加载当前组织的用户列表
                 }
-                return res.text().then(text => text ? JSON.parse(text) : {success: true});
-            })
-            .then(res => {
-                if (res.success) {
-                    if (selectedOrg) {
-                        fetchUsersByOrg(selectedOrg.id); // 重新加载当前组织的用户列表
-                    }
-                    setIsModalOpen(false);
-                    setNotification({
-                        message: isEdit ? '用户编辑成功' : '用户添加成功',
-                        type: 'success',
-                        key: Date.now()
-                    });
-                } else {
-                    setNotification({
-                        message: `${isEdit ? '编辑用户失败' : '添加用户失败'}: ${res.errMessage}`,
-                        type: 'error',
-                        key: Date.now()
-                    });
-                }
-            })
-            .catch(err => {
-                console.error(`${isEdit ? 'Error updating user' : 'Error adding user'}:`, err);
+                setIsModalOpen(false);
                 setNotification({
-                    message: `${isEdit ? '编辑用户失败' : '添加用户失败'}，请检查网络`,
+                    message: isEdit ? '用户编辑成功' : '用户添加成功',
+                    type: 'success',
+                    key: Date.now()
+                });
+            } else {
+                setNotification({
+                    message: `${isEdit ? '编辑用户失败' : '添加用户失败'}: ${res.errMessage}`,
                     type: 'error',
                     key: Date.now()
                 });
-            })
-            .finally(() => {
-                setUserLoading(false);
+            }
+        }).catch(err => {
+            console.error(`${isEdit ? 'Error updating user' : 'Error adding user'}:`, err);
+            setNotification({
+                message: `${isEdit ? '编辑用户失败' : '添加用户失败'}，请检查网络`,
+                type: 'error',
+                key: Date.now()
             });
+        }).finally(() => {
+            setUserLoading(false);
+        });
     };
 
     // 处理页面变化
@@ -718,7 +712,7 @@ export default function OrgUserManagement() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ id, status: newStatus })
+                body: JSON.stringify({id, status: newStatus})
             })
                 .then(res => {
                     if (!res.ok) {
@@ -787,7 +781,7 @@ export default function OrgUserManagement() {
                 throw new Error(`HTTP error! status: ${response.status}. ${text}`);
             }
 
-            const result = text ? JSON.parse(text) : { success: true };
+            const result = text ? JSON.parse(text) : {success: true};
 
             if (result.success) {
                 setNotification({
@@ -900,7 +894,7 @@ export default function OrgUserManagement() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ id })
+                    body: JSON.stringify({id})
                 });
 
                 if (!response.ok) {
@@ -1264,7 +1258,7 @@ export default function OrgUserManagement() {
                         </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm text-slate-600">{user.createUserId || '-'}</span>
+                                            <span className="text-sm text-slate-600">{user.createUserName || '-'}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-slate-600">
@@ -1272,7 +1266,7 @@ export default function OrgUserManagement() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm text-slate-600">{user.updateUserId || '-'}</span>
+                                            <span className="text-sm text-slate-600">{user.updateUserName || '-'}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-slate-600">
@@ -1351,7 +1345,7 @@ export default function OrgUserManagement() {
             {rightClickMenu && (
                 <div
                     className="fixed z-50 bg-white rounded-lg shadow-lg border border-slate-200 py-2 min-w-48"
-                    style={{ left: rightClickMenu.x, top: rightClickMenu.y }}
+                    style={{left: rightClickMenu.x, top: rightClickMenu.y}}
                 >
                     <button
                         onClick={() => handleAddSubOrg(rightClickMenu.org)}

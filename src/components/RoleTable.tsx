@@ -228,13 +228,13 @@ export default function RoleTable() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{role.createUserId || '-'}</span>
+                    <span className="text-sm text-slate-600">{role.createUserName || '-'}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-slate-600">{formatDateTime(role.createdTime)}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{role.updateUserId || '-'}</span>
+                    <span className="text-sm text-slate-600">{role.updateUserName || '-'}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-slate-600">{formatDateTime(role.updateTime)}</span>

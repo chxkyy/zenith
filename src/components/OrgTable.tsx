@@ -57,9 +57,9 @@ function OrgRow({ org, level }: OrgItemProps) {
             {org.status === 1 ? '正常' : '禁用'}
           </span>
         </td>
-        <td className="px-6 py-4 text-sm text-slate-600">{org.createUserId || '-'}</td>
-        <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(org.createdTime)}</td>
-        <td className="px-6 py-4 text-sm text-slate-600">{org.updateUserId || '-'}</td>
+        <td className="px-6 py-4 text-sm text-slate-600">{org.createUserName || '-'}</td>
+        <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(org.createdTime)}</td>
+        <td className="px-6 py-4 text-sm text-slate-600">{org.updateUserName || '-'}</td>
         <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(org.updateTime)}</td>
         <td className="px-6 py-4 text-right">
           <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">

@@ -60,7 +60,6 @@ const menuGroups = [
     title: '监控统计',
     items: [
       { icon: Activity, label: '数据监控', id: 'monitoring' },
-      { icon: FileText, label: '系统日志', id: 'system_logs' },
     ]
   },
   {

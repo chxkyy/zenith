@@ -249,13 +249,13 @@ export default function FileTable() {
                     <td className="px-6 py-4 text-sm text-slate-600">{formatFileSize(file.size)}</td>
                     <td className="px-6 py-4 text-sm font-mono text-slate-500">{file.path}</td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{file.createUserId || '-'}</span>
+                      <span className="text-sm text-slate-600">{file.createUserName || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-600">{formatDateTime(file.createdTime)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{file.updateUserId || '-'}</span>
+                      <span className="text-sm text-slate-600">{file.updateUserName || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-600">{formatDateTime(file.updateTime)}</span>

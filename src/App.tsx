@@ -20,7 +20,6 @@ const FileTable = lazy(() => import('./components/FileTable'));
 const MonitoringTable = lazy(() => import('./components/MonitoringTable'));
 const CacheTable = lazy(() => import('./components/CacheTable'));
 const OnlineUsersTable = lazy(() => import('./components/OnlineUsersTable'));
-const SystemLogs = lazy(() => import('./components/SystemLogs'));
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -127,8 +126,6 @@ export default function App() {
         return <CacheTable />;
       case 'online':
         return <OnlineUsersTable />;
-      case 'system_logs':
-        return <SystemLogs />;
       default:
         return (
           <div className="p-8 flex flex-col items-center justify-center h-[calc(100vh-64px)] text-slate-400">

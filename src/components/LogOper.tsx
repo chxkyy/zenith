@@ -210,9 +210,9 @@ const LogOper: React.FC = () => {
                         {log.result}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-500">{log.createUserId || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{log.createUserName || '-'}</td>
                     <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdTime)}</td>
-                    <td className="px-6 py-4 text-gray-500">{log.updateUserId || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500">{log.updateUserName || '-'}</td>
                     <td className="px-6 py-4 text-gray-500">{formatDateTime(log.updateTime)}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-3">
