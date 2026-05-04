@@ -19,6 +19,7 @@ interface UserModalProps {
 export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' }: UserModalProps) {
   const [formData, setFormData] = useState({
     id: undefined,
+    loginId: '',
     username: '',
     email: '',
     role: 'USER',
@@ -81,6 +82,7 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
     if (user && mode === 'edit') {
       setFormData({
         id: user.id,
+        loginId: user.loginId || '',
         username: user.username || '',
         email: user.email || '',
         role: user.role || 'USER',
@@ -94,6 +96,7 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
     } else if (mode === 'add') {
       setFormData({
         id: undefined,
+        loginId: '',
         username: '',
         email: '',
         role: 'USER',
@@ -134,15 +137,27 @@ export default function UserModal({ isOpen, onClose, onSave, user, mode = 'add' 
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">登录账号</label>
+                <input
+                  required
+                  type="text"
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
+                  placeholder="请输入登录账号（用于登录系统）"
+                  value={formData.loginId}
+                  onChange={e => setFormData({ ...formData, loginId: e.target.value })}
+                  disabled={mode === 'edit'}
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">用户名</label>
                 <input
                   required
                   type="text"
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
-                  placeholder="请输入用户名"
+                  placeholder="请输入中文姓名"
                   value={formData.username}
                   onChange={e => setFormData({ ...formData, username: e.target.value })}
-                  disabled={mode === 'edit'} // 编辑模式下用户名不可修改
                 />
               </div>
 

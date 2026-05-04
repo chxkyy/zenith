@@ -41,7 +41,8 @@ public class UserServiceImpl implements UserService {
         QueryWrapper<UserDO> wrapper = new QueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
-            wrapper.like("username", query.getKeyword())
+            wrapper.like("login_id", query.getKeyword())
+                   .or().like("username", query.getKeyword())
                    .or().like("email", query.getKeyword());
         }
 
@@ -175,6 +176,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void save(UserAddCmd cmd, Long currentUserId) {
         UserDO userDO = new UserDO();
+        userDO.setLoginId(cmd.getLoginId());
         userDO.setUsername(cmd.getUsername());
         userDO.setEmail(cmd.getEmail());
         userDO.setOrgId(cmd.getOrgId());
@@ -204,6 +206,9 @@ public class UserServiceImpl implements UserService {
     public void update(UserUpdateCmd cmd, Long currentUserId) {
         UserDO userDO = userMapper.selectById(cmd.getId());
         if (userDO != null) {
+            if (cmd.getLoginId() != null && !cmd.getLoginId().isEmpty()) {
+                userDO.setLoginId(cmd.getLoginId());
+            }
             userDO.setUsername(cmd.getUsername());
             userDO.setEmail(cmd.getEmail());
             userDO.setOrgId(cmd.getOrgId());
@@ -230,7 +235,7 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id, Long currentUserId) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {
-            if ("admin".equals(userDO.getUsername())) {
+            if ("admin".equals(userDO.getLoginId())) {
                 throw new RuntimeException("超级管理员账号不可删除");
             }
             
@@ -264,7 +269,7 @@ public class UserServiceImpl implements UserService {
     public void changeStatus(Long id, Integer status, Long currentUserId) {
         UserDO userDO = userMapper.selectById(id);
         if (userDO != null) {
-            if (0 == status && "admin".equals(userDO.getUsername())) {
+            if (0 == status && "admin".equals(userDO.getLoginId())) {
                 throw new RuntimeException("超级管理员账号不可禁用");
             }
             userDO.setStatus(status);

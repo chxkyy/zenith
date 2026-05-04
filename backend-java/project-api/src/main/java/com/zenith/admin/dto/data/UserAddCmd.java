@@ -9,6 +9,9 @@ import java.util.List;
 @Data
 public class UserAddCmd {
 
+    @NotBlank(message = "登录账号不能为空")
+    private String loginId;
+
     @NotBlank(message = "用户名不能为空")
     private String username;
 

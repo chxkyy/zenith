@@ -19,6 +19,10 @@ public class UserDTO extends DTO {
     private java.time.LocalDateTime createdTime;
     private String email;
     private Long id;
+    private String loginId;
+    /**
+     * 用户中文名（显示名称）
+     */
     /**
      * 所属组织ID
      * 关联 t_sys_org.id

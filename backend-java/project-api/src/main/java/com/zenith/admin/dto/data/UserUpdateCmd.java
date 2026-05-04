@@ -12,6 +12,8 @@ public class UserUpdateCmd {
     @NotNull(message = "ID不能为空")
     private Long id;
 
+    private String loginId;
+
     @NotBlank(message = "用户名不能为空")
     private String username;
 

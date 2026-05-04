@@ -5,7 +5,7 @@ import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.dto.data.UserDTO;
 
 public interface AuthService {
-    SingleResponse<UserDTO> login(String username, String password, String ip);
+    SingleResponse<UserDTO> login(String loginId, String password, String ip);
     Response logout(String token);
     UserDTO getCurrentUser(Long userId);
     Response changePassword(Long userId, String oldPassword, String newPassword);

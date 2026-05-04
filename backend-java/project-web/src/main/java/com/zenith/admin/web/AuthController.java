@@ -20,7 +20,7 @@ public class AuthController {
     @PostMapping("/login")
     public SingleResponse<UserDTO> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
         String ip = request.getRemoteAddr();
-        SingleResponse<UserDTO> loginResponse = authService.login(loginRequest.getUsername(), loginRequest.getPassword(), ip);
+        SingleResponse<UserDTO> loginResponse = authService.login(loginRequest.getLoginId(), loginRequest.getPassword(), ip);
 
         if (loginResponse.isSuccess()) {
             String token = authService.getTokenAndClean();
@@ -75,7 +75,7 @@ public class AuthController {
 
     @lombok.Data
     public static class LoginRequest {
-        private String username;
+        private String loginId;
         private String password;
     }
 

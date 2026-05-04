@@ -1234,7 +1234,7 @@ export default function OrgUserManagement() {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-semibold text-slate-900">{user.username}</p>
-                                                    <p className="text-xs text-slate-500">{user.email}</p>
+                                                    <p className="text-xs text-slate-400">{user.loginId} · {user.email}</p>
                                                 </div>
                                             </div>
                                         </td>

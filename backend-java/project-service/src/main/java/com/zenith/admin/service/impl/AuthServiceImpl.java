@@ -29,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
     @PostConstruct
     public void init() {
         UserDO adminUser = userMapper.selectOne(
-                new LambdaQueryWrapper<UserDO>().eq(UserDO::getUsername, "admin")
+                new LambdaQueryWrapper<UserDO>().eq(UserDO::getLoginId, "admin")
         );
         if (adminUser != null && (adminUser.getPassword() == null || adminUser.getPassword().isEmpty()
                 || !passwordEncoder.matches("000000", adminUser.getPassword()))) {
@@ -39,13 +39,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public SingleResponse<UserDTO> login(String username, String password, String ip) {
+    public SingleResponse<UserDTO> login(String loginId, String password, String ip) {
         UserDO user = userMapper.selectOne(
-                new LambdaQueryWrapper<UserDO>().eq(UserDO::getUsername, username)
+                new LambdaQueryWrapper<UserDO>().eq(UserDO::getLoginId, loginId)
         );
 
         if (user == null) {
-            return SingleResponse.buildFailure("USER_NOT_FOUND", "用户名不存在");
+            return SingleResponse.buildFailure("USER_NOT_FOUND", "登录账号不存在");
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {

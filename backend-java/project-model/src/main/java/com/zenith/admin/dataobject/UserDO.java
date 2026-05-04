@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class UserDO {
     @TableId(type = IdType.AUTO)
     private Long id;
+    private String loginId;
     private String username;
     private String email;
     private String password;

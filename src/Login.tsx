@@ -6,7 +6,7 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess }: LoginProps) {
-  const [username, setUsername] = useState('admin');
+  const [loginId, setLoginId] = useState('admin');
   const [password, setPassword] = useState('000000');
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{
@@ -17,9 +17,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
+    if (!loginId || !password) {
       setNotification({
-        message: '请输入用户名和密码',
+        message: '请输入登录账号和密码',
         type: 'error',
         key: Date.now()
       });
@@ -31,7 +31,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ loginId, password })
       });
 
       const data = await response.json();
@@ -72,14 +72,14 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              用户名
+              登录账号
             </label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition"
-              placeholder="请输入用户名"
+              placeholder="请输入登录账号"
               disabled={loading}
             />
           </div>
