@@ -10,14 +10,10 @@ import com.zenith.admin.dto.data.FunctionPageQuery;
 import com.zenith.admin.dto.data.FunctionUpdateCmd;
 import com.zenith.admin.FunctionConvertor;
 import com.zenith.admin.dataobject.FunctionDO;
-import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.mapper.FunctionMapper;
-import com.zenith.admin.mapper.MenuMapper;
-import com.zenith.admin.util.PinyinUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,7 +21,6 @@ import java.util.List;
 public class FunctionServiceImpl implements FunctionService {
 
     private final FunctionMapper functionMapper;
-    private final MenuMapper menuMapper;
     private final FunctionConvertor functionConvertor;
 
     @Override
@@ -78,9 +73,6 @@ public class FunctionServiceImpl implements FunctionService {
         functionDO.setPermission(cmd.getPermission());
         functionDO.setSort(cmd.getSort());
         functionDO.setStatus(cmd.getStatus());
-
-        functionDO.setCreateUserId(currentUserId);
-        functionDO.setCreatedTime(LocalDateTime.now());
         functionMapper.insert(functionDO);
     }
 
@@ -94,8 +86,6 @@ public class FunctionServiceImpl implements FunctionService {
         functionDO.setPermission(cmd.getPermission());
         functionDO.setSort(cmd.getSort());
         functionDO.setStatus(cmd.getStatus());
-        functionDO.setUpdateUserId(currentUserId);
-        functionDO.setUpdateTime(LocalDateTime.now());
         functionMapper.updateById(functionDO);
     }
 

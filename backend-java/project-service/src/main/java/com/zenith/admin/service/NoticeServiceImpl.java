@@ -13,7 +13,6 @@ import com.zenith.admin.mapper.NoticeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -69,13 +68,8 @@ public class NoticeServiceImpl implements NoticeService {
         noticeDO.setContent(cmd.getContent());
         noticeDO.setType(cmd.getType());
         noticeDO.setStatus(cmd.getStatus());
-
         noticeDO.setReadCount(0);
         noticeDO.setIsPinned(false);
-        noticeDO.setCreateUserId(currentUserId);
-        noticeDO.setCreatedTime(LocalDateTime.now());
-        noticeDO.setUpdateUserId(currentUserId);
-        noticeDO.setUpdateTime(LocalDateTime.now());
         noticeMapper.insert(noticeDO);
     }
 
@@ -87,8 +81,6 @@ public class NoticeServiceImpl implements NoticeService {
         noticeDO.setContent(cmd.getContent());
         noticeDO.setType(cmd.getType());
         noticeDO.setStatus(cmd.getStatus());
-        noticeDO.setUpdateUserId(currentUserId);
-        noticeDO.setUpdateTime(LocalDateTime.now());
         noticeMapper.updateById(noticeDO);
     }
 
@@ -108,8 +100,6 @@ public class NoticeServiceImpl implements NoticeService {
         NoticeDO noticeDO = noticeMapper.selectById(id);
         if (noticeDO != null) {
             noticeDO.setStatus(status);
-            noticeDO.setUpdateUserId(currentUserId);
-            noticeDO.setUpdateTime(LocalDateTime.now());
             noticeMapper.updateById(noticeDO);
         }
     }

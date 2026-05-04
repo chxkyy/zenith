@@ -19,7 +19,6 @@ import com.zenith.admin.mapper.DictMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -52,8 +51,6 @@ public class DictServiceImpl implements DictService {
         dictDO.setId(cmd.getId());
         dictDO.setName(cmd.getName());
         dictDO.setType(cmd.getType());
-        dictDO.setUpdateUserId(currentUserId);
-        dictDO.setUpdateTime(LocalDateTime.now());
         dictMapper.updateById(dictDO);
     }
 
@@ -112,9 +109,6 @@ public class DictServiceImpl implements DictService {
         DictDO dictDO = new DictDO();
         dictDO.setName(cmd.getName());
         dictDO.setType(cmd.getType());
-        
-        dictDO.setCreateUserId(currentUserId);
-        dictDO.setCreatedTime(LocalDateTime.now());
         dictMapper.insert(dictDO);
     }
 
@@ -167,9 +161,6 @@ public class DictServiceImpl implements DictService {
         dictItemDO.setLabel(cmd.getLabel());
         dictItemDO.setDictValue(cmd.getDictValue());
         dictItemDO.setSort(cmd.getSort());
-        
-        dictItemDO.setCreateUserId(currentUserId);
-        dictItemDO.setCreatedTime(LocalDateTime.now());
         dictItemMapper.insert(dictItemDO);
     }
 
@@ -181,8 +172,6 @@ public class DictServiceImpl implements DictService {
         dictItemDO.setLabel(cmd.getLabel());
         dictItemDO.setDictValue(cmd.getDictValue());
         dictItemDO.setSort(cmd.getSort());
-        dictItemDO.setUpdateUserId(currentUserId);
-        dictItemDO.setUpdateTime(LocalDateTime.now());
         dictItemMapper.updateById(dictItemDO);
     }
 

@@ -21,7 +21,6 @@ import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -180,9 +179,6 @@ public class UserServiceImpl implements UserService {
         userDO.setEmail(cmd.getEmail());
         userDO.setOrgId(cmd.getOrgId());
         userDO.setStatus(cmd.getStatus());
-
-        userDO.setCreateUserId(currentUserId);
-        userDO.setCreatedTime(LocalDateTime.now());
         userMapper.insert(userDO);
 
         if (cmd.getRoles() != null && !cmd.getRoles().isEmpty()) {
@@ -212,8 +208,6 @@ public class UserServiceImpl implements UserService {
             userDO.setEmail(cmd.getEmail());
             userDO.setOrgId(cmd.getOrgId());
             userDO.setStatus(cmd.getStatus());
-            userDO.setUpdateUserId(currentUserId);
-            userDO.setUpdateTime(LocalDateTime.now());
             userMapper.updateById(userDO);
 
             if (cmd.getRoles() != null) {
@@ -274,8 +268,6 @@ public class UserServiceImpl implements UserService {
                 throw new RuntimeException("超级管理员账号不可禁用");
             }
             userDO.setStatus(status);
-            userDO.setUpdateUserId(currentUserId);
-            userDO.setUpdateTime(LocalDateTime.now());
             userMapper.updateById(userDO);
         }
     }

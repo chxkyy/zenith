@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -81,9 +80,6 @@ public class FileServiceImpl implements FileService {
         fileDO.setType(ext.replace(".", "").toUpperCase());
         fileDO.setSize(fileSize);
         fileDO.setUploader("admin");
-        fileDO.setCreateUserId(currentUserId);
-        fileDO.setCreatedTime(LocalDateTime.now());
-
         fileMapper.insert(fileDO);
 
         return fileConvertor.toDTO(fileDO);

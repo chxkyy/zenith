@@ -14,7 +14,6 @@ import com.zenith.admin.mapper.RoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -81,9 +80,6 @@ public class RoleServiceImpl implements RoleService {
         roleDO.setName(cmd.getName());
         roleDO.setCode(cmd.getCode());
         roleDO.setStatus(cmd.getStatus());
-
-        roleDO.setCreateUserId(currentUserId);
-        roleDO.setCreatedTime(LocalDateTime.now());
         roleMapper.insert(roleDO);
     }
 
@@ -99,8 +95,6 @@ public class RoleServiceImpl implements RoleService {
         roleDO.setName(cmd.getName());
         roleDO.setCode(cmd.getCode());
         roleDO.setStatus(cmd.getStatus());
-        roleDO.setUpdateUserId(currentUserId);
-        roleDO.setUpdateTime(LocalDateTime.now());
         roleMapper.updateById(roleDO);
     }
 
@@ -129,8 +123,6 @@ public class RoleServiceImpl implements RoleService {
                 throw new RuntimeException("超级管理员角色不可禁用");
             }
             role.setStatus(status);
-            role.setUpdateUserId(currentUserId);
-            role.setUpdateTime(LocalDateTime.now());
             roleMapper.updateById(role);
         }
     }

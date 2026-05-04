@@ -14,7 +14,6 @@ import com.zenith.admin.mapper.OrgMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,9 +75,6 @@ public class OrgServiceImpl implements OrgService {
         orgDO.setName(cmd.getName());
         orgDO.setParentId(cmd.getParentId());
         orgDO.setSort(cmd.getSort());
-
-        orgDO.setCreateUserId(currentUserId);
-        orgDO.setCreatedTime(LocalDateTime.now());
         orgMapper.insert(orgDO);
     }
 
@@ -89,8 +85,6 @@ public class OrgServiceImpl implements OrgService {
         orgDO.setName(cmd.getName());
         orgDO.setParentId(cmd.getParentId());
         orgDO.setSort(cmd.getSort());
-        orgDO.setUpdateUserId(currentUserId);
-        orgDO.setUpdateTime(LocalDateTime.now());
         orgMapper.updateById(orgDO);
     }
 

@@ -1,6 +1,5 @@
 package com.zenith.admin.service;
 
-import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
@@ -83,16 +82,7 @@ public class MenuServiceImpl implements MenuService {
         menuDO.setIcon(cmd.getIcon());
         menuDO.setStatus(cmd.getStatus());
         menuDO.setPermission(cmd.getPermission());
-
-        if (menuDO.getId() == null) {
-            menuDO.setCreateUserId(currentUserId);
-            menuDO.setCreatedTime(LocalDateTime.now());
-            menuMapper.insert(menuDO);
-        } else {
-            menuDO.setUpdateUserId(currentUserId);
-            menuDO.setUpdateTime(LocalDateTime.now());
-            menuMapper.updateById(menuDO);
-        }
+        menuMapper.insert(menuDO);
     }
 
     @Override
@@ -108,8 +98,6 @@ public class MenuServiceImpl implements MenuService {
         menuDO.setIcon(cmd.getIcon());
         menuDO.setStatus(cmd.getStatus());
         menuDO.setPermission(cmd.getPermission());
-        menuDO.setUpdateUserId(currentUserId);
-        menuDO.setUpdateTime(LocalDateTime.now());
         menuMapper.updateById(menuDO);
     }
 
@@ -145,8 +133,6 @@ public class MenuServiceImpl implements MenuService {
         }
 
         currentMenu.setParentId(newParentId);
-        currentMenu.setUpdateTime(LocalDateTime.now());
-        currentMenu.setUpdateUserId(currentUserId);
         menuMapper.updateById(currentMenu);
 
         reorderSiblings(newParentId, currentUserId);
@@ -190,8 +176,6 @@ public class MenuServiceImpl implements MenuService {
         LocalDateTime now = LocalDateTime.now();
         for (MenuDO menu : siblings) {
             menu.setSort(sortValue);
-            menu.setUpdateUserId(currentUserId);
-            menu.setUpdateTime(now);
             menuMapper.updateById(menu);
             sortValue += SORT_STEP;
         }
@@ -224,11 +208,8 @@ public class MenuServiceImpl implements MenuService {
         List<MenuDO> siblings = menuMapper.selectList(queryWrapper);
 
         int sortValue = SORT_STEP;
-        LocalDateTime now = LocalDateTime.now();
         for (MenuDO menu : siblings) {
             menu.setSort(sortValue);
-            menu.setUpdateUserId(currentUserId);
-            menu.setUpdateTime(now);
             menuMapper.updateById(menu);
             sortValue += SORT_STEP;
         }
