@@ -13,8 +13,6 @@ public class FunctionUpdateCmd {
     @NotBlank(message = "功能名称不能为空")
     private String name;
 
-    private String code;
-
     private String type;
 
     private Long menuId;
@@ -22,4 +20,6 @@ public class FunctionUpdateCmd {
     private String permission;
 
     private Integer sort;
+
+    private Integer status;
 }

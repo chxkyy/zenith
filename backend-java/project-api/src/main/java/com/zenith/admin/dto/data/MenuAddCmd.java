@@ -11,6 +11,8 @@ public class MenuAddCmd {
 
     private String path;
 
+    private String component;
+
     private String type;
 
     private Long parentId;
@@ -19,7 +21,7 @@ public class MenuAddCmd {
 
     private String icon;
 
-    private String permission;
+    private Integer status;
 
-    private Integer isHidden;
+    private String permission;
 }

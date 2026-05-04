@@ -76,12 +76,13 @@ public class MenuServiceImpl implements MenuService {
         MenuDO menuDO = new MenuDO();
         menuDO.setName(cmd.getName());
         menuDO.setPath(cmd.getPath());
+        menuDO.setComponent(cmd.getComponent());
         menuDO.setType(cmd.getType());
         menuDO.setParentId(cmd.getParentId());
         menuDO.setSort(cmd.getSort());
         menuDO.setIcon(cmd.getIcon());
+        menuDO.setStatus(cmd.getStatus());
         menuDO.setPermission(cmd.getPermission());
-        menuDO.setIsHidden(cmd.getIsHidden());
 
         if (menuDO.getId() == null) {
             menuDO.setCreateUserId(currentUserId);
@@ -100,12 +101,13 @@ public class MenuServiceImpl implements MenuService {
         menuDO.setId(cmd.getId());
         menuDO.setName(cmd.getName());
         menuDO.setPath(cmd.getPath());
+        menuDO.setComponent(cmd.getComponent());
         menuDO.setType(cmd.getType());
         menuDO.setParentId(cmd.getParentId());
         menuDO.setSort(cmd.getSort());
         menuDO.setIcon(cmd.getIcon());
+        menuDO.setStatus(cmd.getStatus());
         menuDO.setPermission(cmd.getPermission());
-        menuDO.setIsHidden(cmd.getIsHidden());
         menuDO.setUpdateUserId(currentUserId);
         menuDO.setUpdateTime(LocalDateTime.now());
         menuMapper.updateById(menuDO);

@@ -1,12 +1,16 @@
 package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.MultiResponse;
+import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.DictService;
 import com.zenith.admin.PageResponseUtils;
-import com.zenith.admin.dto.data.IdQuery;
+import com.zenith.admin.context.UserContext;
+import com.zenith.admin.dto.data.DictItemAddCmd;
 import com.zenith.admin.dto.data.DictItemDTO;
 import com.zenith.admin.dto.data.DictItemPageQuery;
+import com.zenith.admin.dto.data.DictItemUpdateCmd;
+import com.zenith.admin.dto.data.IdQuery;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,21 +38,23 @@ public class DictItemController {
     }
 
     @PostMapping
-    public com.alibaba.cola.dto.Response save(@RequestBody DictItemDTO dictItemDTO) {
-        dictService.saveItem(dictItemDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response save(@RequestBody @Valid DictItemAddCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        dictService.saveItem(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/update")
-    public com.alibaba.cola.dto.Response update(@RequestBody DictItemDTO dictItemDTO) {
-        dictService.updateItem(dictItemDTO);
-        return com.alibaba.cola.dto.Response.buildSuccess();
+    public Response update(@RequestBody @Valid DictItemUpdateCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        dictService.updateItem(cmd, currentUserId);
+        return Response.buildSuccess();
     }
 
     @PostMapping("/delete")
-    public com.alibaba.cola.dto.Response delete(@RequestBody IdQuery query) {
+    public Response delete(@RequestBody IdQuery query) {
         dictService.deleteItem(query.getId());
-        return com.alibaba.cola.dto.Response.buildSuccess();
+        return Response.buildSuccess();
     }
 
     @GetMapping("/get")

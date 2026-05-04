@@ -73,20 +73,11 @@ public class FunctionServiceImpl implements FunctionService {
     public void save(FunctionAddCmd cmd, Long currentUserId) {
         FunctionDO functionDO = new FunctionDO();
         functionDO.setName(cmd.getName());
-        functionDO.setCode(cmd.getCode());
         functionDO.setType(cmd.getType());
         functionDO.setMenuId(cmd.getMenuId());
         functionDO.setPermission(cmd.getPermission());
         functionDO.setSort(cmd.getSort());
-
-        if ("button".equalsIgnoreCase(functionDO.getType()) && functionDO.getMenuId() != null) {
-            MenuDO parentMenu = menuMapper.selectById(functionDO.getMenuId());
-            if (parentMenu != null && parentMenu.getName() != null) {
-                String parentInitials = PinyinUtil.getFirstLetters(parentMenu.getName());
-                String nameInitials = PinyinUtil.getFirstLetters(functionDO.getName());
-                functionDO.setPermission(parentInitials + "_" + nameInitials);
-            }
-        }
+        functionDO.setStatus(cmd.getStatus());
 
         functionDO.setCreateUserId(currentUserId);
         functionDO.setCreatedTime(LocalDateTime.now());
@@ -98,11 +89,11 @@ public class FunctionServiceImpl implements FunctionService {
         FunctionDO functionDO = new FunctionDO();
         functionDO.setId(cmd.getId());
         functionDO.setName(cmd.getName());
-        functionDO.setCode(cmd.getCode());
         functionDO.setType(cmd.getType());
         functionDO.setMenuId(cmd.getMenuId());
         functionDO.setPermission(cmd.getPermission());
         functionDO.setSort(cmd.getSort());
+        functionDO.setStatus(cmd.getStatus());
         functionDO.setUpdateUserId(currentUserId);
         functionDO.setUpdateTime(LocalDateTime.now());
         functionMapper.updateById(functionDO);
