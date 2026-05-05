@@ -4,7 +4,7 @@
 -- PRIMARY_ID: BIGSERIAL 自增
 -- SESSION_ID: VARCHAR(32) UUID去横线
 --
--- 注意：Spring Session 自动将属性表命名为 {tableName}_ATTRIBUTES
+-- 注意：自定义 SessionRepository 支持数据库自增主键
 -- ============================================
 
 -- 1. 会话主表
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS t_sys_session_ATTRIBUTES (
 
     CONSTRAINT t_sys_session_attributes_pk PRIMARY KEY (SESSION_PRIMARY_ID, ATTRIBUTE_NAME),
     CONSTRAINT t_sys_session_attributes_fk FOREIGN KEY (SESSION_PRIMARY_ID)
-        REFERENCES t_sys_session(PRIMARY_KEY) ON DELETE CASCADE
+        REFERENCES t_sys_session(PRIMARY_ID) ON DELETE CASCADE
 );
 
 COMMENT ON TABLE t_sys_session_ATTRIBUTES IS 'Spring Session 属性表，存储会话中的属性值（userId/username/ip等）';

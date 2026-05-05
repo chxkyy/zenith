@@ -2,12 +2,12 @@ package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.Response;
+import com.zenith.admin.config.CustomJdbcSessionRepository;
+import com.zenith.admin.config.CustomJdbcSessionRepository.CustomSession;
 import com.zenith.admin.dto.data.ForceLogoutCmd;
 import com.zenith.admin.dto.data.OnlineUserDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.session.Session;
-import org.springframework.session.jdbc.JdbcIndexedSessionRepository;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,20 +19,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OnlineUserController {
 
-    private final JdbcIndexedSessionRepository sessionRepository;
-    private final JdbcTemplate jdbcTemplate;
+    private final CustomJdbcSessionRepository sessionRepository;
 
     @GetMapping("/list")
     public MultiResponse<OnlineUserDTO> list(@RequestParam(required = false) String username) {
         List<OnlineUserDTO> result = new ArrayList<>();
 
-        List<String> allSessionIds = jdbcTemplate.queryForList(
-                "SELECT SESSION_ID FROM t_sys_session WHERE EXPIRY_TIME > CURRENT_TIMESTAMP",
-                String.class
-        );
+        List<String> allSessionIds = sessionRepository.findAllActiveSessionIds();
 
         for (String sessionId : allSessionIds) {
-            Session session = sessionRepository.findById(sessionId);
+            CustomSession session = sessionRepository.findById(sessionId);
             if (session == null || session.isExpired()) {
                 continue;
             }
@@ -45,6 +41,7 @@ public class OnlineUserController {
             String sessionUsername = session.getAttribute("username");
 
             if (StringUtils.hasText(username)
+                    && sessionUsername != null
                     && !sessionUsername.toLowerCase().contains(username.toLowerCase())) {
                 continue;
             }
