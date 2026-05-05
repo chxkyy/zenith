@@ -109,24 +109,21 @@ public class CustomJdbcSessionRepository implements FindByIndexNameSessionReposi
 
     private void insertSession(CustomSession session) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        
-        PreparedStatementCreatorFactory factory = new PreparedStatementCreatorFactory(CREATE_SESSION_QUERY);
-        factory.setReturnGeneratedKeys(true);
-        
-        Object[] params = new Object[] {
-                session.getId(),
-                session.getCreationTime().toEpochMilli(),
-                session.getLastAccessedTime().toEpochMilli(),
-                (int) session.getMaxInactiveInterval().getSeconds(),
-                session.getExpiryTime().toEpochMilli(),
-                session.getPrincipalName()
-        };
-        
-        jdbcTemplate.update(factory.newPreparedStatementCreator(params), keyHolder);
-        
-        Long primaryId = keyHolder.getKey().longValue();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(CREATE_SESSION_QUERY, new String[]{"primary_id"});
+            ps.setString(1, session.getId());
+            ps.setLong(2, session.getCreationTime().toEpochMilli());
+            ps.setLong(3, session.getLastAccessedTime().toEpochMilli());
+            ps.setInt(4, (int) session.getMaxInactiveInterval().getSeconds());
+            ps.setLong(5, session.getExpiryTime().toEpochMilli());
+            ps.setString(6, session.getPrincipalName());
+            return ps;
+        }, keyHolder);
+
+        Long primaryId = ((Number) keyHolder.getKeys().get("primary_id")).longValue();
         session.setPrimaryId(primaryId);
-        
+
         saveAttributes(session);
     }
 

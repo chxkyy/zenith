@@ -1,23 +1,54 @@
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@532e2914] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1575607553 wrapping org.postgresql.jdbc.PgConnection@39e481dc] will not be managed by Spring
+==>  Preparing: SELECT id,login_id,username,email,password,status,org_id,created_time,update_time,update_user_id,create_user_id FROM t_sys_user WHERE (login_id = ?)
+==> Parameters: admin(String)
+<==    Columns: id, login_id, username, email, password, status, org_id, created_time, update_time, update_user_id, create_user_id
+<==        Row: 30, admin, 管理员, admin@zenith.com, $2a$10$gEktVdLWta6hWjZZGRNY/eb6S1ZDA3oIzh4l110JILWXDtVRzFZPu, 1, null, 2026-04-25 14:11:30.609106, 2026-04-25 14:11:30.609106, null, null
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@532e2914]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@59d64264] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@483710778 wrapping org.postgresql.jdbc.PgConnection@39e481dc] will not be managed by Spring
+==>  Preparing: SELECT id,login_id,username,email,password,status,org_id,created_time,update_time,update_user_id,create_user_id FROM t_sys_user WHERE id=?
+==> Parameters: 30(Long)
+<==    Columns: id, login_id, username, email, password, status, org_id, created_time, update_time, update_user_id, create_user_id
+<==        Row: 30, admin, 管理员, admin@zenith.com, $2a$10$gEktVdLWta6hWjZZGRNY/eb6S1ZDA3oIzh4l110JILWXDtVRzFZPu, 1, null, 2026-04-25 14:11:30.609106, 2026-04-25 14:11:30.609106, null, null
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@59d64264]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3e902b3d] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@755165243 wrapping org.postgresql.jdbc.PgConnection@39e481dc] will not be managed by Spring
+==>  Preparing: SELECT id,user_id,role_id,created_time FROM t_sys_user_role WHERE (user_id IN (?))
+==> Parameters: 30(Long)
+<==      Total: 0
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3e902b3d]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@46ac4a9d] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2096834677 wrapping org.postgresql.jdbc.PgConnection@39e481dc] will not be managed by Spring
+==>  Preparing: SELECT id,name,code,description,status,member_count,created_time,update_time,create_user_id,update_user_id FROM t_sys_role WHERE (status = ?)
+==> Parameters: 1(Integer)
+<==    Columns: id, name, code, description, status, member_count, created_time, update_time, create_user_id, update_user_id
+<==        Row: 2, 运营编辑, ROLE_EDITOR, 负责内容发布与审核, 1, 5, 2026-04-20 20:22:56.620126, 2026-04-23 21:09:33.667788, null, 1
+<==        Row: 4, 访客, ROLE_GUEST, 只读权限22, 1, 0, 2026-04-20 20:22:56.620756, 2026-04-23 21:27:18.750864, null, 1
+<==        Row: 1, 超级管理员, ROLE_ADMIN, 拥有系统所有权限22, 1, 2, 2026-04-20 20:22:56.619231, 2026-04-27 20:42:11.361484, null, 1
+<==        Row: 3, 普通用户, ROLE_USER, 仅拥有基础查看权限, 1, 1240, 2026-04-20 20:22:56.620431, 2026-05-03 21:27:15.548643, null, 1
+<==        Row: 6, 测试角色, TEST_ROLW, 测试角色, 1, 0, 2026-05-03 21:28:06.178364, 2026-05-03 21:28:06.181949, 1, null
+<==        Row: 7, 前端人员, FRONT_ROLE, , 1, 0, 2026-05-04 11:41:31.049112, 2026-05-04 11:41:31.056761, 1, null
+<==      Total: 6
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@46ac4a9d]
+2026-05-05T22:48:13.326+08:00 ERROR 21512 --- [nio-8080-exec-8] c.zenith.admin.GlobalExceptionHandler    : 系统异常: 
 
-Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6988fa3b]
-2026-05-05T22:30:06.747+08:00 ERROR 17764 --- [nio-8080-exec-6] c.zenith.admin.GlobalExceptionHandler    : 系统异常: 
-
-org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [INSERT INTO t_sys_session (PRIMARY_ID, SESSION_ID, CREATION_TIME, LAST_ACCESS_TIME, MAX_INACTIVE_INTERVAL, EXPIRY_TIME, PRINCIPAL_NAME)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-]
-	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:246) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1556) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:677) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:972) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1016) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.lambda$save$6(JdbcIndexedSessionRepository.java:894) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+org.springframework.dao.InvalidDataAccessApiUsageException: The getKey method should only be used when a single key is returned. The current key entry contains multiple keys: [{primary_id=7, session_id=44291f073c5a413ebc16e3d34cdd1f53, creation_time=1777992493322, last_access_time=1777992493322, max_inactive_interval=1800, expiry_time=1777994293322, principal_name=null}]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKeyAs(GeneratedKeyHolder.java:75) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKey(GeneratedKeyHolder.java:65) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.insertSession(CustomJdbcSessionRepository.java:127) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.lambda$save$0(CustomJdbcSessionRepository.java:103) ~[classes/:na]
 	at org.springframework.transaction.support.TransactionOperations.lambda$executeWithoutResult$0(TransactionOperations.java:68) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionOperations.executeWithoutResult(TransactionOperations.java:67) ~[spring-tx-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.save(JdbcIndexedSessionRepository.java:890) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:477) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:141) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:101) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:23) ~[classes/:na]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryRequestWrapper.commitSession(SessionRepositoryFilter.java:229) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryResponseWrapper.onResponseCommitted(SessionRepositoryFilter.java:180) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.OnCommittedResponseWrapper.doOnResponseCommitted(OnCommittedResponseWrapper.java:227) ~[spring-session-core-3.5.5.jar:3.5.5]
@@ -81,40 +112,19 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
-Caused by: org.postgresql.util.PSQLException: 错误: 字段 "primary_id" 的类型为 bigint, 但表达式的类型为 character varying
-  建议：你需要重写或转换表达式
-  位置：145
-	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2875) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2560) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:429) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:526) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:436) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:196) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:157) ~[postgresql-42.7.10.jar:42.7.10]
-	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar:na]
-	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar:na]
-	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$2(JdbcTemplate.java:977) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:658) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	... 72 common frames omitted
 
-2026-05-05T22:30:06.750+08:00  WARN 17764 --- [nio-8080-exec-6] .m.m.a.ExceptionHandlerExceptionResolver : Failure in @ExceptionHandler com.zenith.admin.GlobalExceptionHandler#handleException(Exception)
+2026-05-05T22:48:13.327+08:00  WARN 21512 --- [nio-8080-exec-8] .m.m.a.ExceptionHandlerExceptionResolver : Failure in @ExceptionHandler com.zenith.admin.GlobalExceptionHandler#handleException(Exception)
 
-org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [INSERT INTO t_sys_session (PRIMARY_ID, SESSION_ID, CREATION_TIME, LAST_ACCESS_TIME, MAX_INACTIVE_INTERVAL, EXPIRY_TIME, PRINCIPAL_NAME)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-]
-	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:246) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1556) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:677) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:972) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1016) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.lambda$save$6(JdbcIndexedSessionRepository.java:894) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+org.springframework.dao.InvalidDataAccessApiUsageException: The getKey method should only be used when a single key is returned. The current key entry contains multiple keys: [{primary_id=8, session_id=44291f073c5a413ebc16e3d34cdd1f53, creation_time=1777992493322, last_access_time=1777992493322, max_inactive_interval=1800, expiry_time=1777994293322, principal_name=null}]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKeyAs(GeneratedKeyHolder.java:75) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKey(GeneratedKeyHolder.java:65) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.insertSession(CustomJdbcSessionRepository.java:127) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.lambda$save$0(CustomJdbcSessionRepository.java:103) ~[classes/:na]
 	at org.springframework.transaction.support.TransactionOperations.lambda$executeWithoutResult$0(TransactionOperations.java:68) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionOperations.executeWithoutResult(TransactionOperations.java:67) ~[spring-tx-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.save(JdbcIndexedSessionRepository.java:890) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:477) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:141) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:101) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:23) ~[classes/:na]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryRequestWrapper.commitSession(SessionRepositoryFilter.java:229) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryResponseWrapper.onResponseCommitted(SessionRepositoryFilter.java:180) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.OnCommittedResponseWrapper.doOnResponseCommitted(OnCommittedResponseWrapper.java:227) ~[spring-session-core-3.5.5.jar:3.5.5]
@@ -182,40 +192,19 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
-Caused by: org.postgresql.util.PSQLException: 错误: 字段 "primary_id" 的类型为 bigint, 但表达式的类型为 character varying
-  建议：你需要重写或转换表达式
-  位置：145
-	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2875) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2560) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:429) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:526) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:436) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:196) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:157) ~[postgresql-42.7.10.jar:42.7.10]
-	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar:na]
-	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar:na]
-	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$2(JdbcTemplate.java:977) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:658) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	... 76 common frames omitted
 
-2026-05-05T22:30:06.753+08:00 ERROR 17764 --- [nio-8080-exec-6] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception
+2026-05-05T22:48:13.327+08:00 ERROR 21512 --- [nio-8080-exec-8] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception
 
-org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [INSERT INTO t_sys_session (PRIMARY_ID, SESSION_ID, CREATION_TIME, LAST_ACCESS_TIME, MAX_INACTIVE_INTERVAL, EXPIRY_TIME, PRINCIPAL_NAME)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-]
-	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:246) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1556) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:677) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:972) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1016) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.lambda$save$6(JdbcIndexedSessionRepository.java:894) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+org.springframework.dao.InvalidDataAccessApiUsageException: The getKey method should only be used when a single key is returned. The current key entry contains multiple keys: [{primary_id=9, session_id=44291f073c5a413ebc16e3d34cdd1f53, creation_time=1777992493322, last_access_time=1777992493322, max_inactive_interval=1800, expiry_time=1777994293322, principal_name=null}]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKeyAs(GeneratedKeyHolder.java:75) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKey(GeneratedKeyHolder.java:65) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.insertSession(CustomJdbcSessionRepository.java:127) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.lambda$save$0(CustomJdbcSessionRepository.java:103) ~[classes/:na]
 	at org.springframework.transaction.support.TransactionOperations.lambda$executeWithoutResult$0(TransactionOperations.java:68) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionOperations.executeWithoutResult(TransactionOperations.java:67) ~[spring-tx-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.save(JdbcIndexedSessionRepository.java:890) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:477) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:141) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:101) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:23) ~[classes/:na]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryRequestWrapper.commitSession(SessionRepositoryFilter.java:229) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.SessionRepositoryFilter.doFilterInternal(SessionRepositoryFilter.java:145) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:82) ~[spring-session-core-3.5.5.jar:3.5.5]
@@ -243,40 +232,19 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
-Caused by: org.postgresql.util.PSQLException: 错误: 字段 "primary_id" 的类型为 bigint, 但表达式的类型为 character varying
-  建议：你需要重写或转换表达式
-  位置：145
-	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2875) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2560) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:429) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:526) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:436) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:196) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:157) ~[postgresql-42.7.10.jar:42.7.10]
-	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar:na]
-	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar:na]
-	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$2(JdbcTemplate.java:977) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:658) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	... 36 common frames omitted
 
-2026-05-05T22:30:06.754+08:00 ERROR 17764 --- [nio-8080-exec-6] c.zenith.admin.GlobalExceptionHandler    : 系统异常: 
+2026-05-05T22:48:13.331+08:00 ERROR 21512 --- [nio-8080-exec-8] c.zenith.admin.GlobalExceptionHandler    : 系统异常: 
 
-org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [INSERT INTO t_sys_session (PRIMARY_ID, SESSION_ID, CREATION_TIME, LAST_ACCESS_TIME, MAX_INACTIVE_INTERVAL, EXPIRY_TIME, PRINCIPAL_NAME)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-]
-	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:246) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1556) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:677) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:972) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1016) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.lambda$save$6(JdbcIndexedSessionRepository.java:894) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+org.springframework.dao.InvalidDataAccessApiUsageException: The getKey method should only be used when a single key is returned. The current key entry contains multiple keys: [{primary_id=10, session_id=44291f073c5a413ebc16e3d34cdd1f53, creation_time=1777992493322, last_access_time=1777992493322, max_inactive_interval=1800, expiry_time=1777994293322, principal_name=null}]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKeyAs(GeneratedKeyHolder.java:75) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKey(GeneratedKeyHolder.java:65) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.insertSession(CustomJdbcSessionRepository.java:127) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.lambda$save$0(CustomJdbcSessionRepository.java:103) ~[classes/:na]
 	at org.springframework.transaction.support.TransactionOperations.lambda$executeWithoutResult$0(TransactionOperations.java:68) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionOperations.executeWithoutResult(TransactionOperations.java:67) ~[spring-tx-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.save(JdbcIndexedSessionRepository.java:890) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:477) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:141) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:101) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:23) ~[classes/:na]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryRequestWrapper.commitSession(SessionRepositoryFilter.java:229) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryResponseWrapper.onResponseCommitted(SessionRepositoryFilter.java:180) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.OnCommittedResponseWrapper.doOnResponseCommitted(OnCommittedResponseWrapper.java:227) ~[spring-session-core-3.5.5.jar:3.5.5]
@@ -340,40 +308,19 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
-Caused by: org.postgresql.util.PSQLException: 错误: 字段 "primary_id" 的类型为 bigint, 但表达式的类型为 character varying
-  建议：你需要重写或转换表达式
-  位置：145
-	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2875) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2560) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:429) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:526) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:436) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:196) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:157) ~[postgresql-42.7.10.jar:42.7.10]
-	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar:na]
-	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar:na]
-	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$2(JdbcTemplate.java:977) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:658) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	... 72 common frames omitted
 
-2026-05-05T22:30:06.756+08:00  WARN 17764 --- [nio-8080-exec-6] .m.m.a.ExceptionHandlerExceptionResolver : Failure in @ExceptionHandler com.zenith.admin.GlobalExceptionHandler#handleException(Exception)
+2026-05-05T22:48:13.334+08:00  WARN 21512 --- [nio-8080-exec-8] .m.m.a.ExceptionHandlerExceptionResolver : Failure in @ExceptionHandler com.zenith.admin.GlobalExceptionHandler#handleException(Exception)
 
-org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [INSERT INTO t_sys_session (PRIMARY_ID, SESSION_ID, CREATION_TIME, LAST_ACCESS_TIME, MAX_INACTIVE_INTERVAL, EXPIRY_TIME, PRINCIPAL_NAME)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-]
-	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:246) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1556) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:677) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:972) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1016) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.lambda$save$6(JdbcIndexedSessionRepository.java:894) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+org.springframework.dao.InvalidDataAccessApiUsageException: The getKey method should only be used when a single key is returned. The current key entry contains multiple keys: [{primary_id=11, session_id=44291f073c5a413ebc16e3d34cdd1f53, creation_time=1777992493322, last_access_time=1777992493322, max_inactive_interval=1800, expiry_time=1777994293322, principal_name=null}]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKeyAs(GeneratedKeyHolder.java:75) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKey(GeneratedKeyHolder.java:65) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.insertSession(CustomJdbcSessionRepository.java:127) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.lambda$save$0(CustomJdbcSessionRepository.java:103) ~[classes/:na]
 	at org.springframework.transaction.support.TransactionOperations.lambda$executeWithoutResult$0(TransactionOperations.java:68) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionOperations.executeWithoutResult(TransactionOperations.java:67) ~[spring-tx-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.save(JdbcIndexedSessionRepository.java:890) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:477) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:141) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:101) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:23) ~[classes/:na]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryRequestWrapper.commitSession(SessionRepositoryFilter.java:229) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryResponseWrapper.onResponseCommitted(SessionRepositoryFilter.java:180) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.OnCommittedResponseWrapper.doOnResponseCommitted(OnCommittedResponseWrapper.java:227) ~[spring-session-core-3.5.5.jar:3.5.5]
@@ -440,40 +387,19 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
-Caused by: org.postgresql.util.PSQLException: 错误: 字段 "primary_id" 的类型为 bigint, 但表达式的类型为 character varying
-  建议：你需要重写或转换表达式
-  位置：145
-	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2875) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2560) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:429) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:526) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:436) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:196) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:157) ~[postgresql-42.7.10.jar:42.7.10]
-	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar:na]
-	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar:na]
-	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$2(JdbcTemplate.java:977) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:658) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	... 75 common frames omitted
 
-2026-05-05T22:30:06.757+08:00 ERROR 17764 --- [nio-8080-exec-6] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] threw exception
+2026-05-05T22:48:13.334+08:00 ERROR 21512 --- [nio-8080-exec-8] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] threw exception
 
-org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [INSERT INTO t_sys_session (PRIMARY_ID, SESSION_ID, CREATION_TIME, LAST_ACCESS_TIME, MAX_INACTIVE_INTERVAL, EXPIRY_TIME, PRINCIPAL_NAME)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-]
-	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:246) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1556) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:677) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:972) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1016) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.lambda$save$6(JdbcIndexedSessionRepository.java:894) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+org.springframework.dao.InvalidDataAccessApiUsageException: The getKey method should only be used when a single key is returned. The current key entry contains multiple keys: [{primary_id=12, session_id=44291f073c5a413ebc16e3d34cdd1f53, creation_time=1777992493322, last_access_time=1777992493322, max_inactive_interval=1800, expiry_time=1777994293322, principal_name=null}]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKeyAs(GeneratedKeyHolder.java:75) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKey(GeneratedKeyHolder.java:65) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.insertSession(CustomJdbcSessionRepository.java:127) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.lambda$save$0(CustomJdbcSessionRepository.java:103) ~[classes/:na]
 	at org.springframework.transaction.support.TransactionOperations.lambda$executeWithoutResult$0(TransactionOperations.java:68) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionOperations.executeWithoutResult(TransactionOperations.java:67) ~[spring-tx-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.save(JdbcIndexedSessionRepository.java:890) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:477) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:141) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:101) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:23) ~[classes/:na]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryRequestWrapper.commitSession(SessionRepositoryFilter.java:229) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.SessionRepositoryFilter.doFilterInternal(SessionRepositoryFilter.java:145) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:82) ~[spring-session-core-3.5.5.jar:3.5.5]
@@ -504,40 +430,19 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
-Caused by: org.postgresql.util.PSQLException: 错误: 字段 "primary_id" 的类型为 bigint, 但表达式的类型为 character varying
-  建议：你需要重写或转换表达式
-  位置：145
-	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2875) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2560) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:429) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:526) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:436) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:196) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:157) ~[postgresql-42.7.10.jar:42.7.10]
-	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar:na]
-	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar:na]
-	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$2(JdbcTemplate.java:977) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:658) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	... 39 common frames omitted
 
-2026-05-05T22:30:06.757+08:00 ERROR 17764 --- [nio-8080-exec-6] o.a.c.c.C.[Tomcat].[localhost]           : Exception Processing [ErrorPage[errorCode=0, location=/error]]
+2026-05-05T22:48:13.334+08:00 ERROR 21512 --- [nio-8080-exec-8] o.a.c.c.C.[Tomcat].[localhost]           : Exception Processing [ErrorPage[errorCode=0, location=/error]]
 
-org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [INSERT INTO t_sys_session (PRIMARY_ID, SESSION_ID, CREATION_TIME, LAST_ACCESS_TIME, MAX_INACTIVE_INTERVAL, EXPIRY_TIME, PRINCIPAL_NAME)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-]
-	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:246) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.translateException(JdbcTemplate.java:1556) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:677) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:972) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.update(JdbcTemplate.java:1016) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.lambda$save$6(JdbcIndexedSessionRepository.java:894) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+org.springframework.dao.InvalidDataAccessApiUsageException: The getKey method should only be used when a single key is returned. The current key entry contains multiple keys: [{primary_id=12, session_id=44291f073c5a413ebc16e3d34cdd1f53, creation_time=1777992493322, last_access_time=1777992493322, max_inactive_interval=1800, expiry_time=1777994293322, principal_name=null}]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKeyAs(GeneratedKeyHolder.java:75) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at org.springframework.jdbc.support.GeneratedKeyHolder.getKey(GeneratedKeyHolder.java:65) ~[spring-jdbc-6.2.17.jar:6.2.17]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.insertSession(CustomJdbcSessionRepository.java:127) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.lambda$save$0(CustomJdbcSessionRepository.java:103) ~[classes/:na]
 	at org.springframework.transaction.support.TransactionOperations.lambda$executeWithoutResult$0(TransactionOperations.java:68) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
 	at org.springframework.transaction.support.TransactionOperations.executeWithoutResult(TransactionOperations.java:67) ~[spring-tx-6.2.17.jar:6.2.17]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository$JdbcSession.save(JdbcIndexedSessionRepository.java:890) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:477) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
-	at org.springframework.session.jdbc.JdbcIndexedSessionRepository.save(JdbcIndexedSessionRepository.java:141) ~[spring-session-jdbc-3.5.5.jar:3.5.5]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:101) ~[classes/:na]
+	at com.zenith.admin.config.CustomJdbcSessionRepository.save(CustomJdbcSessionRepository.java:23) ~[classes/:na]
 	at org.springframework.session.web.http.SessionRepositoryFilter$SessionRepositoryRequestWrapper.commitSession(SessionRepositoryFilter.java:229) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.SessionRepositoryFilter.doFilterInternal(SessionRepositoryFilter.java:145) ~[spring-session-core-3.5.5.jar:3.5.5]
 	at org.springframework.session.web.http.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:82) ~[spring-session-core-3.5.5.jar:3.5.5]
@@ -568,18 +473,4 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
-Caused by: org.postgresql.util.PSQLException: 错误: 字段 "primary_id" 的类型为 bigint, 但表达式的类型为 character varying
-  建议：你需要重写或转换表达式
-  位置：145
-	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2875) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2560) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:429) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:526) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:436) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:196) ~[postgresql-42.7.10.jar:42.7.10]
-	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:157) ~[postgresql-42.7.10.jar:42.7.10]
-	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar:na]
-	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar:na]
-	at org.springframework.jdbc.core.JdbcTemplate.lambda$update$2(JdbcTemplate.java:977) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:658) ~[spring-jdbc-6.2.17.jar:6.2.17]
-	... 39 common frames omitted
+
