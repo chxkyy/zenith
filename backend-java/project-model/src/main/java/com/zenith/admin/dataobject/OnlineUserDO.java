@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -11,9 +12,9 @@ import java.time.LocalDateTime;
 public class OnlineUserDO {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private Long userId;
-    private String token;
-    private LocalDateTime loginTime;
-    private LocalDateTime lastAccessTime;
     private String ip;
+    private LocalDateTime lastAccessTime;
+    private LocalDateTime loginTime;
+    private String token;
+    private Long userId;
 }

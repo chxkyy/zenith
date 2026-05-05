@@ -4,9 +4,8 @@ import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.AuthService;
 import com.zenith.admin.dto.data.UserDTO;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,59 +17,53 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public SingleResponse<UserDTO> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
-        String ip = request.getRemoteAddr();
-        SingleResponse<UserDTO> loginResponse = authService.login(loginRequest.getLoginId(), loginRequest.getPassword(), ip);
+    public SingleResponse<UserDTO> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        String ip = httpRequest.getRemoteAddr();
+        String userAgent = httpRequest.getHeader("User-Agent");
 
-        if (loginResponse.isSuccess()) {
-            String token = authService.getTokenAndClean();
+        SingleResponse<UserDTO> response = authService.login(
+                request.getLoginId(), request.getPassword(), ip, userAgent);
 
-            Cookie cookie = new Cookie("ZENITH_TOKEN", token);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            response.addCookie(cookie);
+        if (response.isSuccess()) {
+            HttpSession session = httpRequest.getSession(true);
+            session.setAttribute("userId", response.getData().getId());
+            session.setAttribute("username", response.getData().getUsername());
+            session.setAttribute("ip", ip);
+            session.setAttribute("userAgent", userAgent);
+            session.setAttribute("loginTime", System.currentTimeMillis());
         }
 
-        return loginResponse;
+        return response;
     }
 
     @PostMapping("/logout")
-    public Response logout(HttpServletRequest request, HttpServletResponse response) {
-        String token = getTokenFromCookie(request);
-
-        authService.logout(token);
-
-        Cookie cookie = new Cookie("ZENITH_TOKEN", "");
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-
+    public Response logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
         return Response.buildSuccess();
     }
 
     @GetMapping("/me")
     public SingleResponse<UserDTO> getCurrentUser(HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return SingleResponse.buildFailure("NOT_LOGIN", "未登录");
+        }
+        Long userId = (Long) session.getAttribute("userId");
         UserDTO user = authService.getCurrentUser(userId);
         return SingleResponse.of(user);
     }
 
     @PostMapping("/password")
     public Response changePassword(@RequestBody ChangePasswordRequest changePasswordRequest, HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
-        return authService.changePassword(userId, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
-    }
-
-    private String getTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("ZENITH_TOKEN".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return Response.buildFailure("NOT_LOGIN", "未登录");
         }
-        return null;
+        Long userId = (Long) session.getAttribute("userId");
+        return authService.changePassword(userId, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
     }
 
     @lombok.Data

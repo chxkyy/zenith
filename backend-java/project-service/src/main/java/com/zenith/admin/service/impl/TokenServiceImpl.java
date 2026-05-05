@@ -97,9 +97,8 @@ public class TokenServiceImpl extends ServiceImpl<OnlineUserMapper, OnlineUserDO
 
     private OnlineUserDTO convertToDTO(OnlineUserDO onlineUserDO) {
         OnlineUserDTO dto = new OnlineUserDTO();
-        dto.setId(onlineUserDO.getId());
+        dto.setSessionId(onlineUserDO.getToken());
         dto.setUserId(onlineUserDO.getUserId());
-        dto.setToken(onlineUserDO.getToken());
         dto.setIp(onlineUserDO.getIp());
         if (onlineUserDO.getLoginTime() != null) {
             dto.setLoginTime(onlineUserDO.getLoginTime().toEpochSecond(ZoneOffset.ofHours(8)));

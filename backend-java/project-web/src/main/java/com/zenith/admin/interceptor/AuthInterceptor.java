@@ -2,22 +2,17 @@ package com.zenith.admin.interceptor;
 
 import com.alibaba.cola.dto.Response;
 import com.alibaba.fastjson2.JSON;
-import com.zenith.admin.api.TokenService;
 import com.zenith.admin.context.UserContext;
-import com.zenith.admin.dto.data.OnlineUserDTO;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
-
-    private final TokenService tokenService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -26,21 +21,21 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        String token = getTokenFromCookie(request);
-        if (token == null) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
             sendUnauthorizedResponse(response);
             return false;
         }
 
-        OnlineUserDTO onlineUser = tokenService.validateToken(token);
-        if (onlineUser == null) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
             sendUnauthorizedResponse(response);
             return false;
         }
 
-        request.setAttribute("userId", onlineUser.getUserId());
-        request.setAttribute("token", token);
-        UserContext.setUserId(onlineUser.getUserId());
+        request.setAttribute("userId", userId);
+        UserContext.setUserId(userId);
 
         return true;
     }
@@ -48,18 +43,6 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         UserContext.clear();
-    }
-
-    private String getTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("ZENITH_TOKEN".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
     }
 
     private void sendUnauthorizedResponse(HttpServletResponse response) throws IOException {

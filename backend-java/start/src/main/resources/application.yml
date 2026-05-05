@@ -7,10 +7,24 @@ spring:
   sql:
     init:
       mode: NEVER
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
   servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
+    session:
+      timeout: 30m
+
+server:
+  servlet:
+    session:
+      cookie:
+        name: ZENITH_TOKEN
+        http-only: true
+        secure: false
+        same-site: lax
+        max-age: 1800
+        path: /
   web:
     resources:
       static-locations: file:uploads/

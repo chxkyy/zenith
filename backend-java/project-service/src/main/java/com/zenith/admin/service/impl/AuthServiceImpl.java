@@ -4,12 +4,10 @@ import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.api.AuthService;
-import com.zenith.admin.api.TokenService;
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.mapper.UserMapper;
 import com.zenith.admin.api.UserService;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,27 +17,12 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
-    private final TokenService tokenService;
     private final UserService userService;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    private static final ThreadLocal<String> TOKEN_HOLDER = new ThreadLocal<>();
-
-    @PostConstruct
-    public void init() {
-        UserDO adminUser = userMapper.selectOne(
-                new LambdaQueryWrapper<UserDO>().eq(UserDO::getLoginId, "admin")
-        );
-        if (adminUser != null && (adminUser.getPassword() == null || adminUser.getPassword().isEmpty()
-                || !passwordEncoder.matches("000000", adminUser.getPassword()))) {
-            adminUser.setPassword(passwordEncoder.encode("000000"));
-            userMapper.updateById(adminUser);
-        }
-    }
-
     @Override
-    public SingleResponse<UserDTO> login(String loginId, String password, String ip) {
+    public SingleResponse<UserDTO> login(String loginId, String password, String ip, String userAgent) {
         UserDO user = userMapper.selectOne(
                 new LambdaQueryWrapper<UserDO>().eq(UserDO::getLoginId, loginId)
         );
@@ -56,26 +39,8 @@ public class AuthServiceImpl implements AuthService {
             return SingleResponse.buildFailure("USER_DISABLED", "用户已禁用");
         }
 
-        String token = tokenService.generateToken(user.getId(), ip);
-        TOKEN_HOLDER.set(token);
-
         UserDTO userDTO = userService.getById(user.getId());
         return SingleResponse.of(userDTO);
-    }
-
-    @Override
-    public String getTokenAndClean() {
-        String token = TOKEN_HOLDER.get();
-        TOKEN_HOLDER.remove();
-        return token;
-    }
-
-    @Override
-    public Response logout(String token) {
-        if (token != null && !token.isEmpty()) {
-            tokenService.deleteToken(token);
-        }
-        return Response.buildSuccess();
     }
 
     @Override

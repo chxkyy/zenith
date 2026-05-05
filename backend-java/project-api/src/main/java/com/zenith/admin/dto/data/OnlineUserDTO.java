@@ -4,10 +4,13 @@ import lombok.Data;
 
 @Data
 public class OnlineUserDTO {
-    private Long id;
+    private String sessionId;
     private Long userId;
-    private String token;
+    private String username;
+    private String ip;
+    private String location;
+    private String userAgent;
+    private String browser;
     private Long loginTime;
     private Long lastAccessTime;
-    private String ip;
 }
