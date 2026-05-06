@@ -36,7 +36,6 @@ public class SpringSessionConfig {
         serializer.setCookieMaxAge(1800);
         serializer.setUseSecureCookie(false);
 //        serializer.setUseSecureFlag(false);
-        serializer.setDomainNamePattern(".*");
 //        serializer.setPath("/");
         serializer.setCookiePath("/");
         return serializer;

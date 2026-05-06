@@ -16,6 +16,7 @@ public class UserDO {
     private String loginId;
     private String username;
     private String email;
+    private String phone;
     private String password;
     private Integer status;
 

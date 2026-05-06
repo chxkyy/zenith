@@ -8,4 +8,5 @@ public interface AuthService {
     SingleResponse<UserDTO> login(String loginId, String password, String ip, String userAgent);
     UserDTO getCurrentUser(Long userId);
     Response changePassword(Long userId, String oldPassword, String newPassword);
+    Response updateProfile(Long userId, String username, String email, String phone);
 }

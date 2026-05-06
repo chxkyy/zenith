@@ -65,4 +65,25 @@ public class AuthServiceImpl implements AuthService {
 
         return Response.buildSuccess();
     }
+
+    @Override
+    public Response updateProfile(Long userId, String username, String email, String phone) {
+        UserDO user = userMapper.selectById(userId);
+        if (user == null) {
+            return Response.buildFailure("USER_NOT_FOUND", "用户不存在");
+        }
+
+        if (username != null && !username.isBlank()) {
+            user.setUsername(username.trim());
+        }
+        if (email != null) {
+            user.setEmail(email.trim());
+        }
+        if (phone != null) {
+            user.setPhone(phone.trim());
+        }
+        userMapper.updateById(user);
+
+        return Response.buildSuccess();
+    }
 }

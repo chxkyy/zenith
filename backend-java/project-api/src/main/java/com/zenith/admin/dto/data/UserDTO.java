@@ -18,6 +18,7 @@ public class UserDTO extends DTO {
     private String createUserName;
     private java.time.LocalDateTime createdTime;
     private String email;
+    private String phone;
     private Long id;
     private String loginId;
     /**

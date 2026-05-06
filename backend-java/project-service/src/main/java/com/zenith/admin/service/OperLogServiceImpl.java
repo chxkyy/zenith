@@ -50,6 +50,23 @@ public class OperLogServiceImpl implements OperLogService {
     }
 
     @Override
+    public List<OperLogDTO> listAll(String operator, String module, String result) {
+        LambdaQueryWrapper<OperLogDO> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(operator)) {
+            queryWrapper.like(OperLogDO::getOperator, operator);
+        }
+        if (StringUtils.hasText(module)) {
+            queryWrapper.eq(OperLogDO::getModule, module);
+        }
+        if (StringUtils.hasText(result)) {
+            queryWrapper.eq(OperLogDO::getResult, result);
+        }
+        queryWrapper.orderByDesc(OperLogDO::getCreatedTime);
+        List<OperLogDO> operLogDOS = operLogMapper.selectList(queryWrapper);
+        return operLogConvertor.toDTOList(operLogDOS);
+    }
+
+    @Override
     public void delete(Long id) {
         operLogMapper.deleteById(id);
     }

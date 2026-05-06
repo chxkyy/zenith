@@ -66,6 +66,16 @@ public class AuthController {
         return authService.changePassword(userId, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
     }
 
+    @PostMapping("/profile")
+    public Response updateProfile(@RequestBody UpdateProfileRequest updateProfileRequest, HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return Response.buildFailure("NOT_LOGIN", "未登录");
+        }
+        Long userId = (Long) session.getAttribute("userId");
+        return authService.updateProfile(userId, updateProfileRequest.getUsername(), updateProfileRequest.getEmail(), updateProfileRequest.getPhone());
+    }
+
     @lombok.Data
     public static class LoginRequest {
         private String loginId;
@@ -76,5 +86,12 @@ public class AuthController {
     public static class ChangePasswordRequest {
         private String oldPassword;
         private String newPassword;
+    }
+
+    @lombok.Data
+    public static class UpdateProfileRequest {
+        private String username;
+        private String email;
+        private String phone;
     }
 }

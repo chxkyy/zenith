@@ -63,6 +63,7 @@ public class CustomJdbcSessionRepository implements FindByIndexNameSessionReposi
     private static final String INSERT_SESSION_ATTRIBUTE_QUERY = """
             INSERT INTO %s_ATTRIBUTES (SESSION_PRIMARY_ID, ATTRIBUTE_NAME, ATTRIBUTE_BYTES)
             VALUES (?, ?, ?)
+            ON CONFLICT (SESSION_PRIMARY_ID, ATTRIBUTE_NAME) DO UPDATE SET ATTRIBUTE_BYTES = EXCLUDED.ATTRIBUTE_BYTES
             """.formatted(TABLE_NAME);
 
     private static final String DELETE_SESSION_ATTRIBUTE_QUERY = """
