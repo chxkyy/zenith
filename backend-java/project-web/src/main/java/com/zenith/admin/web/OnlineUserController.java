@@ -55,11 +55,11 @@ public class OnlineUserController {
 
             Object loginTimeAttr = session.getAttribute("loginTime");
             if (loginTimeAttr instanceof Long lt) {
-                dto.setLoginTime(lt / 1000);
+                dto.setLoginTime(lt);
             }
 
             if (session.getLastAccessedTime() != null) {
-                dto.setLastAccessTime(session.getLastAccessedTime().toEpochMilli() / 1000);
+                dto.setLastAccessTime(session.getLastAccessedTime().toEpochMilli());
             }
 
             dto.setLocation(parseLocation(dto.getIp()));
