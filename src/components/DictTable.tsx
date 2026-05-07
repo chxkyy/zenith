@@ -351,7 +351,7 @@ export default function DictTable() {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 60,
+      width: 55,
     },
     {
       title: '类型名称',
@@ -373,7 +373,7 @@ export default function DictTable() {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 80,
+      width: 70,
       align: 'center' as const,
       render: (status: number) => (
         <Tag color={status === 1 ? 'green' : 'default'}>
@@ -391,34 +391,34 @@ export default function DictTable() {
       title: '创建人',
       dataIndex: 'createUserName',
       key: 'createUserName',
-      width: 90,
+      width: 80,
       render: (val: string) => val || '-',
     },
     {
       title: '创建时间',
       dataIndex: 'createdTime',
       key: 'createdTime',
-      width: 170,
+      width: 155,
       render: (val: string) => formatDateTime(val),
     },
     {
       title: '修改人',
       dataIndex: 'updateUserName',
       key: 'updateUserName',
-      width: 90,
+      width: 80,
       render: (val: string) => val || '-',
     },
     {
       title: '修改时间',
       dataIndex: 'updateTime',
       key: 'updateTime',
-      width: 170,
+      width: 155,
       render: (val: string) => formatDateTime(val),
     },
     {
       title: '操作',
       key: 'action',
-      width: 140,
+      width: 120,
       align: 'right' as const,
       render: (_: unknown, record: DictType) => (
         <Space size="small">
@@ -456,14 +456,14 @@ export default function DictTable() {
       title: '排序',
       dataIndex: 'sort',
       key: 'sort',
-      width: 70,
+      width: 60,
       align: 'center' as const,
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 80,
+      width: 70,
       align: 'center' as const,
       render: (status: number) => (
         <Tag color={status === 1 ? 'green' : 'default'}>
@@ -481,34 +481,34 @@ export default function DictTable() {
       title: '创建人',
       dataIndex: 'createUserName',
       key: 'createUserName',
-      width: 90,
+      width: 80,
       render: (val: string) => val || '-',
     },
     {
       title: '创建时间',
       dataIndex: 'createdTime',
       key: 'createdTime',
-      width: 170,
+      width: 155,
       render: (val: string) => formatDateTime(val),
     },
     {
       title: '修改人',
       dataIndex: 'updateUserName',
       key: 'updateUserName',
-      width: 90,
+      width: 80,
       render: (val: string) => val || '-',
     },
     {
       title: '修改时间',
       dataIndex: 'updateTime',
       key: 'updateTime',
-      width: 170,
+      width: 155,
       render: (val: string) => formatDateTime(val),
     },
     {
       title: '操作',
       key: 'action',
-      width: 140,
+      width: 120,
       align: 'right' as const,
       render: (_: unknown, record: DictItem) => (
         <Space size="small">
@@ -532,8 +532,16 @@ export default function DictTable() {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ marginBottom: 16 }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: 'calc(100vh - 80px)',
+      padding: 24,
+      overflow: 'hidden',
+      boxSizing: 'border-box',
+    }}>
+      <style>{`.dict-table .ant-table-body { overflow-x: hidden !important; }`}</style>
+      <div style={{ flexShrink: 0, marginBottom: 16 }}>
         <Input.Search
           placeholder="搜索字典名称或编码..."
           allowClear
@@ -545,55 +553,60 @@ export default function DictTable() {
         />
       </div>
 
-      <Table<DictType>
-        columns={dictTypeColumns}
-        dataSource={dictTypes}
-        rowKey="id"
-        loading={loading}
-        size="small"
-        scroll={{ y: 'calc(100vh - 380px)' }}
-        pagination={{
-          current: currentPage,
-          pageSize: pageSize,
-          total: totalCount,
-          showTotal: (total) => `共 ${total} 条`,
-          showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
-          size: 'default',
-          onChange: (page, size) => {
-            setCurrentPage(page);
-            setPageSize(size);
-            fetchDictTypes(page, size, searchText);
-          },
-        }}
-        onRow={(record) => ({
-          onClick: () => handleDictTypeSelect(record),
-          style: {
-            cursor: 'pointer',
-            background: selectedDictType?.id === record.id ? '#e6f4ff' : undefined,
-          },
-        })}
-        title={() => (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <BookOutlined style={{ color: '#4f46e5' }} />
-              <span style={{ fontWeight: 600 }}>字典类型管理</span>
+      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+        <Table<DictType>
+          className="dict-table"
+          columns={dictTypeColumns}
+          dataSource={dictTypes}
+          rowKey="id"
+          loading={loading}
+          size="small"
+          scroll={{ y: 'calc(100% - 110px)' }}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: totalCount,
+            showTotal: (total) => `共 ${total} 条`,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            size: 'default',
+            onChange: (page, size) => {
+              setCurrentPage(page);
+              setPageSize(size);
+              fetchDictTypes(page, size, searchText);
+            },
+          }}
+          onRow={(record) => ({
+            onClick: () => handleDictTypeSelect(record),
+            style: {
+              cursor: 'pointer',
+              background: selectedDictType?.id === record.id ? '#e6f4ff' : undefined,
+            },
+          })}
+          title={() => (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <BookOutlined style={{ color: '#4f46e5' }} />
+                <span style={{ fontWeight: 600 }}>字典类型管理</span>
+              </div>
+              <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => openDictTypeModal('add')}>
+                新增字典类型
+              </Button>
             </div>
-            <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => openDictTypeModal('add')}>
-              新增字典类型
-            </Button>
-          </div>
-        )}
-      />
+          )}
+        />
+      </div>
 
-      <div style={{ marginTop: 24 }}>
+      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0, marginTop: 16 }}>
         {selectedDictType ? (
           <Table<DictItem>
+            className="dict-table"
             columns={dictItemColumns}
             dataSource={dictItems}
             rowKey="id"
             loading={itemsLoading}
             size="small"
+            scroll={{ y: 'calc(100% - 110px)' }}
             pagination={{
               current: itemsCurrentPage,
               pageSize: itemsPageSize,
@@ -621,7 +634,7 @@ export default function DictTable() {
             )}
           />
         ) : (
-          <div style={{ textAlign: 'center', padding: 40, color: '#999', background: '#fafafa', borderRadius: 8 }}>
+          <div style={{ textAlign: 'center', padding: 40, color: '#999', background: '#fafafa', borderRadius: 8, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             请先选择一个字典类型查看字典项
           </div>
         )}
