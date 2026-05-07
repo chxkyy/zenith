@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, UserCheck, LogOut, RefreshCw, MapPin, Monitor } from 'lucide-react';
-import { cn, formatDateTime } from '../lib/utils';
-import Notification from './Notification';
+import { Table, Button, Input, Popconfirm, App } from 'antd';
+import { ReloadOutlined, LogoutOutlined, SearchOutlined, UserOutlined, EnvironmentOutlined, LaptopOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
+import { formatDateTime } from '../lib/utils';
 
 interface OnlineUser {
   sessionId: string;
@@ -15,15 +16,10 @@ interface OnlineUser {
 }
 
 export default function OnlineUsersTable() {
+  const { message } = App.useApp();
   const [users, setUsers] = useState<OnlineUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'info';
-    key: number;
-  } | null>(null);
-
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -45,168 +41,123 @@ export default function OnlineUsersTable() {
       if (data.success && data.data) {
         setUsers(data.data);
       } else {
-        setNotification({
-          message: data.errMessage || '获取在线用户失败',
-          type: 'error',
-          key: Date.now(),
-        });
+        message.error(data.errMessage || '获取在线用户失败');
       }
     } catch {
-      setNotification({
-        message: '网络错误，请重试',
-        type: 'error',
-        key: Date.now(),
-      });
+      message.error('网络错误，请重试');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForceLogout = (user: OnlineUser) => {
-    if (window.confirm(`确定要强制下线用户 "${user.username}" 吗？`)) {
-      fetch('/api/online-users/force-logout', {
+  const handleForceLogout = async (user: OnlineUser) => {
+    try {
+      const res = await fetch('/api/online-users/force-logout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: user.sessionId }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            setNotification({
-              message: `已成功将用户 ${user.username} 强制下线`,
-              type: 'success',
-              key: Date.now(),
-            });
-            fetchOnlineUsers(searchKeyword);
-          } else {
-            setNotification({
-              message: data.errMessage || '强制下线失败',
-              type: 'error',
-              key: Date.now(),
-            });
-          }
-        })
-        .catch(() => {
-          setNotification({
-            message: '网络错误，请重试',
-            type: 'error',
-            key: Date.now(),
-          });
-        });
+      });
+      const data = await res.json();
+      if (data.success) {
+        message.success(`已成功将用户 ${user.username} 强制下线`);
+        fetchOnlineUsers(searchKeyword);
+      } else {
+        message.error(data.errMessage || '强制下线失败');
+      }
+    } catch {
+      message.error('网络错误，请重试');
     }
   };
 
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      fetchOnlineUsers(searchKeyword);
-    }
-  };
+  const columns: ColumnsType<OnlineUser> = [
+    {
+      title: '用户名',
+      dataIndex: 'username',
+      key: 'username',
+      render: (text: string) => (
+        <span><UserOutlined style={{ marginRight: 8 }} />{text}</span>
+      ),
+    },
+    {
+      title: 'IP地址',
+      dataIndex: 'ip',
+      key: 'ip',
+    },
+    {
+      title: '登录地点',
+      dataIndex: 'location',
+      key: 'location',
+      render: (text: string) => (
+        <span><EnvironmentOutlined style={{ marginRight: 4 }} />{text}</span>
+      ),
+    },
+    {
+      title: '浏览器',
+      dataIndex: 'browser',
+      key: 'browser',
+      render: (text: string) => (
+        <span><LaptopOutlined style={{ marginRight: 4 }} />{text}</span>
+      ),
+    },
+    {
+      title: '登录时间',
+      dataIndex: 'loginTime',
+      key: 'loginTime',
+      render: (val: number) => formatDateTime(val),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      align: 'right',
+      render: (_: unknown, record: OnlineUser) => (
+        <Popconfirm
+          title="确认强退"
+          description={`确定要强制下线用户 "${record.username}" 吗？`}
+          onConfirm={() => handleForceLogout(record)}
+          okText="确定"
+          cancelText="取消"
+        >
+          <Button type="link" danger size="small" icon={<LogoutOutlined />}>
+            强退
+          </Button>
+        </Popconfirm>
+      ),
+    },
+  ];
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">在线用户</h2>
-          <p className="text-slate-500 mt-1">监控当前系统活跃会话，支持强制下线操作。</p>
+          <h2 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>在线用户</h2>
+          <p style={{ color: '#8c8c8c', marginTop: 4, marginBottom: 0 }}>监控当前系统活跃会话，支持强制下线操作。</p>
         </div>
-        <button
-          onClick={() => fetchOnlineUsers(searchKeyword)}
-          className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 transition-all"
-        >
-          <RefreshCw size={18} />
+        <Button icon={<ReloadOutlined />} onClick={() => fetchOnlineUsers(searchKeyword)}>
           刷新列表
-        </button>
+        </Button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-4 bg-white px-3 py-1.5 rounded-lg border border-slate-200 w-72">
-            <Search size={18} className="text-slate-400" />
-            <input
-              type="text"
-              placeholder="搜索用户名..."
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              onKeyDown={handleSearch}
-              className="text-sm outline-none w-full"
-            />
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">用户名</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">IP地址</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">登录地点</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">浏览器</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">登录时间</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
-                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                  </td>
-                </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                    暂无在线用户
-                  </td>
-                </tr>
-              ) : (
-                users.map((user) => (
-                  <tr key={user.sessionId} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                          <UserCheck size={16} />
-                        </div>
-                        <span className="text-sm font-semibold text-slate-900">{user.username}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{user.ip}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-sm text-slate-500">
-                        <MapPin size={14} />
-                        {user.location}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-sm text-slate-500">
-                        <Monitor size={14} />
-                        {user.browser}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(user.loginTime)}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleForceLogout(user)}
-                        className="flex items-center gap-1 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-xs font-bold ml-auto"
-                      >
-                        <LogOut size={14} />
-                        强退
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {notification && (
-        <Notification
-          key={notification.key}
-          message={notification.message}
-          type={notification.type}
+      <div style={{ marginBottom: 16 }}>
+        <Input.Search
+          placeholder="搜索用户名..."
+          prefix={<SearchOutlined />}
+          value={searchKeyword}
+          onChange={(e) => setSearchKeyword(e.target.value)}
+          onSearch={(value) => fetchOnlineUsers(value)}
+          style={{ width: 300 }}
+          allowClear
         />
-      )}
+      </div>
+
+      <Table<OnlineUser>
+        columns={columns}
+        dataSource={users}
+        rowKey="sessionId"
+        loading={loading}
+        size="small"
+        pagination={false}
+        locale={{ emptyText: '暂无在线用户' }}
+      />
     </div>
   );
 }

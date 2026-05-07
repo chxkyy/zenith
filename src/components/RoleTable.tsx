@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MoreHorizontal, Search, ShieldCheck, Plus, Lock, Unlock, Edit, Trash2, User, Shield } from 'lucide-react';
-import { cn, formatDateTime } from '../lib/utils';
+import { Table, Button, Tag, Popconfirm, App, Space, Input } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  LockOutlined,
+  UnlockOutlined,
+  SafetyCertificateOutlined,
+  SearchOutlined,
+  UserSwitchOutlined,
+} from '@ant-design/icons';
+import { formatDateTime } from '../lib/utils';
 
 interface Role {
   id: number;
@@ -13,266 +24,251 @@ interface Role {
   updateUserId: number;
   createdTime: string;
   updateTime: string;
+  createUserName?: string;
+  updateUserName?: string;
 }
 
 export default function RoleTable() {
+  const { message } = App.useApp();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
   const hasFetchedRoles = useRef(false);
+
+  const fetchRoles = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/roles/list');
+      if (!response.ok) {
+        throw new Error('Failed to fetch roles');
+      }
+      const data = await response.json();
+      if (data.success && data.data) {
+        setRoles(data.data);
+      }
+    } catch (error) {
+      console.error('获取角色列表失败:', error);
+      message.error('获取角色列表失败');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (hasFetchedRoles.current) return;
     hasFetchedRoles.current = true;
-    const fetchRoles = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch('/api/roles');
-        if (!response.ok) {
-          throw new Error('Failed to fetch roles');
-        }
-        const data = await response.json();
-        if (data.success && data.data) {
-          setRoles(data.data);
-        }
-      } catch (error) {
-        console.error('Error fetching roles:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchRoles();
   }, []);
 
   const handleEditRole = (role: Role) => {
     console.log('编辑角色:', role);
-    // 这里可以添加编辑角色的逻辑
   };
 
-  const handleDeleteRole = (id: number) => {
-    if (window.confirm('删除后角色数据不可恢复，关联用户自动解除该角色，是否确认删除？')) {
-      setLoading(true);
-      fetch('/api/roles/delete', {
+  const handleDeleteRole = async (id: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/roles/delete', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id })
-      })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-          }
-          return res.text().then(text => text ? JSON.parse(text) : { success: true });
-        })
-        .then(res => {
-          if (res.success) {
-            // 重新加载角色列表
-            const fetchRoles = async () => {
-              try {
-                const response = await fetch('/api/roles');
-                if (!response.ok) {
-                  throw new Error('Failed to fetch roles');
-                }
-                const data = await response.json();
-                if (data.success && data.data) {
-                  setRoles(data.data);
-                }
-              } catch (error) {
-                console.error('Error fetching roles:', error);
-              }
-            };
-            fetchRoles();
-          } else {
-            alert('删除角色失败: ' + res.errMessage);
-          }
-        })
-        .catch(err => {
-          console.error('Error deleting role:', err);
-          alert('删除角色失败，请检查网络');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : { success: true };
+      if (data.success) {
+        message.success('删除成功');
+        await fetchRoles();
+      } else {
+        message.error(data.errMessage || '删除角色失败');
+      }
+    } catch (err) {
+      console.error('删除角色失败:', err);
+      message.error('删除角色失败，请检查网络');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleChangeStatus = (id: number, currentStatus: number) => {
+  const handleChangeStatus = async (id: number, currentStatus: number) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
-    if (window.confirm(`确定要将角色状态切换为${newStatus === 1 ? '启用' : '禁用'}吗？`)) {
-      setLoading(true);
-      fetch(`/api/roles/status?roleId=${id}&status=${newStatus}`, {
-        method: 'POST'
-      })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-          }
-          return res.text().then(text => text ? JSON.parse(text) : { success: true });
-        })
-        .then(res => {
-          if (res.success) {
-            // 重新加载角色列表
-            const fetchRoles = async () => {
-              try {
-                const response = await fetch('/api/roles');
-                if (!response.ok) {
-                  throw new Error('Failed to fetch roles');
-                }
-                const data = await response.json();
-                if (data.success && data.data) {
-                  setRoles(data.data);
-                }
-              } catch (error) {
-                console.error('Error fetching roles:', error);
-              }
-            };
-            fetchRoles();
-          } else {
-            alert('状态切换失败: ' + res.errMessage);
-          }
-        })
-        .catch(err => {
-          console.error('Error changing status:', err);
-          alert('状态切换失败，请检查网络');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+    setLoading(true);
+    try {
+      const res = await fetch('/api/roles/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: newStatus }),
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : { success: true };
+      if (data.success) {
+        message.success(`角色已${newStatus === 1 ? '启用' : '禁用'}`);
+        await fetchRoles();
+      } else {
+        message.error(data.errMessage || '状态切换失败');
+      }
+    } catch (err) {
+      console.error('状态切换失败:', err);
+      message.error('状态切换失败，请检查网络');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAssignPermissions = (role: Role) => {
     console.log('分配权限:', role);
-    // 这里可以添加分配权限的逻辑
   };
 
+  const filteredRoles = roles.filter(
+    (role) =>
+      role.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      role.code.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const columns: ColumnsType<Role> = [
+    {
+      title: '角色名称',
+      dataIndex: 'name',
+      key: 'name',
+      render: (name: string) => (
+        <Space>
+          <SafetyCertificateOutlined style={{ color: '#4f46e5' }} />
+          <span style={{ fontWeight: 600 }}>{name}</span>
+        </Space>
+      ),
+    },
+    {
+      title: '角色编码',
+      dataIndex: 'code',
+      key: 'code',
+      render: (code: string) => <code style={{ fontSize: 12, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{code}</code>,
+    },
+    {
+      title: '描述',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
+    },
+    {
+      title: '成员数',
+      dataIndex: 'memberCount',
+      key: 'memberCount',
+      width: 80,
+      align: 'center',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: 80,
+      align: 'center',
+      render: (status: number) => (
+        <Tag color={status === 1 ? 'green' : 'red'} icon={status === 1 ? <UnlockOutlined /> : <LockOutlined />}>
+          {status === 1 ? '启用' : '禁用'}
+        </Tag>
+      ),
+    },
+    {
+      title: '创建人',
+      dataIndex: 'createUserName',
+      key: 'createUserName',
+      width: 90,
+      render: (val: string) => val || '-',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdTime',
+      key: 'createdTime',
+      width: 170,
+      render: (val: string) => formatDateTime(val),
+    },
+    {
+      title: '修改人',
+      dataIndex: 'updateUserName',
+      key: 'updateUserName',
+      width: 90,
+      render: (val: string) => val || '-',
+    },
+    {
+      title: '修改时间',
+      dataIndex: 'updateTime',
+      key: 'updateTime',
+      width: 170,
+      render: (val: string) => formatDateTime(val),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 240,
+      render: (_: unknown, record: Role) => (
+        <Space size="small">
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditRole(record)}>
+            编辑
+          </Button>
+          <Popconfirm
+            title={`确定要将角色状态切换为${record.status === 1 ? '禁用' : '启用'}吗？`}
+            onConfirm={() => handleChangeStatus(record.id, record.status)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button type="link" size="small" icon={record.status === 1 ? <LockOutlined /> : <UnlockOutlined />}>
+              {record.status === 1 ? '禁用' : '启用'}
+            </Button>
+          </Popconfirm>
+          <Button type="link" size="small" icon={<UserSwitchOutlined />} onClick={() => handleAssignPermissions(record)}>
+            分配权限
+          </Button>
+          <Popconfirm
+            title="删除后角色数据不可恢复，关联用户自动解除该角色，是否确认删除？"
+            onConfirm={() => handleDeleteRole(record.id)}
+            okText="确定"
+            cancelText="取消"
+            okButtonProps={{ danger: true }}
+          >
+            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
+              删除
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">角色管理</h2>
-          <p className="text-slate-500 mt-1">配置系统角色及其关联的资源权限。</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>角色管理</h2>
+          <p style={{ color: '#64748b', marginTop: 4 }}>配置系统角色及其关联的资源权限。</p>
         </div>
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-          <Plus size={18} />
+        <Button type="primary" icon={<PlusOutlined />}>
           新增角色
-        </button>
+        </Button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-4 bg-white px-3 py-1.5 rounded-lg border border-slate-200 w-72">
-            <Search size={16} className="text-slate-400" />
-            <input type="text" placeholder="搜索角色名称或编码..." className="text-sm outline-none w-full" />
-          </div>
-        </div>
-
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-slate-50/50 text-slate-500 text-xs uppercase font-bold tracking-wider">
-              <th className="px-6 py-4">角色名称</th>
-              <th className="px-6 py-4">角色编码</th>
-              <th className="px-6 py-4">描述</th>
-              <th className="px-6 py-4">成员数</th>
-              <th className="px-6 py-4">状态</th>
-              <th className="px-6 py-4">创建人</th>
-              <th className="px-6 py-4">创建时间</th>
-              <th className="px-6 py-4">修改人</th>
-              <th className="px-6 py-4">修改时间</th>
-              <th className="px-6 py-4 text-right">操作</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? (
-              <tr>
-                <td colSpan={10} className="px-6 py-12 text-center">
-                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                </td>
-              </tr>
-            ) : roles.length === 0 ? (
-              <tr>
-                <td colSpan={10} className="px-6 py-12 text-center text-slate-500">
-                  暂无角色数据
-                </td>
-              </tr>
-            ) : (
-              roles.map((role) => (
-                <tr key={role.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                        <ShieldCheck size={16} />
-                      </div>
-                      <span className="text-sm font-semibold text-slate-900">{role.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <code className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-mono">
-                      {role.code}
-                    </code>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-slate-500 line-clamp-1">{role.description}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600 font-medium">{role.memberCount}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={cn(
-                      "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit",
-                      role.status === 1 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                    )}>
-                      {role.status === 1 ? <Unlock size={10} /> : <Lock size={10} />}
-                      {role.status === 1 ? '启用' : '禁用'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{role.createUserName || '-'}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{formatDateTime(role.createdTime)}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{role.updateUserName || '-'}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{formatDateTime(role.updateTime)}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button 
-                        onClick={() => handleEditRole(role)}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        编辑
-                      </button>
-                      <button 
-                        onClick={() => handleChangeStatus(role.id, role.status)}
-                        className="text-sm text-purple-600 hover:text-purple-800 font-medium"
-                      >
-                        {role.status === 1 ? '禁用' : '启用'}
-                      </button>
-                      <button 
-                        onClick={() => handleAssignPermissions(role)}
-                        className="text-sm text-emerald-600 hover:text-emerald-800 font-medium"
-                      >
-                        分配权限
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteRole(role.id)}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium"
-                      >
-                        删除
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div style={{ marginBottom: 16 }}>
+        <Input
+          placeholder="搜索角色名称或编码..."
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 280 }}
+          allowClear
+        />
       </div>
+
+      <Table<Role>
+        columns={columns}
+        dataSource={filteredRoles}
+        rowKey="id"
+        loading={loading}
+        size="small"
+        pagination={false}
+      />
     </div>
   );
 }

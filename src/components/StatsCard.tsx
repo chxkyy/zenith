@@ -1,36 +1,49 @@
 import React from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { Card, Statistic } from 'antd';
+import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 
 interface StatsCardProps {
   title: string;
   value: string;
   change: number;
-  icon: React.ElementType;
+  icon: React.ReactNode;
   color: string;
 }
 
-export default function StatsCard({ title, value, change, icon: Icon, color }: StatsCardProps) {
+export default function StatsCard({ title, value, change, icon, color }: StatsCardProps) {
   const isPositive = change > 0;
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className={cn("p-3 rounded-xl", color)}>
-          <Icon size={24} className="text-white" />
+    <Card style={{ borderRadius: 12 }} hoverable>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div style={{
+          padding: 12,
+          borderRadius: 10,
+          backgroundColor: color,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <span style={{ color: '#fff', fontSize: 24, display: 'flex', alignItems: 'center' }}>
+            {icon}
+          </span>
         </div>
-        <div className={cn(
-          "flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium",
-          isPositive ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
-        )}>
-          {isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          padding: '4px 8px',
+          borderRadius: 6,
+          fontSize: 12,
+          fontWeight: 500,
+          backgroundColor: isPositive ? '#f0fdf4' : '#fef2f2',
+          color: isPositive ? '#16a34a' : '#dc2626',
+        }}>
+          {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
           {Math.abs(change)}%
         </div>
       </div>
-      <div>
-        <p className="text-slate-500 text-sm font-medium mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-slate-900">{value}</h3>
-      </div>
-    </div>
+      <Statistic title={title} value={value} />
+    </Card>
   );
 }

@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Upload, File, Image, FileText, Trash2, Download, ExternalLink } from 'lucide-react';
-import { cn, formatDateTime } from '../lib/utils';
+import { Table, Button, Input, Popconfirm, Space, App } from 'antd';
+import {
+  FileOutlined,
+  FileImageOutlined,
+  FilePdfOutlined,
+  FileZipOutlined,
+  DownloadOutlined,
+  DeleteOutlined,
+  UploadOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
+import { formatDateTime } from '../lib/utils';
 
 interface FileItem {
   id: number;
@@ -14,14 +25,17 @@ interface FileItem {
   updateTime: string;
   createUserId: number;
   updateUserId: number;
+  createUserName?: string;
+  updateUserName?: string;
 }
 
 export default function FileTable() {
+  const { message } = App.useApp();
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,14 +44,12 @@ export default function FileTable() {
     try {
       const response = await fetch('/api/files/page', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pageIndex: currentPage,
           pageSize: pageSize,
-          keyword: searchKeyword
-        })
+          keyword: searchKeyword,
+        }),
       });
       if (!response.ok) {
         throw new Error('Failed to fetch files');
@@ -56,7 +68,7 @@ export default function FileTable() {
 
   useEffect(() => {
     fetchFiles();
-  }, [currentPage, searchKeyword]);
+  }, [currentPage, searchKeyword, pageSize]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -68,17 +80,18 @@ export default function FileTable() {
     try {
       const response = await fetch('/api/files/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
       const data = await response.json();
       if (data.success) {
+        message.success('上传成功');
         fetchFiles();
       } else {
-        alert(data.errMessage || '上传失败');
+        message.error(data.errMessage || '上传失败');
       }
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('上传失败，请重试');
+      message.error('上传失败，请重试');
     }
 
     if (fileInputRef.current) {
@@ -87,25 +100,22 @@ export default function FileTable() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('确定要删除该文件吗？')) return;
-
     try {
       const response = await fetch('/api/files/delete', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
       });
       const data = await response.json();
       if (data.success) {
+        message.success('删除成功');
         fetchFiles();
       } else {
-        alert(data.errMessage || '删除失败');
+        message.error(data.errMessage || '删除失败');
       }
     } catch (error) {
       console.error('Error deleting file:', error);
-      alert('删除失败，请重试');
+      message.error('删除失败，请重试');
     }
   };
 
@@ -126,7 +136,7 @@ export default function FileTable() {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Error downloading file:', error);
-      alert('下载失败，请重试');
+      message.error('下载失败，请重试');
     }
   };
 
@@ -146,32 +156,112 @@ export default function FileTable() {
       case 'GIF':
       case 'BMP':
       case 'WEBP':
-        return <Image size={20} className="text-blue-500" />;
+        return <FileImageOutlined style={{ color: '#3b82f6', fontSize: 20 }} />;
       case 'PDF':
-        return <FileText size={20} className="text-red-500" />;
+        return <FilePdfOutlined style={{ color: '#ef4444', fontSize: 20 }} />;
       case 'DOC':
       case 'DOCX':
-        return <FileText size={20} className="text-blue-600" />;
+        return <FilePdfOutlined style={{ color: '#2563eb', fontSize: 20 }} />;
       case 'XLS':
       case 'XLSX':
-        return <FileText size={20} className="text-emerald-600" />;
+        return <FilePdfOutlined style={{ color: '#059669', fontSize: 20 }} />;
       case 'ZIP':
       case 'RAR':
       case '7Z':
-        return <File size={20} className="text-amber-600" />;
+        return <FileZipOutlined style={{ color: '#d97706', fontSize: 20 }} />;
       default:
-        return <File size={20} className="text-slate-500" />;
+        return <FileOutlined style={{ color: '#64748b', fontSize: 20 }} />;
     }
   };
 
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const columns: ColumnsType<FileItem> = [
+    {
+      title: '文件名',
+      dataIndex: 'originalName',
+      key: 'originalName',
+      render: (text: string, record: FileItem) => (
+        <Space>
+          {getIcon(record.type)}
+          <span>{text}</span>
+        </Space>
+      ),
+    },
+    {
+      title: '大小',
+      dataIndex: 'size',
+      key: 'size',
+      width: 120,
+      render: (size: number) => formatFileSize(size),
+    },
+    {
+      title: '存储路径',
+      dataIndex: 'path',
+      key: 'path',
+      ellipsis: true,
+    },
+    {
+      title: '创建人',
+      dataIndex: 'createUserName',
+      key: 'createUserName',
+      width: 100,
+      render: (text: string) => text || '-',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdTime',
+      key: 'createdTime',
+      width: 180,
+      render: (text: string) => formatDateTime(text),
+    },
+    {
+      title: '修改人',
+      dataIndex: 'updateUserName',
+      key: 'updateUserName',
+      width: 100,
+      render: (text: string) => text || '-',
+    },
+    {
+      title: '修改时间',
+      dataIndex: 'updateTime',
+      key: 'updateTime',
+      width: 180,
+      render: (text: string) => formatDateTime(text),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 150,
+      render: (_: unknown, record: FileItem) => (
+        <Space>
+          <Button
+            type="link"
+            size="small"
+            icon={<DownloadOutlined />}
+            onClick={() => handleDownload(record.id, record.originalName)}
+          >
+            下载
+          </Button>
+          <Popconfirm
+            title="确定要删除该文件吗？"
+            onConfirm={() => handleDelete(record.id)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
+              删除
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">文件管理</h2>
-          <p className="text-slate-500 mt-1">管理系统上传的所有资源文件，支持预览、下载及删除。</p>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>文件管理</h2>
+          <p style={{ margin: '4px 0 0', color: '#64748b' }}>管理系统上传的所有资源文件，支持预览、下载及删除。</p>
         </div>
         <div>
           <input
@@ -180,133 +270,54 @@ export default function FileTable() {
             onChange={handleUpload}
             style={{ display: 'none' }}
           />
-          <button
+          <Button
+            type="primary"
+            icon={<UploadOutlined />}
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
           >
-            <Upload size={18} />
             上传文件
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-4 bg-white px-3 py-1.5 rounded-lg border border-slate-200 w-72">
-            <Search size={18} className="text-slate-400" />
-            <input
-              type="text"
-              placeholder="搜索文件名..."
-              value={searchKeyword}
-              onChange={(e) => {
-                setSearchKeyword(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="bg-transparent border-none outline-none text-sm w-full"
-            />
-          </div>
-          <span className="text-sm text-slate-500">共 {totalCount} 个文件</span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">文件名</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">大小</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">存储路径</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建人</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">创建时间</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改人</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">修改时间</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
-                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  </td>
-                </tr>
-              ) : files.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
-                    暂无文件
-                  </td>
-                </tr>
-              ) : (
-                files.map((file) => (
-                  <tr key={file.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
-                          {getIcon(file.type)}
-                        </div>
-                        <span className="text-sm font-semibold text-slate-900">{file.originalName}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{formatFileSize(file.size)}</td>
-                    <td className="px-6 py-4 text-sm font-mono text-slate-500">{file.path}</td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{file.createUserName || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{formatDateTime(file.createdTime)}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{file.updateUserName || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{formatDateTime(file.updateTime)}</span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        <button
-                          onClick={() => handleDownload(file.id, file.originalName)}
-                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          下载
-                        </button>
-                        <button
-                          onClick={() => handleDelete(file.id)}
-                          className="text-sm text-red-600 hover:text-red-800 font-medium"
-                        >
-                          删除
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/30">
-            <span className="text-sm text-slate-500">
-              第 {currentPage} / {totalPages} 页
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 border border-slate-200 rounded-md text-sm disabled:opacity-50 hover:bg-slate-100"
-              >
-                上一页
-              </button>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 border border-slate-200 rounded-md text-sm disabled:opacity-50 hover:bg-slate-100"
-              >
-                下一页
-              </button>
-            </div>
-          </div>
-        )}
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Input.Search
+          placeholder="搜索文件名..."
+          allowClear
+          prefix={<SearchOutlined />}
+          style={{ width: 300 }}
+          onSearch={(value) => {
+            setSearchKeyword(value);
+            setCurrentPage(1);
+          }}
+          onChange={(e) => {
+            if (!e.target.value) {
+              setSearchKeyword('');
+              setCurrentPage(1);
+            }
+          }}
+        />
+        <span style={{ color: '#64748b', fontSize: 14 }}>共 {totalCount} 个文件</span>
       </div>
+
+      <Table<FileItem>
+        columns={columns}
+        dataSource={files}
+        rowKey="id"
+        loading={loading}
+        size="small"
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: totalCount,
+          showSizeChanger: true,
+          showTotal: (total) => `共 ${total} 条`,
+          onChange: (page, size) => {
+            setCurrentPage(page);
+            setPageSize(size);
+          },
+        }}
+      />
     </div>
   );
 }

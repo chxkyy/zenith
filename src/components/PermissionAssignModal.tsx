@@ -1,319 +1,174 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckSquare, Square, ChevronDown, ChevronRight, Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Modal, Tree, App, Spin } from 'antd';
+import type { TreeProps } from 'antd';
+import { CheckCircleFilled } from '@ant-design/icons';
 
 interface Permission {
-  id: string;
+  id: number;
   name: string;
-  code: string;
-  type: 'menu' | 'button';
-  children?: Permission[];
+  permission: string;
+  type: string;
+  menuId: number;
+  sort: number;
+  status: number;
 }
 
-// 模拟权限数据
-const mockPermissions: Permission[] = [
-  {
-    id: '1',
-    name: '系统管理',
-    code: 'SYSTEM_MANAGE',
-    type: 'menu',
-    children: [
-      {
-        id: '1-1',
-        name: '用户管理',
-        code: 'USER_MANAGE',
-        type: 'menu',
-        children: [
-          {
-            id: '1-1-1',
-            name: '查看用户',
-            code: 'USER_VIEW',
-            type: 'button'
-          },
-          {
-            id: '1-1-2',
-            name: '添加用户',
-            code: 'USER_ADD',
-            type: 'button'
-          },
-          {
-            id: '1-1-3',
-            name: '编辑用户',
-            code: 'USER_EDIT',
-            type: 'button'
-          },
-          {
-            id: '1-1-4',
-            name: '删除用户',
-            code: 'USER_DELETE',
-            type: 'button'
-          }
-        ]
-      },
-      {
-        id: '1-2',
-        name: '角色管理',
-        code: 'ROLE_MANAGE',
-        type: 'menu',
-        children: [
-          {
-            id: '1-2-1',
-            name: '查看角色',
-            code: 'ROLE_VIEW',
-            type: 'button'
-          },
-          {
-            id: '1-2-2',
-            name: '添加角色',
-            code: 'ROLE_ADD',
-            type: 'button'
-          },
-          {
-            id: '1-2-3',
-            name: '编辑角色',
-            code: 'ROLE_EDIT',
-            type: 'button'
-          },
-          {
-            id: '1-2-4',
-            name: '删除角色',
-            code: 'ROLE_DELETE',
-            type: 'button'
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: '2',
-    name: '内容管理',
-    code: 'CONTENT_MANAGE',
-    type: 'menu',
-    children: [
-      {
-        id: '2-1',
-        name: '文章管理',
-        code: 'ARTICLE_MANAGE',
-        type: 'menu',
-        children: [
-          {
-            id: '2-1-1',
-            name: '查看文章',
-            code: 'ARTICLE_VIEW',
-            type: 'button'
-          },
-          {
-            id: '2-1-2',
-            name: '添加文章',
-            code: 'ARTICLE_ADD',
-            type: 'button'
-          },
-          {
-            id: '2-1-3',
-            name: '编辑文章',
-            code: 'ARTICLE_EDIT',
-            type: 'button'
-          },
-          {
-            id: '2-1-4',
-            name: '删除文章',
-            code: 'ARTICLE_DELETE',
-            type: 'button'
-          }
-        ]
-      }
-    ]
-  }
-];
-
-// 默认空数组
-const DEFAULT_ASSIGNED_PERMISSIONS: string[] = [];
+interface Menu {
+  id: number;
+  name: string;
+  type: string;
+  path: string;
+  icon: string;
+  parentId: number | null;
+  sort: number;
+  status: number;
+  children?: Menu[];
+  functions?: Permission[];
+}
 
 interface PermissionAssignModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (permissions: string[]) => void;
   roleId: number;
-  assignedPermissions?: string[];
+  roleName: string;
 }
 
-export default function PermissionAssignModal({ isOpen, onClose, onSave, roleId, assignedPermissions = DEFAULT_ASSIGNED_PERMISSIONS }: PermissionAssignModalProps) {
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>(assignedPermissions);
-  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
-  const [searchTerm, setSearchTerm] = useState('');
-  const [permissions, setPermissions] = useState<Permission[]>(mockPermissions);
+export default function PermissionAssignModal({ isOpen, onClose, roleId, roleName }: PermissionAssignModalProps) {
+  const { message } = App.useApp();
+  const [menus, setMenus] = useState<Menu[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setSelectedPermissions(assignedPermissions);
-  }, [assignedPermissions]);
+    if (isOpen && roleId) {
+      fetchData();
+    }
+  }, [isOpen, roleId]);
 
-  const toggleMenu = (menuId: string) => {
-    setExpandedMenus(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(menuId)) {
-        newSet.delete(menuId);
-      } else {
-        newSet.add(menuId);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [menusRes, permsRes, rolePermsRes] = await Promise.all([
+        fetch('/api/menus'),
+        fetch('/api/functions/list'),
+        fetch(`/api/role-permissions?roleId=${roleId}`)
+      ]);
+
+      const menusData = await menusRes.json();
+      const permsData = await permsRes.json();
+      const rolePermsData = await rolePermsRes.json();
+
+      if (menusData.success) setMenus(menusData.data || []);
+      if (permsData.success) setPermissions(permsData.data || []);
+      if (rolePermsData.success) {
+        setCheckedKeys((rolePermsData.data || []).map((p: any) => String(p.functionId || p.id)));
       }
-      return newSet;
+    } catch (error) {
+      console.error('Error fetching permission data:', error);
+      message.error('获取权限数据失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const buildTreeData = (): TreeProps['treeData'] => {
+    const menuMap = new Map<number, Menu>();
+    menus.forEach(menu => {
+      menuMap.set(menu.id, { ...menu, children: [], functions: [] });
     });
-  };
 
-  const handlePermissionToggle = (permissionCode: string, parentCode?: string) => {
-    setSelectedPermissions(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(permissionCode)) {
-        newSet.delete(permissionCode);
-      } else {
-        newSet.add(permissionCode);
-        // 如果是按钮权限，自动勾选父菜单
-        if (parentCode && !newSet.has(parentCode)) {
-          newSet.add(parentCode);
-        }
-      }
-      return Array.from(newSet);
+    const menuFunctions = new Map<number, Permission[]>();
+    permissions.forEach(perm => {
+      const list = menuFunctions.get(perm.menuId) || [];
+      list.push(perm);
+      menuFunctions.set(perm.menuId, list);
     });
-  };
 
-  const handleMenuToggle = (menuCode: string, children: Permission[]) => {
-    setSelectedPermissions(prev => {
-      const newSet = new Set(prev);
-      const isChecked = newSet.has(menuCode);
-      
-      // 递归处理子权限
-      const processChildren = (perms: Permission[]) => {
-        perms.forEach(perm => {
-          if (isChecked) {
-            newSet.delete(perm.code);
-          } else {
-            newSet.add(perm.code);
-          }
-          if (perm.children) {
-            processChildren(perm.children);
-          }
-        });
-      };
-      
-      if (isChecked) {
-        newSet.delete(menuCode);
-      } else {
-        newSet.add(menuCode);
+    const rootMenus: Menu[] = [];
+    menuMap.forEach(menu => {
+      const menuPerms = menuFunctions.get(menu.id);
+      if (menuPerms) (menu as any).functions = menuPerms;
+      if (!menu.parentId) { rootMenus.push(menu); }
+      else {
+        const parent = menuMap.get(menu.parentId);
+        if (parent) parent.children?.push(menu);
       }
-      
-      if (children) {
-        processChildren(children);
-      }
-      
-      return Array.from(newSet);
     });
+
+    const convertToTreeNode = (menuList: Menu[]): TreeProps['treeData'] => {
+      return menuList.map(menu => ({
+        key: `menu-${menu.id}`,
+        title: menu.name,
+        children: [
+          ...(menu.functions && (menu as any).functions.length > 0
+            ? (menu as any).functions.map((perm: Permission) => ({
+                key: `perm-${perm.id}`,
+                title: perm.name,
+                isLeaf: true,
+              }))
+            : []),
+          ...(menu.children && menu.children.length > 0
+            ? convertToTreeNode(menu.children)
+            : [])
+        ]
+      }));
+    };
+
+    return convertToTreeNode(rootMenus);
   };
 
-  const handleSubmit = () => {
-    onSave(selectedPermissions);
-    onClose();
-  };
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const functionIds = checkedKeys
+        .filter(key => String(key).startsWith('perm-'))
+        .map(key => Number(String(key).replace('perm-', '')));
 
-  const renderPermissionTree = (permissions: Permission[], level = 0) => {
-    return permissions.map(permission => (
-      <div key={permission.id} className={`ml-${level * 4}`}>
-        <div className="flex items-center gap-2 py-2">
-          {permission.type === 'menu' && (
-            <button
-              onClick={() => toggleMenu(permission.id)}
-              className="p-1 hover:bg-slate-100 rounded-full"
-            >
-              {expandedMenus.has(permission.id) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </button>
-          )}
-          {permission.type === 'button' && <div className="w-4"></div>}
-          <button
-            onClick={() => {
-              if (permission.type === 'menu' && permission.children) {
-                handleMenuToggle(permission.code, permission.children);
-              } else {
-                handlePermissionToggle(permission.code);
-              }
-            }}
-            className="flex items-center gap-2 w-full text-left"
-          >
-            {selectedPermissions.includes(permission.code) ? (
-              <CheckSquare size={16} className="text-blue-600" />
-            ) : (
-              <Square size={16} className="text-slate-400" />
-            )}
-            <span className="text-sm font-medium text-slate-700">{permission.name}</span>
-            <span className="text-xs text-slate-400 font-mono ml-auto">{permission.code}</span>
-          </button>
-        </div>
-        {permission.type === 'menu' && permission.children && expandedMenus.has(permission.id) && (
-          <div className="pl-4 border-l border-slate-200">
-            {renderPermissionTree(permission.children, level + 1)}
-          </div>
-        )}
-      </div>
-    ));
+      const response = await fetch('/api/role-permissions/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roleId, functionIds })
+      });
+      const data = await response.json();
+      if (data.success) {
+        message.success('权限分配成功');
+        onClose();
+      } else {
+        throw new Error(data.errMessage || '分配失败');
+      }
+    } catch (error: any) {
+      console.error('Error assigning permissions:', error);
+      message.error(error.message || '权限分配失败');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/15 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden"
-          >
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-lg font-bold text-slate-900">分配权限</h3>
-              <button onClick={onClose} className="p-2 hover:bg-white rounded-lg transition-colors text-slate-400 hover:text-slate-600">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div className="flex items-center gap-4 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
-                <Search size={16} className="text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="搜索权限..." 
-                  className="text-sm outline-none w-full"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                ) : (
-                  renderPermissionTree(permissions)
-                )}
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50 transition-all"
-                >
-                  取消
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
-                >
-                  保存
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+    <Modal
+      title={`分配权限 - ${roleName}`}
+      open={isOpen}
+      onCancel={onClose}
+      onOk={handleSave}
+      okText="保存分配"
+      confirmLoading={saving}
+      width={600}
+      destroyOnClose
+    >
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spin tip="加载权限数据..." /></div>
+      ) : (
+        <Tree
+          checkable
+          checkedKeys={checkedKeys}
+          onCheck={(keys) => setCheckedKeys(keys as React.Key[])}
+          treeData={buildTreeData()}
+          defaultExpandAll
+          style={{ marginTop: 16 }}
+        />
       )}
-    </AnimatePresence>
+    </Modal>
   );
 }

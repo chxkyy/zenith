@@ -1,10 +1,11 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
+import { Layout, Spin } from 'antd';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import { motion, AnimatePresence } from 'motion/react';
 import Login from './Login';
 
-// 懒加载组件
+const { Content } = Layout;
+
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const RoleManagement = lazy(() => import('./components/RoleManagement'));
 const MenuManagement = lazy(() => import('./components/MenuManagement'));
@@ -26,18 +27,10 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState<{ username?: string; email?: string } | null>(null);
-  const [isCollapsed, setIsCollapsed] = useState(() => {
+  const [collapsed, setCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
     return saved ? JSON.parse(saved) : false;
   });
-
-  const toggleSidebar = () => {
-    setIsCollapsed(prev => {
-      const newValue = !prev;
-      localStorage.setItem('sidebar-collapsed', JSON.stringify(newValue));
-      return newValue;
-    });
-  };
 
   useEffect(() => {
     checkAuth();
@@ -82,10 +75,18 @@ export default function App() {
     setActiveTab('dashboard');
   };
 
+  const toggleCollapsed = () => {
+    setCollapsed(prev => {
+      const newValue = !prev;
+      localStorage.setItem('sidebar-collapsed', JSON.stringify(newValue));
+      return newValue;
+    });
+  };
+
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin"></div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Spin size="large" />
       </div>
     );
   }
@@ -128,51 +129,34 @@ export default function App() {
         return <OnlineUsersTable />;
       default:
         return (
-          <div className="p-8 flex flex-col items-center justify-center h-[calc(100vh-64px)] text-slate-400">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-4xl">🚧</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-900">模块开发中</h2>
-            <p className="mt-2">该功能模块 ({activeTab}) 正在紧锣密鼓地开发中，敬请期待。</p>
+          <div style={{ textAlign: 'center', padding: 48, color: '#999' }}>
+            <h2>模块开发中</h2>
+            <p>该功能模块 ({activeTab}) 正在开发中，敬请期待。</p>
           </div>
         );
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isCollapsed={isCollapsed} />
-
-      <main className="flex-1 flex flex-col min-w-0">
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} collapsed={collapsed} />
+      <Layout>
         <Header
           username={currentUser?.username}
-          email={currentUser?.email}
           onLogout={handleLogout}
-          onToggleSidebar={toggleSidebar}
-          isCollapsed={isCollapsed}
+          onToggleSidebar={toggleCollapsed}
+          collapsed={collapsed}
         />
-        
-        <div className="flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Suspense fallback={
-                <div className="p-8 flex flex-col items-center justify-center h-[calc(100vh-64px)]">
-                  <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin mb-4"></div>
-                  <p className="text-slate-500">加载中...</p>
-                </div>
-              }>
-                {renderContent()}
-              </Suspense>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </main>
-    </div>
+        <Content style={{ margin: 16, overflow: 'auto' }}>
+          <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+              <Spin size="large" tip="加载中..." />
+            </div>
+          }>
+            {renderContent()}
+          </Suspense>
+        </Content>
+      </Layout>
+    </Layout>
   );
 }

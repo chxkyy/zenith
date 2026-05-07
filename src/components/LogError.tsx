@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, RotateCcw, Trash2, Eye, Eraser } from 'lucide-react';
+import { Table, Button, Input, Space, Tag, Popconfirm, App, Modal, Descriptions, Card } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import { SearchOutlined, UndoOutlined, DeleteOutlined, EyeOutlined, ClearOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
 
 interface ErrorLog {
@@ -12,17 +14,17 @@ interface ErrorLog {
   updateTime: string;
   createUserId: number;
   updateUserId: number;
+  createUserName?: string;
+  updateUserName?: string;
 }
 
 const LogError: React.FC = () => {
+  const { message } = App.useApp();
   const [logs, setLogs] = useState<ErrorLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasFetchedLogs = useRef(false);
-  const [searchParams, setSearchParams] = useState({
-    module: '',
-    ip: ''
-  });
+  const [searchParams, setSearchParams] = useState({ module: '', ip: '' });
   const [selectedLog, setSelectedLog] = useState<ErrorLog | null>(null);
 
   const fetchLogs = async () => {
@@ -32,7 +34,7 @@ const LogError: React.FC = () => {
       const params = new URLSearchParams();
       if (searchParams.module) params.append('module', searchParams.module);
       if (searchParams.ip) params.append('ip', searchParams.ip);
-      
+
       const response = await fetch(`/api/error-logs?${params.toString()}`);
       const text = await response.text();
       if (response.status === 503) {
@@ -76,207 +78,131 @@ const LogError: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('确定删除该异常日志吗？')) return;
     try {
       const response = await fetch(`/api/error-logs/delete`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
       const data = await response.json();
       if (data.success) {
+        message.success('删除成功');
         fetchLogs();
       }
     } catch (error) {
       console.error('Failed to delete log:', error);
+      message.error('删除失败');
     }
   };
 
   const handleClear = async () => {
-    if (!confirm('确定清理3个月前的所有异常日志吗？')) return;
     try {
-      const response = await fetch(`/api/error-logs/clear?months=3`, {
-        method: 'POST'
-      });
+      const response = await fetch(`/api/error-logs/clear?months=3`, { method: 'POST' });
       const data = await response.json();
       if (data.success) {
+        message.success('清理成功');
         fetchLogs();
-        alert('清理成功');
       }
     } catch (error) {
       console.error('Failed to clear logs:', error);
+      message.error('清理失败');
     }
   };
 
+  const columns: ColumnsType<ErrorLog> = [
+    { title: '日志ID', dataIndex: 'id', key: 'id', width: 80 },
+    { title: '异常IP', dataIndex: 'ip', key: 'ip', width: 130, render: (v) => <code>{v}</code> },
+    { title: '异常模块', dataIndex: 'module', key: 'module', width: 120, render: (v) => <Tag color="red">{v}</Tag> },
+    {
+      title: '异常信息', dataIndex: 'errorMsg', key: 'errorMsg', width: 200, ellipsis: true,
+      render: (v) => <span style={{ color: '#dc2626', fontWeight: 500 }}>{v}</span>
+    },
+    { title: '创建人', dataIndex: 'createUserName', key: 'createUserName', width: 90, render: (v) => v || '-' },
+    { title: '创建时间', dataIndex: 'createdTime', key: 'createdTime', width: 160, render: (v) => formatDateTime(v) },
+    { title: '修改人', dataIndex: 'updateUserName', key: 'updateUserName', width: 90, render: (v) => v || '-' },
+    { title: '修改时间', dataIndex: 'updateTime', key: 'updateTime', width: 160, render: (v) => formatDateTime(v) },
+    {
+      title: '操作', key: 'action', width: 130, fixed: 'right',
+      render: (_, record) => (
+        <Space size="small">
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setSelectedLog(record)}>详情</Button>
+          <Popconfirm title="确定删除该异常日志吗？" onConfirm={() => handleDelete(record.id)} okText="确定" cancelText="取消">
+            <Button type="link" size="small" danger>删除</Button>
+          </Popconfirm>
+        </Space>
+      )
+    }
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">异常模块</span>
-          <input
-            type="text"
-            className="px-3 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchParams.module}
-            onChange={(e) => setSearchParams({ ...searchParams, module: e.target.value })}
-            placeholder="请输入模块名称"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">异常IP</span>
-          <input
-            type="text"
-            className="px-3 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchParams.ip}
-            onChange={(e) => setSearchParams({ ...searchParams, ip: e.target.value })}
-            placeholder="请输入异常IP"
-          />
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleSearch}
-            className="flex items-center gap-1 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-          >
-            <Search size={16} /> 查询
-          </button>
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-1 px-4 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm"
-          >
-            <RotateCcw size={16} /> 重置
-          </button>
-        </div>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Card size="small">
+        <Space wrap>
+          <Space>
+            <span style={{ fontSize: 14, color: '#666' }}>异常模块</span>
+            <Input size="small" placeholder="请输入模块名称" value={searchParams.module}
+              onChange={(e) => setSearchParams({ ...searchParams, module: e.target.value })}
+              onPressEnter={handleSearch} style={{ width: 160 }} />
+          </Space>
+          <Space>
+            <span style={{ fontSize: 14, color: '#666' }}>异常IP</span>
+            <Input size="small" placeholder="请输入异常IP" value={searchParams.ip}
+              onChange={(e) => setSearchParams({ ...searchParams, ip: e.target.value })}
+              onPressEnter={handleSearch} style={{ width: 160 }} />
+          </Space>
+          <Button type="primary" size="small" icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
+          <Button size="small" icon={<UndoOutlined />} onClick={handleReset}>重置</Button>
+        </Space>
+      </Card>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h3 className="font-medium text-gray-800">异常日志列表</h3>
-          <button
-            onClick={handleClear}
-            className="flex items-center gap-1 px-3 py-1.5 border border-red-500 text-red-600 rounded-md hover:bg-red-50 transition-colors text-sm"
-          >
-            <Eraser size={16} /> 清理日志
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-600 text-sm uppercase">
-                <th className="px-6 py-3 font-medium">日志ID</th>
-                <th className="px-6 py-3 font-medium">异常IP</th>
-                <th className="px-6 py-3 font-medium">异常模块</th>
-                <th className="px-6 py-3 font-medium">异常信息</th>
-                <th className="px-6 py-3 font-medium">创建人</th>
-                <th className="px-6 py-3 font-medium">创建时间</th>
-                <th className="px-6 py-3 font-medium">修改人</th>
-                <th className="px-6 py-3 font-medium">修改时间</th>
-                <th className="px-6 py-3 font-medium">操作</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={9} className="px-6 py-10 text-center text-gray-400">加载中...</td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td colSpan={9} className="px-6 py-10 text-center text-red-500">{error}</td>
-                </tr>
-              ) : logs.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="px-6 py-10 text-center text-gray-400">暂无数据</td>
-                </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition-colors text-sm">
-                    <td className="px-6 py-4 text-gray-500">{log.id}</td>
-                    <td className="px-6 py-4 text-gray-600 font-mono">{log.ip}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs">{log.module}</span>
-                    </td>
-                    <td className="px-6 py-4 text-red-600 font-medium truncate max-w-xs" title={log.errorMsg}>
-                      {log.errorMsg}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">{log.createUserName || '-'}</td>
-                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdTime)}</td>
-                    <td className="px-6 py-4 text-gray-500">{log.updateUserName || '-'}</td>
-                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.updateTime)}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-3">
-                        <button 
-                          onClick={() => setSelectedLog(log)}
-                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          详情
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(log.id)}
-                          className="text-sm text-red-600 hover:text-red-800 font-medium"
-                        >
-                          删除
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card size="small" title="异常日志列表"
+        extra={
+          <Popconfirm title="确定清理3个月前的所有异常日志吗？" onConfirm={handleClear} okText="确定" cancelText="取消">
+            <Button size="small" danger icon={<ClearOutlined />}>清理日志</Button>
+          </Popconfirm>
+        }
+      >
+        <Table<ErrorLog>
+          columns={columns}
+          dataSource={logs}
+          rowKey="id"
+          size="small"
+          loading={loading}
+          scroll={{ x: 1200 }}
+          locale={{ emptyText: error || '暂无数据' }}
+          pagination={false}
+        />
+      </Card>
 
-      {selectedLog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[80vh] flex flex-col">
-            <div className="p-6 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
-              <h3 className="text-xl font-bold text-gray-900">异常详情</h3>
-              <button 
-                onClick={() => setSelectedLog(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <RotateCcw size={24} className="rotate-45" />
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">异常模块</label>
-                  <div className="mt-1 text-gray-900">{selectedLog.module}</div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">异常时间</label>
-                  <div className="mt-1 text-gray-900">{formatDateTime(selectedLog.createdTime)}</div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">异常IP</label>
-                  <div className="mt-1 text-gray-900">{selectedLog.ip}</div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500">异常信息</label>
-                <div className="mt-1 p-3 bg-red-50 text-red-700 rounded-md font-mono text-sm border border-red-100">
-                  {selectedLog.errorMsg}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500">堆栈信息</label>
-                <pre className="mt-1 p-4 bg-gray-900 text-gray-300 rounded-md font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                  {selectedLog.stackTrace}
-                </pre>
+      <Modal
+        title="异常详情"
+        open={!!selectedLog}
+        onCancel={() => setSelectedLog(null)}
+        width={800}
+        footer={<Button onClick={() => setSelectedLog(null)}>关闭</Button>}
+      >
+        {selectedLog && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Descriptions column={2} size="small" bordered>
+              <Descriptions.Item label="异常模块">{selectedLog.module}</Descriptions.Item>
+              <Descriptions.Item label="异常时间">{formatDateTime(selectedLog.createdTime)}</Descriptions.Item>
+              <Descriptions.Item label="异常IP">{selectedLog.ip}</Descriptions.Item>
+            </Descriptions>
+            <div>
+              <div style={{ fontWeight: 600, marginBottom: 8 }}>异常信息</div>
+              <div style={{ padding: 12, backgroundColor: '#fef2f2', color: '#b91c1c', borderRadius: 6, fontFamily: 'monospace', fontSize: 13, border: '1px solid #fecaca' }}>
+                {selectedLog.errorMsg}
               </div>
             </div>
-            <div className="p-6 border-t bg-gray-50 rounded-b-xl flex justify-end">
-              <button
-                onClick={() => setSelectedLog(null)}
-                className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-              >
-                关闭
-              </button>
+            <div>
+              <div style={{ fontWeight: 600, marginBottom: 8 }}>堆栈信息</div>
+              <pre style={{ padding: 16, backgroundColor: '#1e293b', color: '#cbd5e1', borderRadius: 6, fontFamily: 'monospace', fontSize: 12, overflowX: 'auto', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {selectedLog.stackTrace}
+              </pre>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, RotateCcw, Download, Trash2, Eye } from 'lucide-react';
+import { Table, Button, Input, Space, Tag, Popconfirm, App, Card, Select } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import { SearchOutlined, UndoOutlined, DownloadOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
 
 interface OperLog {
@@ -14,18 +16,17 @@ interface OperLog {
   updateTime: string;
   createUserId: number;
   updateUserId: number;
+  createUserName?: string;
+  updateUserName?: string;
 }
 
 const LogOper: React.FC = () => {
+  const { message } = App.useApp();
   const [logs, setLogs] = useState<OperLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasFetchedLogs = useRef(false);
-  const [searchParams, setSearchParams] = useState({
-    operator: '',
-    module: '',
-    result: ''
-  });
+  const [searchParams, setSearchParams] = useState({ operator: '', module: '', result: '' });
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -35,7 +36,7 @@ const LogOper: React.FC = () => {
       if (searchParams.operator) params.append('operator', searchParams.operator);
       if (searchParams.module) params.append('module', searchParams.module);
       if (searchParams.result) params.append('result', searchParams.result);
-      
+
       const response = await fetch(`/api/oper-logs?${params.toString()}`);
       const text = await response.text();
       if (response.status === 503) {
@@ -76,164 +77,100 @@ const LogOper: React.FC = () => {
   const handleSearch = () => fetchLogs();
   const handleReset = () => {
     setSearchParams({ operator: '', module: '', result: '' });
-    // fetchLogs will be triggered by the next render if we use a ref or just call it
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('确定删除该日志吗？')) return;
     try {
       const response = await fetch(`/api/oper-logs/delete`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
       const data = await response.json();
       if (data.success) {
+        message.success('删除成功');
         fetchLogs();
       }
     } catch (error) {
       console.error('Failed to delete log:', error);
+      message.error('删除失败');
     }
   };
 
   const handleExport = () => {
-    alert('操作日志导出成功 (Excel)');
+    message.success('操作日志导出成功 (Excel)');
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">操作人</span>
-          <input
-            type="text"
-            className="px-3 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchParams.operator}
-            onChange={(e) => setSearchParams({ ...searchParams, operator: e.target.value })}
-            placeholder="请输入操作人"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">操作模块</span>
-          <input
-            type="text"
-            className="px-3 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchParams.module}
-            onChange={(e) => setSearchParams({ ...searchParams, module: e.target.value })}
-            placeholder="请输入模块名称"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">操作结果</span>
-          <select
-            className="px-3 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchParams.result}
-            onChange={(e) => setSearchParams({ ...searchParams, result: e.target.value })}
-          >
-            <option value="">全部</option>
-            <option value="成功">成功</option>
-            <option value="失败">失败</option>
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleSearch}
-            className="flex items-center gap-1 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-          >
-            <Search size={16} /> 查询
-          </button>
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-1 px-4 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm"
-          >
-            <RotateCcw size={16} /> 重置
-          </button>
-        </div>
-      </div>
+  const columns: ColumnsType<OperLog> = [
+    { title: '日志ID', dataIndex: 'id', key: 'id', width: 80 },
+    { title: '操作人', dataIndex: 'operator', key: 'operator', width: 100 },
+    { title: '操作IP', dataIndex: 'ip', key: 'ip', width: 130, render: (v) => <code>{v}</code> },
+    { title: '操作模块', dataIndex: 'module', key: 'module', width: 110, render: (v) => <Tag color="blue">{v}</Tag> },
+    { title: '操作内容', dataIndex: 'content', key: 'content', width: 180, ellipsis: true },
+    {
+      title: '结果', dataIndex: 'result', key: 'result', width: 80,
+      render: (v) => <Tag color={v === '成功' ? 'success' : 'error'}>{v}</Tag>
+    },
+    { title: '创建人', dataIndex: 'createUserName', key: 'createUserName', width: 90, render: (v) => v || '-' },
+    { title: '创建时间', dataIndex: 'createdTime', key: 'createdTime', width: 160, render: (v) => formatDateTime(v) },
+    { title: '修改人', dataIndex: 'updateUserName', key: 'updateUserName', width: 90, render: (v) => v || '-' },
+    { title: '修改时间', dataIndex: 'updateTime', key: 'updateTime', width: 160, render: (v) => formatDateTime(v) },
+    {
+      title: '操作', key: 'action', width: 80, fixed: 'right',
+      render: (_, record) => (
+        <Popconfirm title="确定删除该日志吗？" onConfirm={() => handleDelete(record.id)} okText="确定" cancelText="取消">
+          <Button type="link" size="small" danger>删除</Button>
+        </Popconfirm>
+      )
+    }
+  ];
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h3 className="font-medium text-gray-800">操作日志列表</h3>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-1 px-3 py-1.5 border border-green-500 text-green-600 rounded-md hover:bg-green-50 transition-colors text-sm"
-          >
-            <Download size={16} /> 导出
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-600 text-sm uppercase">
-                <th className="px-6 py-3 font-medium">日志ID</th>
-                <th className="px-6 py-3 font-medium">操作人</th>
-                <th className="px-6 py-3 font-medium">操作IP</th>
-                <th className="px-6 py-3 font-medium">操作模块</th>
-                <th className="px-6 py-3 font-medium">操作内容</th>
-                <th className="px-6 py-3 font-medium">结果</th>
-                <th className="px-6 py-3 font-medium">创建人</th>
-                <th className="px-6 py-3 font-medium">创建时间</th>
-                <th className="px-6 py-3 font-medium">修改人</th>
-                <th className="px-6 py-3 font-medium">修改时间</th>
-                <th className="px-6 py-3 font-medium">操作</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={11} className="px-6 py-10 text-center text-gray-400">加载中...</td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td colSpan={11} className="px-6 py-10 text-center text-red-500">{error}</td>
-                </tr>
-              ) : logs.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="px-6 py-10 text-center text-gray-400">暂无数据</td>
-                </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition-colors text-sm">
-                    <td className="px-6 py-4 text-gray-500">{log.id}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{log.operator}</td>
-                    <td className="px-6 py-4 text-gray-600 font-mono">{log.ip}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">{log.module}</span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={log.content}>{log.content}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${
-                        log.result === '成功' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {log.result}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">{log.createUserName || '-'}</td>
-                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.createdTime)}</td>
-                    <td className="px-6 py-4 text-gray-500">{log.updateUserName || '-'}</td>
-                    <td className="px-6 py-4 text-gray-500">{formatDateTime(log.updateTime)}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-3">
-                        <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                          详情
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(log.id)}
-                          className="text-sm text-red-600 hover:text-red-800 font-medium"
-                        >
-                          删除
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Card size="small">
+        <Space wrap>
+          <Space>
+            <span style={{ fontSize: 14, color: '#666' }}>操作人</span>
+            <Input size="small" placeholder="请输入操作人" value={searchParams.operator}
+              onChange={(e) => setSearchParams({ ...searchParams, operator: e.target.value })}
+              onPressEnter={handleSearch} style={{ width: 140 }} />
+          </Space>
+          <Space>
+            <span style={{ fontSize: 14, color: '#666' }}>操作模块</span>
+            <Input size="small" placeholder="请输入模块名称" value={searchParams.module}
+              onChange={(e) => setSearchParams({ ...searchParams, module: e.target.value })}
+              onPressEnter={handleSearch} style={{ width: 140 }} />
+          </Space>
+          <Space>
+            <span style={{ fontSize: 14, color: '#666' }}>操作结果</span>
+            <Select size="small" value={searchParams.result || undefined} placeholder="全部"
+              onChange={(v) => setSearchParams({ ...searchParams, result: v || '' })}
+              style={{ width: 100 }} allowClear
+              options={[
+                { value: '成功', label: '成功' },
+                { value: '失败', label: '失败' },
+              ]}
+            />
+          </Space>
+          <Button type="primary" size="small" icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
+          <Button size="small" icon={<UndoOutlined />} onClick={handleReset}>重置</Button>
+        </Space>
+      </Card>
+
+      <Card size="small" title="操作日志列表"
+        extra={<Button size="small" icon={<DownloadOutlined />} style={{ borderColor: '#16a34a', color: '#16a34a' }} onClick={handleExport}>导出</Button>}
+      >
+        <Table<OperLog>
+          columns={columns}
+          dataSource={logs}
+          rowKey="id"
+          size="small"
+          loading={loading}
+          scroll={{ x: 1300 }}
+          locale={{ emptyText: error || '暂无数据' }}
+          pagination={false}
+        />
+      </Card>
     </div>
   );
 };

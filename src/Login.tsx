@@ -1,120 +1,88 @@
-import React, { useState } from 'react';
-import Notification from './components/Notification';
+import React from 'react';
+import { Form, Input, Button, Card, App } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 interface LoginProps {
   onLoginSuccess: () => void;
 }
 
+interface LoginForm {
+  loginId: string;
+  password: string;
+}
+
 export default function Login({ onLoginSuccess }: LoginProps) {
-  const [loginId, setLoginId] = useState('admin');
-  const [password, setPassword] = useState('000000');
-  const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'info';
-    key: number;
-  } | null>(null);
+  const { message } = App.useApp();
+  const [form] = Form.useForm<LoginForm>();
+  const [loading, setLoading] = React.useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loginId || !password) {
-      setNotification({
-        message: '请输入登录账号和密码',
-        type: 'error',
-        key: Date.now()
-      });
-      return;
-    }
-
+  const handleSubmit = async (values: LoginForm) => {
     setLoading(true);
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loginId, password })
+        body: JSON.stringify(values)
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setNotification({
-          message: '登录成功',
-          type: 'success',
-          key: Date.now()
-        });
+        message.success('登录成功');
         setTimeout(() => onLoginSuccess(), 500);
       } else {
-        setNotification({
-          message: data.errMessage || '登录失败',
-          type: 'error',
-          key: Date.now()
-        });
+        message.error(data.errMessage || '登录失败');
       }
     } catch (error) {
-      setNotification({
-        message: '网络错误，请重试',
-        type: 'error',
-        key: Date.now()
-      });
+      message.error('网络错误，请重试');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-800">Zenith 系统</h1>
-          <p className="text-slate-500 mt-2">请登录以继续</p>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)',
+    }}>
+      <Card style={{ width: 400 }} bordered={false}>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: 0 }}>
+            Zenith 系统
+          </h1>
+          <p style={{ color: '#64748b', marginTop: 8 }}>请登录以继续</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              登录账号
-            </label>
-            <input
-              type="text"
-              value={loginId}
-              onChange={(e) => setLoginId(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition"
-              placeholder="请输入登录账号"
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              密码
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition"
-              placeholder="请输入密码"
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-slate-800 text-white py-2 px-4 rounded-lg hover:bg-slate-700 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        <Form
+          form={form}
+          onFinish={handleSubmit}
+          initialValues={{ loginId: 'admin', password: '000000' }}
+          size="large"
+        >
+          <Form.Item
+            name="loginId"
+            rules={[{ required: true, message: '请输入登录账号' }]}
           >
-            {loading ? '登录中...' : '登录'}
-          </button>
-        </form>
-      </div>
+            <Input prefix={<UserOutlined />} placeholder="请输入登录账号" />
+          </Form.Item>
 
-      {notification && (
-        <Notification
-          key={notification.key}
-          message={notification.message}
-          type={notification.type}
-        />
-      )}
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: '请输入密码' }]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="请输入密码" />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Button type="primary" htmlType="submit" loading={loading} block>
+              登录
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
     </div>
   );
 }
