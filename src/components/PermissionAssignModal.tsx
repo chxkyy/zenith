@@ -155,10 +155,10 @@ export default function PermissionAssignModal({ isOpen, onClose, roleId, roleNam
       okText="保存分配"
       confirmLoading={saving}
       width={600}
-      destroyOnClose
+      destroyOnHidden
     >
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spin tip="加载权限数据..." /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spin description="加载权限数据..." /></div>
       ) : (
         <Tree
           checkable

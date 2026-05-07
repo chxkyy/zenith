@@ -86,7 +86,7 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
       onCancel={onClose}
       onOk={handleOk}
       okText={mode === 'add' ? '保存菜单' : '更新菜单'}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" preserve={false}>
         <Form.Item label="菜单名称" name="name" rules={[{ required: true, message: '请输入菜单名称' }]}>
@@ -194,7 +194,7 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
       onCancel={onClose}
       onOk={handleOk}
       okText={mode === 'add' ? '保存' : '更新'}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" preserve={false}>
         <Form.Item label="权限名称" name="name" rules={[{ required: true, message: '请输入权限名称' }]}>

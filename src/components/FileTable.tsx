@@ -297,7 +297,6 @@ export default function FileTable() {
             }
           }}
         />
-        <span style={{ color: '#64748b', fontSize: 14 }}>共 {totalCount} 个文件</span>
       </div>
 
       <Table<FileItem>
@@ -310,8 +309,10 @@ export default function FileTable() {
           current: currentPage,
           pageSize: pageSize,
           total: totalCount,
-          showSizeChanger: true,
           showTotal: (total) => `共 ${total} 条`,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          size: 'default',
           onChange: (page, size) => {
             setCurrentPage(page);
             setPageSize(size);

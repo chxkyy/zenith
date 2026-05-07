@@ -55,7 +55,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSave, user, mo
       onCancel={onClose}
       onOk={handleOk}
       okText={mode === 'add' ? '保存用户' : '更新用户'}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" preserve={false}>
         <Form.Item label="用户名" name="username" rules={[{ required: true, message: '请输入用户名' }]}>

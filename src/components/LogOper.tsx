@@ -27,6 +27,8 @@ const LogOper: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const hasFetchedLogs = useRef(false);
   const [searchParams, setSearchParams] = useState({ operator: '', module: '', result: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -74,7 +76,7 @@ const LogOper: React.FC = () => {
     fetchLogs();
   }, []);
 
-  const handleSearch = () => fetchLogs();
+  const handleSearch = () => { setCurrentPage(1); fetchLogs(); };
   const handleReset = () => {
     setSearchParams({ operator: '', module: '', result: '' });
   };
@@ -162,13 +164,25 @@ const LogOper: React.FC = () => {
       >
         <Table<OperLog>
           columns={columns}
-          dataSource={logs}
+          dataSource={logs.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
           rowKey="id"
           size="small"
           loading={loading}
           scroll={{ x: 1300 }}
           locale={{ emptyText: error || '暂无数据' }}
-          pagination={false}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: logs.length,
+            showTotal: (total) => `共 ${total} 条`,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            size: 'default',
+            onChange: (page, size) => {
+              setCurrentPage(page);
+              setPageSize(size);
+            },
+          }}
         />
       </Card>
     </div>

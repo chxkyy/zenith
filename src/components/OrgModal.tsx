@@ -60,7 +60,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org, mode,
       onCancel={onClose}
       onOk={handleOk}
       okText={mode === 'edit' ? '更新组织' : '保存组织'}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" preserve={false}>
         <Form.Item label="组织名称" name="name" rules={[{ required: true, message: '请输入组织名称' }]}>

@@ -50,12 +50,19 @@ export default function OrgUserManagement() {
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [selectedOrgUser, setSelectedOrgUser] = useState<OrgUser | null>(null);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
   const hasFetchedData = useRef(false);
   const [form] = Form.useForm();
 
   const fetchOrgs = async () => {
     try {
-      const response = await fetch('/api/orgs');
+      const response = await fetch('/api/orgs/page', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pageIndex: 1, pageSize: 1000 })
+      });
       if (!response.ok) throw new Error('Failed to fetch organizations');
       const data = await response.json();
       if (data.success && data.data) {
@@ -95,8 +102,10 @@ export default function OrgUserManagement() {
         // 默认选中第一个节点
         if (rootOrgs.length > 0 && !selectedOrgKey) {
           const firstKey = `org-${rootOrgs[0].id}`;
+          const firstId = rootOrgs[0].id;
           setSelectedOrgKey(firstKey);
-          setSelectedOrgId(rootOrgs[0].id);
+          setSelectedOrgId(firstId);
+          fetchOrgUsers(firstId);
         }
       }
     } catch (error) {
@@ -104,20 +113,27 @@ export default function OrgUserManagement() {
     }
   };
 
-  const fetchOrgUsers = async (orgId?: number) => {
+  const fetchOrgUsers = async (orgId?: number, page?: number, size?: number) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.append('orgId', String(orgId || selectedOrgId || ''));
-      if (searchKeyword) params.append('username', searchKeyword);
-
-      const response = await fetch(`/api/org-users?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch org users');
+      const response = await fetch('/api/users/page', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pageIndex: page || currentPage,
+          pageSize: size || pageSize,
+          orgId: orgId || selectedOrgId,
+          keyword: searchKeyword || undefined
+        })
+      });
+      if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       if (data.success && data.data) {
         setOrgUsers(data.data);
+        setTotalCount(data.totalCount || 0);
       } else {
         setOrgUsers([]);
+        setTotalCount(0);
       }
     } catch (error) {
       console.error('Error fetching org users:', error);
@@ -130,9 +146,7 @@ export default function OrgUserManagement() {
   useEffect(() => {
     if (hasFetchedData.current) return;
     hasFetchedData.current = true;
-    fetchOrgs().then(() => {
-      if (selectedOrgId) fetchOrgUsers(selectedOrgId);
-    });
+    fetchOrgs();
   }, []);
 
   const handleSelectNode = (keys: React.Key[], info: any) => {
@@ -142,46 +156,66 @@ export default function OrgUserManagement() {
     const orgId = orgIdStr ? Number(orgIdStr) : null;
     setSelectedOrgId(orgId);
     setSearchKeyword('');
-    fetchOrgUsers(orgId || undefined);
+    setCurrentPage(1);
+    fetchOrgUsers(orgId, 1);
   };
 
   const handleSaveOrgUser = async () => {
     try {
       const values = await form.validateFields();
-      const orgUserDTO = {
-        id: selectedOrgUser?.id,
-        userId: values.userId,
-        orgId: values.orgId || selectedOrgId,
-        status: values.status
-      };
-      const response = await fetch('/api/org-users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orgUserDTO)
-      });
-      if (!response.ok) throw new Error('Failed to save org user');
-      const data = await response.json();
-      if (data.success) {
-        setIsModalOpen(false);
-        message.success(modalMode === 'edit' ? '编辑成功' : '新增成功');
-        fetchOrgUsers(selectedOrgId || undefined);
+      if (modalMode === 'add') {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: values.userId,
+            nickname: values.nickname || values.userId,
+            orgId: selectedOrgId,
+            status: values.status ?? 1
+          })
+        });
+        if (!response.ok) throw new Error('Failed to save user');
+        const data = await response.json();
+        if (data.success) {
+          setIsModalOpen(false);
+          message.success('新增成功');
+          fetchOrgUsers(selectedOrgId || undefined);
+        } else {
+          throw new Error(data.errMessage || '新增失败');
+        }
       } else {
-        throw new Error(data.errMessage || '保存失败');
+        const response = await fetch('/api/users/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: selectedOrgUser?.id,
+            status: values.status
+          })
+        });
+        if (!response.ok) throw new Error('Failed to update user');
+        const data = await response.json();
+        if (data.success) {
+          setIsModalOpen(false);
+          message.success('编辑成功');
+          fetchOrgUsers(selectedOrgId || undefined);
+        } else {
+          throw new Error(data.errMessage || '编辑失败');
+        }
       }
     } catch (error: any) {
-      console.error('Error saving org user:', error);
-      message.error(error.message || '保存组织用户失败');
+      console.error('Error saving:', error);
+      message.error(error.message || '操作失败');
     }
   };
 
   const handleDeleteOrgUser = async (id: number) => {
     try {
-      const response = await fetch(`/api/org-users/delete`, {
+      const response = await fetch(`/api/users/delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
-      if (!response.ok) throw new Error('Failed to delete org user');
+      if (!response.ok) throw new Error('Failed to delete user');
       const data = await response.json();
       if (data.success) {
         message.success('删除成功');
@@ -190,7 +224,7 @@ export default function OrgUserManagement() {
         throw new Error(data.errMessage || '删除失败');
       }
     } catch (error: any) {
-      console.error('Error deleting org user:', error);
+      console.error('Error deleting user:', error);
       message.error(error.message || '删除失败');
     }
   };
@@ -262,15 +296,15 @@ export default function OrgUserManagement() {
               prefix={<SearchOutlined />}
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
-              onPressEnter={() => fetchOrgUsers(selectedOrgId || undefined)}
+              onPressEnter={() => { setCurrentPage(1); fetchOrgUsers(selectedOrgId || undefined, 1); }}
               allowClear
-              onClear={() => { setSearchKeyword(''); fetchOrgUsers(selectedOrgId || undefined); }}
+              onClear={() => { setSearchKeyword(''); setCurrentPage(1); fetchOrgUsers(selectedOrgId || undefined, 1); }}
               style={{ width: 200 }}
             />
-            <Button type="primary" size="small" icon={<SearchOutlined />} onClick={() => fetchOrgUsers(selectedOrgId || undefined)}>
+            <Button type="primary" size="small" icon={<SearchOutlined />} onClick={() => { setCurrentPage(1); fetchOrgUsers(selectedOrgId || undefined, 1); }}>
               查询
             </Button>
-            <Button size="small" icon={<UndoOutlined />} onClick={() => { setSearchKeyword(''); fetchOrgUsers(selectedOrgId || undefined); }}>
+            <Button size="small" icon={<UndoOutlined />} onClick={() => { setSearchKeyword(''); setCurrentPage(1); fetchOrgUsers(selectedOrgId || undefined, 1); }}>
               重置
             </Button>
           </Space>
@@ -293,7 +327,20 @@ export default function OrgUserManagement() {
             size="small"
             loading={loading}
             scroll={{ x: 1100 }}
-            pagination={false}
+            pagination={{
+              current: currentPage,
+              pageSize: pageSize,
+              total: totalCount,
+              showTotal: (total) => `共 ${total} 条`,
+              showSizeChanger: true,
+              pageSizeOptions: ['10', '20', '50', '100'],
+              size: 'default',
+              onChange: (page, size) => {
+                setCurrentPage(page);
+                setPageSize(size);
+                fetchOrgUsers(selectedOrgId || undefined, page, size);
+              }
+            }}
             locale={{ emptyText: selectedOrgId ? '该组织下暂无人员' : '请先选择左侧组织节点' }}
           />
         </Card>
@@ -304,19 +351,18 @@ export default function OrgUserManagement() {
           onCancel={() => setIsModalOpen(false)}
           onOk={handleSaveOrgUser}
           okText={modalMode === 'add' ? '保存' : '更新'}
-          destroyOnClose
+          destroyOnHidden
         >
           <Form form={form} layout="vertical" preserve={false}
             initialValues={{
-              userId: selectedOrgUser?.userId || '',
-              orgId: selectedOrgUser?.orgId || selectedOrgId || '',
+              userId: selectedOrgUser?.username || '',
               status: selectedOrgUser?.status ?? 1
             }}>
-            <Form.Item label="用户ID" name="userId" rules={[{ required: true, message: '请输入用户ID' }]}>
-              <Input placeholder="请输入用户ID" prefix={<UserOutlined />} disabled={modalMode === 'edit'} />
+            <Form.Item label="用户名" name="userId" rules={[{ required: true, message: '请输入用户名' }]}>
+              <Input placeholder="请输入用户名" prefix={<UserOutlined />} disabled={modalMode === 'edit'} />
             </Form.Item>
-            <Form.Item label="所属组织" name="orgId" rules={[{ required: true, message: '请选择组织' }]}>
-              <Input placeholder={`当前选中：ID ${selectedOrgId || '-'}`} disabled />
+            <Form.Item label="所属组织">
+              <Input value={`ID ${selectedOrgId || '-'}`} disabled />
             </Form.Item>
             <Form.Item label="状态" name="status">
               <Select options={[

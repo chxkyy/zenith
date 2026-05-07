@@ -443,12 +443,14 @@ export default function NoticeTable() {
           current: currentPage,
           pageSize: pageSize,
           total: totalCount,
-          showTotal: (total) => `共 ${total} 条记录`,
+          showTotal: (total) => `共 ${total} 条`,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          size: 'default',
           onChange: (page, size) => {
             setCurrentPage(page);
             setPageSize(size);
           },
-          showSizeChanger: true,
         }}
       />
 
@@ -461,7 +463,7 @@ export default function NoticeTable() {
         okText="保存"
         cancelText="取消"
         width={640}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" preserve={false}>
           {formModalType === 'edit' && (
@@ -528,7 +530,7 @@ export default function NoticeTable() {
         onCancel={() => setViewModalOpen(false)}
         footer={<Button type="primary" onClick={() => setViewModalOpen(false)}>关闭</Button>}
         width={640}
-        destroyOnClose
+        destroyOnHidden
       >
         {currentNotice && (
           <div>

@@ -66,7 +66,7 @@ export default function Dashboard() {
 
   if (!stats || !stats.success) return (
     <div style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)' }}>
-      <Spin size="large" tip="正在加载统计数据..." />
+      <Spin size="large" description="正在加载统计数据..." />
     </div>
   );
 
@@ -144,8 +144,8 @@ export default function Dashboard() {
                 ]}
               />
             </div>
-            <div style={{ height: 300, width: '100%', minWidth: 200, minHeight: 200 }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%' }}>
+              <ResponsiveContainer width="100%" height={300} aspect={2}>
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">

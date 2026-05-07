@@ -31,6 +31,8 @@ export default function RoleManagement() {
   const [permRole, setPermRole] = useState<{ id: number; name: string } | null>(null);
   const hasFetchedRoles = useRef(false);
   const [form] = Form.useForm();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -166,12 +168,24 @@ export default function RoleManagement() {
       >
         <Table<Role>
           columns={columns}
-          dataSource={filteredRoles}
+          dataSource={filteredRoles.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
           rowKey="id"
           size="small"
           loading={loading}
           scroll={{ x: 1300 }}
-          pagination={false}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: filteredRoles.length,
+            showTotal: (total) => `共 ${total} 条`,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            size: 'default',
+            onChange: (page, size) => {
+              setCurrentPage(page);
+              setPageSize(size);
+            },
+          }}
         />
       </Card>
 
@@ -181,7 +195,7 @@ export default function RoleManagement() {
         onCancel={() => setIsModalOpen(false)}
         onOk={handleSaveRole}
         okText={modalMode === 'add' ? '保存角色' : '更新角色'}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" preserve={false}
           initialValues={{

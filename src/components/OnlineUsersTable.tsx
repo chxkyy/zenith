@@ -151,7 +151,7 @@ export default function OnlineUsersTable() {
 
       <Table<OnlineUser>
         columns={columns}
-        dataSource={users}
+        dataSource={users.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
         rowKey="sessionId"
         loading={loading}
         size="small"

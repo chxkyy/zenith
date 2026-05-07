@@ -1,5 +1,6 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { Layout, Spin } from 'antd';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './Login';
@@ -22,8 +23,9 @@ const MonitoringTable = lazy(() => import('./components/MonitoringTable'));
 const CacheTable = lazy(() => import('./components/CacheTable'));
 const OnlineUsersTable = lazy(() => import('./components/OnlineUsersTable'));
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+function AppContent() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState<{ username?: string; email?: string } | null>(null);
@@ -59,6 +61,7 @@ export default function App() {
 
   const handleLoginSuccess = () => {
     checkAuth();
+    navigate('/dashboard');
   };
 
   const handleLogout = async () => {
@@ -72,7 +75,7 @@ export default function App() {
     }
     setIsAuthenticated(false);
     setCurrentUser(null);
-    setActiveTab('dashboard');
+    navigate('/dashboard');
   };
 
   const toggleCollapsed = () => {
@@ -95,51 +98,9 @@ export default function App() {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'roles':
-        return <RoleManagement />;
-      case 'orgs':
-        return <OrgUserManagement />;
-      case 'profile':
-        return <Profile />;
-      case 'notices':
-        return <NoticeTable />;
-      case 'menus':
-        return <MenuManagement />;
-      case 'logs_oper':
-        return <LogOper />;
-      case 'logs_login':
-        return <LogLogin />;
-      case 'logs_error':
-        return <LogError />;
-      case 'config':
-        return <ConfigTable />;
-      case 'dicts':
-        return <DictTable />;
-      case 'files':
-        return <FileTable />;
-      case 'monitoring':
-        return <MonitoringTable />;
-      case 'cache':
-        return <CacheTable />;
-      case 'online':
-        return <OnlineUsersTable />;
-      default:
-        return (
-          <div style={{ textAlign: 'center', padding: 48, color: '#999' }}>
-            <h2>模块开发中</h2>
-            <p>该功能模块 ({activeTab}) 正在开发中，敬请期待。</p>
-          </div>
-        );
-    }
-  };
-
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} collapsed={collapsed} />
+      <Sidebar collapsed={collapsed} />
       <Layout>
         <Header
           username={currentUser?.username}
@@ -150,13 +111,38 @@ export default function App() {
         <Content style={{ margin: 16, overflow: 'auto' }}>
           <Suspense fallback={
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-              <Spin size="large" tip="加载中..." />
+              <Spin size="large" description="加载中..." />
             </div>
           }>
-            {renderContent()}
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/roles" element={<RoleManagement />} />
+              <Route path="/orgs" element={<OrgUserManagement />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/notices" element={<NoticeTable />} />
+              <Route path="/menus" element={<MenuManagement />} />
+              <Route path="/logs/oper" element={<LogOper />} />
+              <Route path="/logs/login" element={<LogLogin />} />
+              <Route path="/logs/error" element={<LogError />} />
+              <Route path="/config" element={<ConfigTable />} />
+              <Route path="/dicts" element={<DictTable />} />
+              <Route path="/files" element={<FileTable />} />
+              <Route path="/monitoring" element={<MonitoringTable />} />
+              <Route path="/cache" element={<CacheTable />} />
+              <Route path="/online" element={<OnlineUsersTable />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
           </Suspense>
         </Content>
       </Layout>
     </Layout>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }

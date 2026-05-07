@@ -94,10 +94,10 @@ export default function UserAssignModal({ isOpen, onClose, roleId, roleName }: U
       okText="保存分配"
       confirmLoading={saving}
       width={700}
-      destroyOnClose
+      destroyOnHidden
     >
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spin tip="加载用户数据..." /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spin description="加载用户数据..." /></div>
       ) : (
         <Transfer
           dataSource={transferDataSource}

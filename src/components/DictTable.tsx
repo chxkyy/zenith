@@ -49,7 +49,7 @@ export default function DictTable() {
   const [selectedDictType, setSelectedDictType] = useState<DictType | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
   const [dictItems, setDictItems] = useState<DictItem[]>([]);
@@ -87,6 +87,9 @@ export default function DictTable() {
       if (data.success && data.data) {
         setDictTypes(data.data);
         setTotalCount(data.totalCount || 0);
+        if (data.data.length > 0 && !selectedDictType) {
+          setSelectedDictType(data.data[0]);
+        }
       }
     } catch (error) {
       console.error('获取字典类型列表失败:', error);
@@ -530,16 +533,6 @@ export default function DictTable() {
 
   return (
     <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>字典管理</h2>
-          <p style={{ color: '#64748b', marginTop: 4 }}>管理系统字典类型及字典项数据。</p>
-        </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => openDictTypeModal('add')}>
-          新增字典类型
-        </Button>
-      </div>
-
       <div style={{ marginBottom: 16 }}>
         <Input.Search
           placeholder="搜索字典名称或编码..."
@@ -558,13 +551,15 @@ export default function DictTable() {
         rowKey="id"
         loading={loading}
         size="small"
+        scroll={{ y: 'calc(100vh - 380px)' }}
         pagination={{
           current: currentPage,
           pageSize: pageSize,
           total: totalCount,
+          showTotal: (total) => `共 ${total} 条`,
           showSizeChanger: true,
-          pageSizeOptions: ['5', '10', '20', '50'],
-          showTotal: (total) => `共 ${total} 条记录`,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          size: 'default',
           onChange: (page, size) => {
             setCurrentPage(page);
             setPageSize(size);
@@ -579,15 +574,20 @@ export default function DictTable() {
           },
         })}
         title={() => (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <BookOutlined style={{ color: '#4f46e5' }} />
-            <span style={{ fontWeight: 600 }}>字典类型管理</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <BookOutlined style={{ color: '#4f46e5' }} />
+              <span style={{ fontWeight: 600 }}>字典类型管理</span>
+            </div>
+            <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => openDictTypeModal('add')}>
+              新增字典类型
+            </Button>
           </div>
         )}
       />
 
-      {selectedDictType && (
-        <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 24 }}>
+        {selectedDictType ? (
           <Table<DictItem>
             columns={dictItemColumns}
             dataSource={dictItems}
@@ -598,12 +598,14 @@ export default function DictTable() {
               current: itemsCurrentPage,
               pageSize: itemsPageSize,
               total: itemsTotalCount,
+              showTotal: (total) => `共 ${total} 条`,
               showSizeChanger: true,
-              pageSizeOptions: ['5', '10', '20', '50'],
-              showTotal: (total) => `共 ${total} 条记录`,
+              pageSizeOptions: ['10', '20', '50', '100'],
+              size: 'default',
               onChange: (page, size) => {
                 setItemsCurrentPage(page);
                 setItemsPageSize(size);
+                if (selectedDictType) fetchDictItems(selectedDictType.type, page, size);
               },
             }}
             title={() => (
@@ -618,8 +620,12 @@ export default function DictTable() {
               </div>
             )}
           />
-        </div>
-      )}
+        ) : (
+          <div style={{ textAlign: 'center', padding: 40, color: '#999', background: '#fafafa', borderRadius: 8 }}>
+            请先选择一个字典类型查看字典项
+          </div>
+        )}
+      </div>
 
       <Modal
         title={dictTypeModalMode === 'add' ? '新增字典类型' : '编辑字典类型'}
@@ -628,7 +634,7 @@ export default function DictTable() {
         onCancel={() => setDictTypeModalOpen(false)}
         okText="保存"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={dictTypeForm}
@@ -673,7 +679,7 @@ export default function DictTable() {
         onCancel={() => setDictItemModalOpen(false)}
         okText="保存"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={dictItemForm}
