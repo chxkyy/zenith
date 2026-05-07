@@ -32,7 +32,7 @@ export default function RoleAssignModal({ isOpen, onClose, userId, username }: R
     setLoading(true);
     try {
       const [rolesRes, userRolesRes] = await Promise.all([
-        fetch('/api/roles'),
+        fetch('/api/roles/list'),
         fetch(`/api/user-roles?userId=${userId}`)
       ]);
 

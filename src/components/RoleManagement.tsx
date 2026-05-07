@@ -35,7 +35,7 @@ export default function RoleManagement() {
   const fetchRoles = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/roles');
+      const response = await fetch('/api/roles/list');
       if (!response.ok) throw new Error('Failed to fetch roles');
       const data = await response.json();
       if (data.success) {
@@ -67,7 +67,8 @@ export default function RoleManagement() {
         status: values.status,
         remark: values.remark
       };
-      const response = await fetch('/api/roles', {
+      const url = modalMode === 'add' ? '/api/roles' : '/api/roles/update';
+      const response = await fetch(url, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(roleDTO)
       });
       if (!response.ok) throw new Error('Failed to save role');
