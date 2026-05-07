@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { Table, Button, Space, Tag, Popconfirm, App, Card, Empty, Spin, Input, Select, Modal, Form } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Button, Space, Tag, Popconfirm, App, Card, Empty, Spin, Input, Modal, Form, Layout, Tree, Select } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UndoOutlined, UserOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UndoOutlined, UserOutlined, ApartmentOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+
+const { Sider, Content } = Layout;
 
 interface OrgUser {
   id: number;
@@ -29,16 +31,25 @@ interface Org {
   children?: Org[];
 }
 
+interface TreeNodeData {
+  key: string;
+  title: React.ReactNode;
+  orgId: number;
+  children?: TreeNodeData[];
+}
+
 export default function OrgUserManagement() {
   const { message } = App.useApp();
   const [orgUsers, setOrgUsers] = useState<OrgUser[]>([]);
   const [orgs, setOrgs] = useState<Org[]>([]);
+  const [treeData, setTreeData] = useState<TreeNodeData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrg, setSelectedOrg] = useState<Org | null>(null);
+  const [selectedOrgKey, setSelectedOrgKey] = useState<string>('');
+  const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [selectedOrgUser, setSelectedOrgUser] = useState<OrgUser | null>(null);
-  const [searchParams, setSearchParams] = useState({ username: '', orgId: null as number | null });
+  const [searchKeyword, setSearchKeyword] = useState('');
   const hasFetchedData = useRef(false);
   const [form] = Form.useForm();
 
@@ -50,26 +61,55 @@ export default function OrgUserManagement() {
       if (data.success && data.data) {
         const orgMap = new Map<number, Org>();
         data.data.forEach((orgDTO: any) => {
-          orgMap.set(orgDTO.id, { id: orgDTO.id, name: orgDTO.name, parentId: orgDTO.parentId, sort: orgDTO.sort || 0, status: orgDTO.status ?? 1, children: [] });
+          orgMap.set(orgDTO.id, {
+            id: orgDTO.id,
+            name: orgDTO.name,
+            parentId: orgDTO.parentId,
+            sort: orgDTO.sort || 0,
+            status: orgDTO.status ?? 1,
+            children: []
+          });
         });
         const rootOrgs: Org[] = [];
         orgMap.forEach(org => {
-          if (!org.parentId) { rootOrgs.push(org); }
-          else { const parent = orgMap.get(org.parentId); if (parent) parent.children?.push(org); }
+          if (!org.parentId) {
+            rootOrgs.push(org);
+          } else {
+            const parent = orgMap.get(org.parentId);
+            if (parent) parent.children?.push(org);
+          }
         });
         setOrgs(rootOrgs);
+
+        // 转换为 Tree 组件数据格式
+        const convertToTreeData = (orgList: Org[]): TreeNodeData[] => {
+          return orgList.map(org => ({
+            key: `org-${org.id}`,
+            title: <span>{org.name}</span>,
+            orgId: org.id,
+            children: org.children?.length ? convertToTreeData(org.children) : undefined
+          }));
+        };
+        setTreeData(convertToTreeData(rootOrgs));
+
+        // 默认选中第一个节点
+        if (rootOrgs.length > 0 && !selectedOrgKey) {
+          const firstKey = `org-${rootOrgs[0].id}`;
+          setSelectedOrgKey(firstKey);
+          setSelectedOrgId(rootOrgs[0].id);
+        }
       }
     } catch (error) {
       console.error('Error fetching organizations:', error);
     }
   };
 
-  const fetchOrgUsers = async () => {
+  const fetchOrgUsers = async (orgId?: number) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (searchParams.username) params.append('username', searchParams.username);
-      if (searchParams.orgId) params.append('orgId', String(searchParams.orgId));
+      params.append('orgId', String(orgId || selectedOrgId || ''));
+      if (searchKeyword) params.append('username', searchKeyword);
 
       const response = await fetch(`/api/org-users?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch org users');
@@ -87,12 +127,23 @@ export default function OrgUserManagement() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (hasFetchedData.current) return;
     hasFetchedData.current = true;
-    fetchOrgs();
-    fetchOrgUsers();
+    fetchOrgs().then(() => {
+      if (selectedOrgId) fetchOrgUsers(selectedOrgId);
+    });
   }, []);
+
+  const handleSelectNode = (keys: React.Key[], info: any) => {
+    const key = keys[0]?.toString() || '';
+    setSelectedOrgKey(key);
+    const orgIdStr = key.replace('org-', '');
+    const orgId = orgIdStr ? Number(orgIdStr) : null;
+    setSelectedOrgId(orgId);
+    setSearchKeyword('');
+    fetchOrgUsers(orgId || undefined);
+  };
 
   const handleSaveOrgUser = async () => {
     try {
@@ -100,37 +151,41 @@ export default function OrgUserManagement() {
       const orgUserDTO = {
         id: selectedOrgUser?.id,
         userId: values.userId,
-        orgId: values.orgId,
+        orgId: values.orgId || selectedOrgId,
         status: values.status
       };
       const response = await fetch('/api/org-users', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orgUserDTO)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orgUserDTO)
       });
       if (!response.ok) throw new Error('Failed to save org user');
       const data = await response.json();
       if (data.success) {
         setIsModalOpen(false);
         message.success(modalMode === 'edit' ? '编辑成功' : '新增成功');
-        fetchOrgUsers();
+        fetchOrgUsers(selectedOrgId || undefined);
       } else {
         throw new Error(data.errMessage || '保存失败');
       }
     } catch (error: any) {
       console.error('Error saving org user:', error);
-      message.error(error.message || '保存失败');
+      message.error(error.message || '保存组织用户失败');
     }
   };
 
   const handleDeleteOrgUser = async (id: number) => {
     try {
       const response = await fetch(`/api/org-users/delete`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
       });
       if (!response.ok) throw new Error('Failed to delete org user');
       const data = await response.json();
       if (data.success) {
         message.success('删除成功');
-        fetchOrgUsers();
+        fetchOrgUsers(selectedOrgId || undefined);
       } else {
         throw new Error(data.errMessage || '删除失败');
       }
@@ -140,21 +195,10 @@ export default function OrgUserManagement() {
     }
   };
 
-  const flattenOrgs = (orgList: Org[]): Org[] => {
-    return orgList.reduce((result: Org[], org) => {
-      result.push(org);
-      if (org.children?.length) result.push(...flattenOrgs(org.children));
-      return result;
-    }, []);
-  };
-
-  const allOrgsFlat = flattenOrgs(orgs);
-
   const columns: ColumnsType<OrgUser> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
     { title: '用户名', dataIndex: 'username', key: 'username', width: 100 },
     { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 100 },
-    { title: '所属组织', dataIndex: 'orgName', key: 'orgName', width: 120 },
     {
       title: '状态', dataIndex: 'status', key: 'status', width: 80,
       render: (v) => <Tag color={v === 1 ? 'success' : 'default'}>{v === 1 ? '启用' : '禁用'}</Tag>
@@ -180,78 +224,109 @@ export default function OrgUserManagement() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Card size="small">
-        <Space wrap>
-          <Space>
-            <span style={{ fontSize: 14, color: '#666' }}>用户名</span>
-            <Input size="small" placeholder="请输入用户名" value={searchParams.username}
-              onChange={(e) => setSearchParams({ ...searchParams, username: e.target.value })}
-              onPressEnter={fetchOrgUsers} style={{ width: 140 }} />
-          </Space>
-          <Space>
-            <span style={{ fontSize: 14, color: '#666' }}>组织</span>
-            <Select size="small" value={searchParams.orgId || undefined} placeholder="全部"
-              onChange={(v) => setSearchParams({ ...searchParams, orgId: v || null })}
-              style={{ width: 160 }} allowClear
-              options={allOrgsFlat.map(org => ({ value: org.id, label: org.name }))}
-            />
-          </Space>
-          <Button type="primary" size="small" icon={<SearchOutlined />} onClick={fetchOrgUsers}>查询</Button>
-          <Button size="small" icon={<UndoOutlined />} onClick={() => setSearchParams({ username: '', orgId: null })}>重置</Button>
-        </Space>
-      </Card>
-
-      <Card size="small" title="组织用户管理"
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => { setModalMode('add'); setSelectedOrgUser(null); setIsModalOpen(true); }}>
-            新增
-          </Button>
-        }
+    <Layout style={{ height: 'calc(100vh - 48px)' }}>
+      <Sider
+        width={240}
+        style={{
+          background: '#fff',
+          borderRight: '1px solid #f0f0f0',
+          overflow: 'auto'
+        }}
       >
-        <Table<OrgUser>
-          columns={columns}
-          dataSource={orgUsers}
-          rowKey="id"
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 600, fontSize: 14 }}>
+          组织架构
+        </div>
+        <div style={{ padding: 8 }}>
+          {treeData.length > 0 ? (
+            <Tree
+              showIcon
+              defaultExpandAll
+              selectedKeys={[selectedOrgKey]}
+              onSelect={handleSelectNode as any}
+              treeData={treeData}
+              style={{ fontSize: 13 }}
+              icon={<ApartmentOutlined style={{ color: '#1677ff', fontSize: 12 }} />}
+            />
+          ) : (
+            <Empty description="暂无组织" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          )}
+        </div>
+      </Sider>
+
+      <Content style={{ padding: 16, overflow: 'auto', background: '#f5f5f5' }}>
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Space wrap>
+            <Input
+              size="small"
+              placeholder="搜索用户名..."
+              prefix={<SearchOutlined />}
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onPressEnter={() => fetchOrgUsers(selectedOrgId || undefined)}
+              allowClear
+              onClear={() => { setSearchKeyword(''); fetchOrgUsers(selectedOrgId || undefined); }}
+              style={{ width: 200 }}
+            />
+            <Button type="primary" size="small" icon={<SearchOutlined />} onClick={() => fetchOrgUsers(selectedOrgId || undefined)}>
+              查询
+            </Button>
+            <Button size="small" icon={<UndoOutlined />} onClick={() => { setSearchKeyword(''); fetchOrgUsers(selectedOrgId || undefined); }}>
+              重置
+            </Button>
+          </Space>
+        </Card>
+
+        <Card
           size="small"
-          loading={loading}
-          scroll={{ x: 1100 }}
-          pagination={false}
-        />
-      </Card>
+          title={`${selectedOrgId ? `当前组织（ID:${selectedOrgId}）` : '请选择组织'} - 人员列表`}
+          extra={
+            <Button type="primary" icon={<PlusOutlined />} disabled={!selectedOrgId}
+              onClick={() => { setModalMode('add'); setSelectedOrgUser(null); setIsModalOpen(true); }}>
+              新增人员
+            </Button>
+          }
+        >
+          <Table<OrgUser>
+            columns={columns}
+            dataSource={orgUsers}
+            rowKey="id"
+            size="small"
+            loading={loading}
+            scroll={{ x: 1100 }}
+            pagination={false}
+            locale={{ emptyText: selectedOrgId ? '该组织下暂无人员' : '请先选择左侧组织节点' }}
+          />
+        </Card>
 
-      <Modal
-        title={modalMode === 'add' ? '新增组织用户' : '编辑组织用户'}
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        onOk={handleSaveOrgUser}
-        okText={modalMode === 'add' ? '保存' : '更新'}
-        destroyOnClose
-      >
-        <Form form={form} layout="vertical" preserve={false}
-          initialValues={{
-            userId: selectedOrgUser?.userId || '',
-            orgId: selectedOrgUser?.orgId || '',
-            status: selectedOrgUser?.status ?? 1
-          }}>
-          <Form.Item label="用户ID" name="userId" rules={[{ required: true, message: '请输入用户ID' }]}>
-            <Input placeholder="请输入用户ID" prefix={<UserOutlined />} disabled={modalMode === 'edit'} />
-          </Form.Item>
-          <Form.Item label="所属组织" name="orgId" rules={[{ required: true, message: '请选择组织' }]}>
-            <Select placeholder="请选择组织"
-              options={allOrgsFlat.map(org => ({ value: org.id, label: org.name }))}
-            />
-          </Form.Item>
-          <Form.Item label="状态" name="status">
-            <Select
-              options={[
+        <Modal
+          title={modalMode === 'add' ? '新增组织用户' : '编辑组织用户'}
+          open={isModalOpen}
+          onCancel={() => setIsModalOpen(false)}
+          onOk={handleSaveOrgUser}
+          okText={modalMode === 'add' ? '保存' : '更新'}
+          destroyOnClose
+        >
+          <Form form={form} layout="vertical" preserve={false}
+            initialValues={{
+              userId: selectedOrgUser?.userId || '',
+              orgId: selectedOrgUser?.orgId || selectedOrgId || '',
+              status: selectedOrgUser?.status ?? 1
+            }}>
+            <Form.Item label="用户ID" name="userId" rules={[{ required: true, message: '请输入用户ID' }]}>
+              <Input placeholder="请输入用户ID" prefix={<UserOutlined />} disabled={modalMode === 'edit'} />
+            </Form.Item>
+            <Form.Item label="所属组织" name="orgId" rules={[{ required: true, message: '请选择组织' }]}>
+              <Input placeholder={`当前选中：ID ${selectedOrgId || '-'}`} disabled />
+            </Form.Item>
+            <Form.Item label="状态" name="status">
+              <Select options={[
                 { value: 1, label: '启用' },
                 { value: 0, label: '禁用' },
-              ]}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+              ]} />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </Content>
+    </Layout>
   );
 }
