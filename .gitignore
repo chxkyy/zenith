@@ -17,3 +17,4 @@ coverage/
 /backend-java/start/target/
 /backend-java/project-api/target/
 /.vite-cache/
+/frontend/.vite-cache/

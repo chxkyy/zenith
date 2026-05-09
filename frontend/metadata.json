@@ -1,0 +1,9 @@
+{
+  "name": "Zenith Enterprise Admin System",
+  "description": "A professional enterprise-grade administration platform featuring RBAC, department management, system monitoring, and comprehensive audit logging.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
