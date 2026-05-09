@@ -9,4 +9,8 @@ public interface PermissionService {
     List<MenuDTO> getAccessibleMenus(Long userId);
     boolean hasPermission(Long userId, String permission);
     void updateUserRoles(Long userId, List<Long> roleIds);
+
+    void assignRolePermissions(Long roleId, List<Long> functionIds);
+
+    List<Long> getRolePermissions(Long roleId);
 }

@@ -73,7 +73,8 @@ public class PermissionServiceImpl implements PermissionService {
                 .collect(Collectors.toList());
     }
 
-    public List<Long> getFunctionsByRoleId(Long roleId) {
+    @Override
+    public List<Long> getRolePermissions(Long roleId) {
         List<RoleFunctionDO> roleFunctions = roleFunctionMapper.selectList(
                 new LambdaQueryWrapper<RoleFunctionDO>().eq(RoleFunctionDO::getRoleId, roleId)
         );
@@ -111,6 +112,24 @@ public class PermissionServiceImpl implements PermissionService {
                 userRole.setRoleId(roleId);
                 userRole.setCreatedTime(LocalDateTime.now());
                 userRoleMapper.insert(userRole);
+            }
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRolePermissions(Long roleId, List<Long> functionIds) {
+        LambdaQueryWrapper<RoleFunctionDO> deleteWrapper = new LambdaQueryWrapper<>();
+        deleteWrapper.eq(RoleFunctionDO::getRoleId, roleId);
+        roleFunctionMapper.delete(deleteWrapper);
+
+        if (functionIds != null && !functionIds.isEmpty()) {
+            for (Long functionId : functionIds) {
+                RoleFunctionDO roleFunction = new RoleFunctionDO();
+                roleFunction.setRoleId(roleId);
+                roleFunction.setFunctionId(functionId);
+                roleFunction.setCreatedTime(LocalDateTime.now());
+                roleFunctionMapper.insert(roleFunction);
             }
         }
     }

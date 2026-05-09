@@ -63,7 +63,7 @@ export default function PermissionAssignModal({ isOpen, onClose, roleId, roleNam
       if (menusData.success) setMenus(menusData.data || []);
       if (permsData.success) setPermissions(permsData.data || []);
       if (rolePermsData.success) {
-        setCheckedKeys((rolePermsData.data || []).map((p: any) => String(p.functionId || p.id)));
+        setCheckedKeys((rolePermsData.data || []).map((id: number) => `perm-${id}`));
       }
     } catch (error) {
       console.error('Error fetching permission data:', error);
@@ -163,7 +163,10 @@ export default function PermissionAssignModal({ isOpen, onClose, roleId, roleNam
         <Tree
           checkable
           checkedKeys={checkedKeys}
-          onCheck={(keys) => setCheckedKeys(keys as React.Key[])}
+          onCheck={(keys) => {
+            const checked = Array.isArray(keys) ? keys : (keys as any).checked || [];
+            setCheckedKeys(checked);
+          }}
           treeData={buildTreeData()}
           defaultExpandAll
           style={{ marginTop: 16 }}

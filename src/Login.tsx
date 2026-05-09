@@ -48,7 +48,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       justifyContent: 'center',
       background: 'linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)',
     }}>
-      <Card style={{ width: 400 }} bordered={false}>
+      <Card style={{ width: 400 }} variant="borderless">
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: 0 }}>
             Zenith 系统

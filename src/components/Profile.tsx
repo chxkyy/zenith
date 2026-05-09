@@ -38,7 +38,9 @@ export default function Profile() {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/me');
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Failed to fetch profile');
       const data = await response.json();
       if (data.success) {
