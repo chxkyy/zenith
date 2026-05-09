@@ -569,7 +569,6 @@ export default function DictTable() {
             showTotal: (total) => `共 ${total} 条`,
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
-            size: 'default',
             onChange: (page, size) => {
               setCurrentPage(page);
               setPageSize(size);
@@ -614,7 +613,6 @@ export default function DictTable() {
               showTotal: (total) => `共 ${total} 条`,
               showSizeChanger: true,
               pageSizeOptions: ['10', '20', '50', '100'],
-              size: 'default',
               onChange: (page, size) => {
                 setItemsCurrentPage(page);
                 setItemsPageSize(size);
