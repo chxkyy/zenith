@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Table, Button, Tag, Input, Space, Popconfirm, App, Modal, Form, Select } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -70,18 +70,48 @@ export default function DictTable() {
 
   const hasFetchedRef = useRef(false);
 
-  useEffect(() => {
-    const styleId = 'dict-table-overflow-fix';
-    if (document.getElementById(styleId)) return;
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = `.dict-table .ant-table-body { overflow-x: hidden !important; }`;
-    document.head.appendChild(style);
-    return () => {
-      const el = document.getElementById(styleId);
-      if (el) el.remove();
-    };
+  const dictTypeTableRef = useRef<HTMLDivElement>(null);
+  const dictItemTableRef = useRef<HTMLDivElement>(null);
+  const [dictTypeScrollY, setDictTypeScrollY] = useState<number>(300);
+  const [dictItemScrollY, setDictItemScrollY] = useState<number>(300);
+
+  const calcScrollY = useCallback((containerRef: React.RefObject<HTMLDivElement | null>, setter: (val: number) => void) => {
+    const container = containerRef.current;
+    if (!container) return;
+    const tableEl = container.querySelector('.ant-table');
+    if (!tableEl) return;
+    const headerHeight = container.querySelector('.ant-table-header')?.getBoundingClientRect().height ?? 39;
+    const paginationHeight = container.querySelector('.ant-table-pagination')?.getBoundingClientRect().height ?? 56;
+    const titleHeight = container.querySelector('.ant-table-title')?.getBoundingClientRect().height ?? 46;
+    const scrollY = container.clientHeight - headerHeight - paginationHeight - titleHeight - 16;
+    setter(Math.max(scrollY, 100));
   }, []);
+
+  useEffect(() => {
+    const container = dictTypeTableRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => calcScrollY(dictTypeTableRef, setDictTypeScrollY));
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [calcScrollY]);
+
+  useEffect(() => {
+    const container = dictItemTableRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => calcScrollY(dictItemTableRef, setDictItemScrollY));
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [calcScrollY]);
+
+  useEffect(() => {
+    if (!dictTypes.length) return;
+    requestAnimationFrame(() => calcScrollY(dictTypeTableRef, setDictTypeScrollY));
+  }, [dictTypes, calcScrollY]);
+
+  useEffect(() => {
+    if (!selectedDictType) return;
+    requestAnimationFrame(() => calcScrollY(dictItemTableRef, setDictItemScrollY));
+  }, [selectedDictType, calcScrollY]);
 
   const fetchDictTypes = async (page?: number, size?: number, keyword?: string) => {
     setLoading(true);
@@ -562,7 +592,7 @@ export default function DictTable() {
         />
       </div>
 
-      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+      <div ref={dictTypeTableRef} style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
         <Table<DictType>
           className="dict-table"
           columns={dictTypeColumns}
@@ -571,7 +601,7 @@ export default function DictTable() {
           loading={loading}
           size="small"
           tableLayout="fixed"
-          scroll={{ y: 'calc(100% - 110px)' }}
+          scroll={{ y: dictTypeScrollY }}
           pagination={{
             current: currentPage,
             pageSize: pageSize,
@@ -606,7 +636,7 @@ export default function DictTable() {
         />
       </div>
 
-      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0, marginTop: 16 }}>
+      <div ref={dictItemTableRef} style={{ flex: 1, overflow: 'hidden', minHeight: 0, marginTop: 16 }}>
         {selectedDictType ? (
           <Table<DictItem>
             className="dict-table"
@@ -616,7 +646,7 @@ export default function DictTable() {
             loading={itemsLoading}
             size="small"
             tableLayout="fixed"
-            scroll={{ y: 'calc(100% - 110px)' }}
+            scroll={{ y: dictItemScrollY }}
             pagination={{
               current: itemsCurrentPage,
               pageSize: itemsPageSize,

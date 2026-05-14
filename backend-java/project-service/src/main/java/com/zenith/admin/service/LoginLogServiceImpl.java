@@ -12,14 +12,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class LoginLogServiceImpl implements LoginLogService {
 
-    private final LoginLogMapper loginLogMapper;
     private final LoginLogConvertor loginLogConvertor;
+    private final LoginLogMapper loginLogMapper;
+
+    @Override
+    public void delete(Long id) {
+        loginLogMapper.deleteById(id);
+    }
 
     @Override
     public PageInfo<LoginLogDTO> listByPage(int pageIndex, int pageSize, String username, String status, String ip) {
@@ -50,13 +56,23 @@ public class LoginLogServiceImpl implements LoginLogService {
     }
 
     @Override
-    public void delete(Long id) {
-        loginLogMapper.deleteById(id);
-    }
-
-    @Override
     public void save(LoginLogDTO loginLogDTO) {
         LoginLogDO loginLogDO = loginLogConvertor.toDataObject(loginLogDTO);
         loginLogMapper.insert(loginLogDO);
+    }
+
+    @Override
+    public void updateLogoutAt(String username) {
+        LambdaQueryWrapper<LoginLogDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(LoginLogDO::getUsername, username)
+                .eq(LoginLogDO::getStatus, "成功")
+                .isNull(LoginLogDO::getLogoutAt)
+                .orderByDesc(LoginLogDO::getLoginAt)
+                .last("LIMIT 1");
+        LoginLogDO loginLogDO = loginLogMapper.selectOne(queryWrapper);
+        if (loginLogDO != null) {
+            loginLogDO.setLogoutAt(LocalDateTime.now());
+            loginLogMapper.updateById(loginLogDO);
+        }
     }
 }

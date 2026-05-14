@@ -83,4 +83,28 @@ class LoginLogServiceImplTest {
 
         verify(loginLogMapper).deleteById(1L);
     }
+
+    @Test
+    @DisplayName("更新登出时间 - 找到未登出的记录")
+    void testUpdateLogoutAt_FoundRecord() {
+        testLoginLog.setLogoutAt(null);
+        when(loginLogMapper.selectOne(any())).thenReturn(testLoginLog);
+
+        loginLogService.updateLogoutAt("admin");
+
+        verify(loginLogMapper).selectOne(any());
+        verify(loginLogMapper).updateById(testLoginLog);
+        assertNotNull(testLoginLog.getLogoutAt());
+    }
+
+    @Test
+    @DisplayName("更新登出时间 - 没有找到未登出的记录")
+    void testUpdateLogoutAt_NoRecordFound() {
+        when(loginLogMapper.selectOne(any())).thenReturn(null);
+
+        loginLogService.updateLogoutAt("admin");
+
+        verify(loginLogMapper).selectOne(any());
+        verify(loginLogMapper, never()).updateById(any());
+    }
 }

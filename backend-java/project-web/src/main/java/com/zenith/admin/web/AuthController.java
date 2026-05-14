@@ -3,11 +3,15 @@ package com.zenith.admin.web;
 import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.AuthService;
+import com.zenith.admin.api.LoginLogService;
+import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.dto.data.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final LoginLogService loginLogService;
 
     @PostMapping("/login")
     public SingleResponse<UserDTO> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
@@ -24,15 +29,31 @@ public class AuthController {
         SingleResponse<UserDTO> response = authService.login(
                 request.getLoginId(), request.getPassword(), ip, userAgent);
 
+        LoginLogDTO loginLogDTO = new LoginLogDTO();
+        loginLogDTO.setUsername(request.getLoginId());
+        loginLogDTO.setIp(ip);
+        loginLogDTO.setLoginAt(LocalDateTime.now());
+        loginLogDTO.setCreatedTime(LocalDateTime.now());
+        loginLogDTO.setUpdateTime(LocalDateTime.now());
+
         if (response.isSuccess()) {
+            loginLogDTO.setStatus("成功");
+            loginLogDTO.setMsg("登录成功");
+            loginLogDTO.setCreateUserId(response.getData().getId());
+            loginLogDTO.setUpdateUserId(response.getData().getId());
+
             HttpSession session = httpRequest.getSession(true);
             session.setAttribute("userId", response.getData().getId());
             session.setAttribute("username", response.getData().getUsername());
             session.setAttribute("ip", ip);
             session.setAttribute("userAgent", userAgent);
             session.setAttribute("loginTime", System.currentTimeMillis());
+        } else {
+            loginLogDTO.setStatus("失败");
+            loginLogDTO.setMsg(response.getErrMessage());
         }
 
+        loginLogService.save(loginLogDTO);
         return response;
     }
 
@@ -40,7 +61,11 @@ public class AuthController {
     public Response logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
+            String username = (String) session.getAttribute("username");
             session.invalidate();
+            if (username != null) {
+                loginLogService.updateLogoutAt(username);
+            }
         }
         return Response.buildSuccess();
     }
