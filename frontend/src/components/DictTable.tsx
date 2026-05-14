@@ -70,6 +70,19 @@ export default function DictTable() {
 
   const hasFetchedRef = useRef(false);
 
+  useEffect(() => {
+    const styleId = 'dict-table-overflow-fix';
+    if (document.getElementById(styleId)) return;
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `.dict-table .ant-table-body { overflow-x: hidden !important; }`;
+    document.head.appendChild(style);
+    return () => {
+      const el = document.getElementById(styleId);
+      if (el) el.remove();
+    };
+  }, []);
+
   const fetchDictTypes = async (page?: number, size?: number, keyword?: string) => {
     setLoading(true);
     try {
@@ -351,12 +364,13 @@ export default function DictTable() {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 55,
+      width: 50,
     },
     {
       title: '类型名称',
       dataIndex: 'name',
       key: 'name',
+      ellipsis: true,
       render: (name: string, record: DictType) => (
         <a onClick={() => handleDictTypeSelect(record)} style={{ fontWeight: 600 }}>
           {name}
@@ -367,6 +381,7 @@ export default function DictTable() {
       title: '编码',
       dataIndex: 'type',
       key: 'type',
+      ellipsis: true,
       render: (type: string) => <code style={{ fontSize: 12, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{type}</code>,
     },
     {
@@ -391,43 +406,39 @@ export default function DictTable() {
       title: '创建人',
       dataIndex: 'createUserName',
       key: 'createUserName',
-      width: 80,
+      width: 70,
       render: (val: string) => val || '-',
     },
     {
       title: '创建时间',
       dataIndex: 'createdTime',
       key: 'createdTime',
-      width: 155,
+      width: 140,
       render: (val: string) => formatDateTime(val),
     },
     {
       title: '修改人',
       dataIndex: 'updateUserName',
       key: 'updateUserName',
-      width: 80,
+      width: 70,
       render: (val: string) => val || '-',
     },
     {
       title: '修改时间',
       dataIndex: 'updateTime',
       key: 'updateTime',
-      width: 155,
+      width: 140,
       render: (val: string) => formatDateTime(val),
     },
     {
       title: '操作',
       key: 'action',
-      width: 120,
-      align: 'right' as const,
+      width: 70,
+      align: 'center' as const,
       render: (_: unknown, record: DictType) => (
-        <Space size="small">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openDictTypeModal('edit', record)}>
-            编辑
-          </Button>
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => confirmDictTypeDelete(record)}>
-            删除
-          </Button>
+        <Space size={4}>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openDictTypeModal('edit', record)} />
+          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => confirmDictTypeDelete(record)} />
         </Space>
       ),
     },
@@ -438,18 +449,21 @@ export default function DictTable() {
       title: '类型',
       dataIndex: 'type',
       key: 'type',
+      ellipsis: true,
       render: (type: string) => <code style={{ fontSize: 12, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{type}</code>,
     },
     {
       title: '标签',
       dataIndex: 'label',
       key: 'label',
+      ellipsis: true,
       render: (label: string) => <span style={{ fontWeight: 600 }}>{label}</span>,
     },
     {
       title: '值',
       dataIndex: 'dictValue',
       key: 'dictValue',
+      ellipsis: true,
       render: (val: string) => <code style={{ fontSize: 12, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{val}</code>,
     },
     {
@@ -481,40 +495,38 @@ export default function DictTable() {
       title: '创建人',
       dataIndex: 'createUserName',
       key: 'createUserName',
-      width: 80,
+      width: 70,
       render: (val: string) => val || '-',
     },
     {
       title: '创建时间',
       dataIndex: 'createdTime',
       key: 'createdTime',
-      width: 155,
+      width: 140,
       render: (val: string) => formatDateTime(val),
     },
     {
       title: '修改人',
       dataIndex: 'updateUserName',
       key: 'updateUserName',
-      width: 80,
+      width: 70,
       render: (val: string) => val || '-',
     },
     {
       title: '修改时间',
       dataIndex: 'updateTime',
       key: 'updateTime',
-      width: 155,
+      width: 140,
       render: (val: string) => formatDateTime(val),
     },
     {
       title: '操作',
       key: 'action',
-      width: 120,
-      align: 'right' as const,
+      width: 70,
+      align: 'center' as const,
       render: (_: unknown, record: DictItem) => (
-        <Space size="small">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openDictItemModal('edit', record)}>
-            编辑
-          </Button>
+        <Space size={4}>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openDictItemModal('edit', record)} />
           <Popconfirm
             title={`确定要删除字典项「${record.label}」吗？`}
             onConfirm={() => handleDictItemDelete(record)}
@@ -522,9 +534,7 @@ export default function DictTable() {
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
       ),
@@ -540,7 +550,6 @@ export default function DictTable() {
       overflow: 'hidden',
       boxSizing: 'border-box',
     }}>
-      <style>{`.dict-table .ant-table-body { overflow-x: hidden !important; }`}</style>
       <div style={{ flexShrink: 0, marginBottom: 16 }}>
         <Input.Search
           placeholder="搜索字典名称或编码..."
@@ -561,6 +570,7 @@ export default function DictTable() {
           rowKey="id"
           loading={loading}
           size="small"
+          tableLayout="fixed"
           scroll={{ y: 'calc(100% - 110px)' }}
           pagination={{
             current: currentPage,
@@ -605,6 +615,7 @@ export default function DictTable() {
             rowKey="id"
             loading={itemsLoading}
             size="small"
+            tableLayout="fixed"
             scroll={{ y: 'calc(100% - 110px)' }}
             pagination={{
               current: itemsCurrentPage,

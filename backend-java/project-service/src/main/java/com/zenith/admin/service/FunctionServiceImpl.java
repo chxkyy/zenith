@@ -34,6 +34,14 @@ public class FunctionServiceImpl implements FunctionService {
     }
 
     @Override
+    public List<FunctionDTO> listAll() {
+        LambdaQueryWrapper<FunctionDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByAsc(FunctionDO::getSort, FunctionDO::getId);
+        List<FunctionDO> functionDOS = functionMapper.selectList(queryWrapper);
+        return functionConvertor.toDTOList(functionDOS);
+    }
+
+    @Override
     public PageInfo<FunctionDTO> page(FunctionPageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<FunctionDO> queryWrapper = new LambdaQueryWrapper<>();

@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface FunctionService {
     List<FunctionDTO> listByMenuId(Long menuId);
+    List<FunctionDTO> listAll();
     PageInfo<FunctionDTO> page(FunctionPageQuery query);
     void save(FunctionAddCmd cmd, Long currentUserId);
     void update(FunctionUpdateCmd cmd, Long currentUserId);

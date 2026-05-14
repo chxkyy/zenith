@@ -43,6 +43,12 @@ public class FunctionController {
         return MultiResponse.of(list);
     }
 
+    @GetMapping("/list-all")
+    public MultiResponse<FunctionDTO> listAll() {
+        List<FunctionDTO> list = functionService.listAll();
+        return MultiResponse.of(list);
+    }
+
     @PostMapping("/page")
     public com.alibaba.cola.dto.PageResponse<FunctionDTO> page(@RequestBody @Valid FunctionPageQuery query) {
         PageInfo<FunctionDTO> pageInfo = functionService.page(query);

@@ -52,7 +52,7 @@ export default function PermissionAssignModal({ isOpen, onClose, roleId, roleNam
     try {
       const [menusRes, permsRes, rolePermsRes] = await Promise.all([
         fetch('/api/menus'),
-        fetch('/api/functions/list'),
+        fetch('/api/functions/list-all'),
         fetch(`/api/role-permissions?roleId=${roleId}`)
       ]);
 
@@ -119,12 +119,26 @@ export default function PermissionAssignModal({ isOpen, onClose, roleId, roleNam
     return convertToTreeNode(rootMenus);
   };
 
+  const collectFunctionIds = (keys: React.Key[]): number[] => {
+    const directPermIds = keys
+      .filter(key => String(key).startsWith('perm-'))
+      .map(key => Number(String(key).replace('perm-', '')));
+
+    const checkedMenuIds = keys
+      .filter(key => String(key).startsWith('menu-'))
+      .map(key => Number(String(key).replace('menu-', '')));
+
+    const menuPermIds = permissions
+      .filter(perm => checkedMenuIds.includes(perm.menuId))
+      .map(perm => perm.id);
+
+    return [...new Set([...directPermIds, ...menuPermIds])];
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      const functionIds = checkedKeys
-        .filter(key => String(key).startsWith('perm-'))
-        .map(key => Number(String(key).replace('perm-', '')));
+      const functionIds = collectFunctionIds(checkedKeys);
 
       const response = await fetch('/api/role-permissions/assign', {
         method: 'POST',
