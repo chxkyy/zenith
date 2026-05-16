@@ -3,11 +3,13 @@ package com.zenith.admin.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zenith.admin.api.PermissionService;
+import com.zenith.admin.dataobject.FunctionDO;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.RoleFunctionDO;
 import com.zenith.admin.dataobject.RoleMenuDO;
 import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.MenuDTO;
+import com.zenith.admin.mapper.FunctionMapper;
 import com.zenith.admin.mapper.RoleFunctionMapper;
 import com.zenith.admin.mapper.RoleMenuMapper;
 import com.zenith.admin.mapper.RoleMapper;
@@ -17,8 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +31,71 @@ public class PermissionServiceImpl implements PermissionService {
     private final RoleMenuMapper roleMenuMapper;
     private final RoleFunctionMapper roleFunctionMapper;
     private final RoleMapper roleMapper;
+    private final FunctionMapper functionMapper;
+
+    private static final long CACHE_TTL_MS = 5 * 60 * 1000L;
+
+    private final ConcurrentHashMap<Long, CachedPermissions> permissionCache = new ConcurrentHashMap<>();
+
+    private static class CachedPermissions {
+        final Set<String> permissions;
+        final long expireAt;
+
+        CachedPermissions(Set<String> permissions, long expireAt) {
+            this.permissions = permissions;
+            this.expireAt = expireAt;
+        }
+    }
+
+    private Set<String> loadPermissionsFromDB(Long userId) {
+        List<UserRoleDO> userRoles = userRoleMapper.selectList(
+                new LambdaQueryWrapper<UserRoleDO>().eq(UserRoleDO::getUserId, userId)
+        );
+        if (userRoles.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        List<Long> roleIds = userRoles.stream()
+                .map(UserRoleDO::getRoleId)
+                .collect(Collectors.toList());
+
+        List<RoleDO> roles = roleMapper.selectList(
+                new LambdaQueryWrapper<RoleDO>().in(RoleDO::getId, roleIds)
+        );
+
+        boolean isAdmin = roles.stream()
+                .anyMatch(role -> "ROLE_ADMIN".equals(role.getCode()));
+        if (isAdmin) {
+            return Collections.singleton("*");
+        }
+
+        List<RoleFunctionDO> roleFunctions = roleFunctionMapper.selectList(
+                new LambdaQueryWrapper<RoleFunctionDO>().in(RoleFunctionDO::getRoleId, roleIds)
+        );
+        if (roleFunctions.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        List<Long> functionIds = roleFunctions.stream()
+                .map(RoleFunctionDO::getFunctionId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<FunctionDO> functions = functionMapper.selectList(
+                new LambdaQueryWrapper<FunctionDO>()
+                        .in(FunctionDO::getId, functionIds)
+                        .eq(FunctionDO::getStatus, 1)
+        );
+
+        return functions.stream()
+                .map(FunctionDO::getPermission)
+                .filter(perm -> perm != null && !perm.isEmpty())
+                .collect(Collectors.toSet());
+    }
+
+    private void invalidateCache(Long userId) {
+        permissionCache.remove(userId);
+    }
 
     @Override
     public List<String> getUserRoles(Long userId) {
@@ -42,7 +109,13 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public List<String> getUserPermissions(Long userId) {
-        return Collections.emptyList();
+        CachedPermissions cached = permissionCache.get(userId);
+        if (cached != null && cached.expireAt > System.currentTimeMillis()) {
+            return new ArrayList<>(cached.permissions);
+        }
+        Set<String> perms = loadPermissionsFromDB(userId);
+        permissionCache.put(userId, new CachedPermissions(perms, System.currentTimeMillis() + CACHE_TTL_MS));
+        return new ArrayList<>(perms);
     }
 
     @Override
@@ -52,7 +125,8 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public boolean hasPermission(Long userId, String permission) {
-        return false;
+        List<String> perms = getUserPermissions(userId);
+        return perms.contains("*") || perms.contains(permission);
     }
 
     public List<Long> getRolesByUserId(Long userId) {
@@ -114,6 +188,7 @@ public class PermissionServiceImpl implements PermissionService {
                 userRoleMapper.insert(userRole);
             }
         }
+        invalidateCache(userId);
     }
 
     @Override
@@ -131,6 +206,13 @@ public class PermissionServiceImpl implements PermissionService {
                 roleFunction.setCreatedTime(LocalDateTime.now());
                 roleFunctionMapper.insert(roleFunction);
             }
+        }
+
+        List<UserRoleDO> userRoles = userRoleMapper.selectList(
+                new LambdaQueryWrapper<UserRoleDO>().eq(UserRoleDO::getRoleId, roleId)
+        );
+        for (UserRoleDO ur : userRoles) {
+            invalidateCache(ur.getUserId());
         }
     }
 }

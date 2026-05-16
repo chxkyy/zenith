@@ -3,6 +3,7 @@ import { Table, Button, Input, Space, Tag, Popconfirm, App, Card, Select } from 
 import type { ColumnsType } from 'antd/es/table';
 import { SearchOutlined, UndoOutlined, DownloadOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { usePermission } from '../lib/PermissionContext';
 
 interface OperLog {
   id: number;
@@ -22,6 +23,7 @@ interface OperLog {
 
 const LogOper: React.FC = () => {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [logs, setLogs] = useState<OperLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,9 +122,11 @@ const LogOper: React.FC = () => {
     {
       title: '操作', key: 'action', width: 80, fixed: 'right',
       render: (_, record) => (
+        hasPermission('ops:oper-log:delete') ? (
         <Popconfirm title="确定删除该日志吗？" onConfirm={() => handleDelete(record.id)} okText="确定" cancelText="取消">
           <Button type="link" size="small" danger>删除</Button>
         </Popconfirm>
+        ) : null
       )
     }
   ];
@@ -160,7 +164,7 @@ const LogOper: React.FC = () => {
       </Card>
 
       <Card size="small" title="操作日志列表"
-        extra={<Button size="small" icon={<DownloadOutlined />} style={{ borderColor: '#16a34a', color: '#16a34a' }} onClick={handleExport}>导出</Button>}
+        extra={hasPermission('ops:oper-log:export') ? <Button size="small" icon={<DownloadOutlined />} style={{ borderColor: '#16a34a', color: '#16a34a' }} onClick={handleExport}>导出</Button> : null}
       >
         <Table<OperLog>
           columns={columns}

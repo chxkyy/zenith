@@ -3,6 +3,7 @@ import { Table, Button, Space, Tag, Popconfirm, App, Card, Empty, Spin, Input, M
 import type { ColumnsType } from 'antd/es/table';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UndoOutlined, UserOutlined, ApartmentOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { usePermission } from '../lib/PermissionContext';
 
 const { Sider, Content } = Layout;
 
@@ -40,6 +41,7 @@ interface TreeNodeData {
 
 export default function OrgUserManagement() {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [orgUsers, setOrgUsers] = useState<OrgUser[]>([]);
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [treeData, setTreeData] = useState<TreeNodeData[]>([]);
@@ -245,13 +247,17 @@ export default function OrgUserManagement() {
       title: '操作', key: 'action', width: 120, fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          {hasPermission('sys:user:edit') && (
           <Button type="link" size="small" icon={<EditOutlined />}
             onClick={() => { setSelectedOrgUser(record); setModalMode('edit'); setIsModalOpen(true); }}>
             编辑
           </Button>
+          )}
+          {hasPermission('sys:user:delete') && (
           <Popconfirm title="确定删除该组织用户关系吗？" onConfirm={() => handleDeleteOrgUser(record.id)} okText="确定" cancelText="取消">
             <Button type="link" size="small" danger icon={<DeleteOutlined />}>删除</Button>
           </Popconfirm>
+          )}
         </Space>
       )
     }
@@ -315,7 +321,7 @@ export default function OrgUserManagement() {
           title={`${selectedOrgId ? `当前组织（ID:${selectedOrgId}）` : '请选择组织'} - 人员列表`}
           extra={
             <Button type="primary" icon={<PlusOutlined />} disabled={!selectedOrgId}
-              onClick={() => { setModalMode('add'); setSelectedOrgUser(null); setIsModalOpen(true); }}>
+              onClick={() => { setModalMode('add'); setSelectedOrgUser(null); setIsModalOpen(true); }} style={{ display: hasPermission('sys:user:add') ? undefined : 'none' }}>
               新增人员
             </Button>
           }

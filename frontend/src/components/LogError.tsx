@@ -3,6 +3,7 @@ import { Table, Button, Input, Space, Tag, Popconfirm, App, Modal, Descriptions,
 import type { ColumnsType } from 'antd/es/table';
 import { SearchOutlined, UndoOutlined, DeleteOutlined, EyeOutlined, ClearOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { usePermission } from '../lib/PermissionContext';
 
 interface ErrorLog {
   id: number;
@@ -20,6 +21,7 @@ interface ErrorLog {
 
 const LogError: React.FC = () => {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [logs, setLogs] = useState<ErrorLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -128,9 +130,11 @@ const LogError: React.FC = () => {
       render: (_, record) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setSelectedLog(record)}>详情</Button>
+          {hasPermission('ops:error-log:delete') && (
           <Popconfirm title="确定删除该异常日志吗？" onConfirm={() => handleDelete(record.id)} okText="确定" cancelText="取消">
             <Button type="link" size="small" danger>删除</Button>
           </Popconfirm>
+          )}
         </Space>
       )
     }
@@ -159,9 +163,11 @@ const LogError: React.FC = () => {
 
       <Card size="small" title="异常日志列表"
         extra={
+          hasPermission('ops:error-log:clear') ? (
           <Popconfirm title="确定清理3个月前的所有异常日志吗？" onConfirm={handleClear} okText="确定" cancelText="取消">
             <Button size="small" danger icon={<ClearOutlined />}>清理日志</Button>
           </Popconfirm>
+          ) : null
         }
       >
         <Table<ErrorLog>

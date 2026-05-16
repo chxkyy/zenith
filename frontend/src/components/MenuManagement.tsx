@@ -8,6 +8,7 @@ import {
   VerticalAlignTopOutlined
 } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { usePermission } from '../lib/PermissionContext';
 import {
   DndContext,
   closestCenter,
@@ -216,6 +217,7 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
 
 const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selectedMenu }) => {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'FUNCTION' | 'FIELD'>('FUNCTION');
@@ -372,10 +374,14 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
       title: '操作', key: 'action', width: 120,
       render: (_, record) => (
         <Space size="small">
+          {hasPermission('core:permission:edit') && (
           <Button type="link" size="small" onClick={() => { setSelectedPermission(record); setModalMode('edit'); setIsModalOpen(true); }}>编辑</Button>
+          )}
+          {hasPermission('core:permission:delete') && (
           <Popconfirm title="删除后权限数据不可恢复，是否确认删除？" onConfirm={() => handleDeletePermission(record.id)} okText="确定" cancelText="取消">
             <Button type="link" size="small" danger>删除</Button>
           </Popconfirm>
+          )}
         </Space>
       )
     }
@@ -405,9 +411,11 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
             { key: 'FIELD', label: '字段权限' }
           ]}
           tabBarExtraContent={
+            hasPermission('core:permission:add') ? (
             <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => { setModalMode('add'); setSelectedPermission(null); setIsModalOpen(true); }}>
               新增{activeTab === 'FUNCTION' ? '功能' : '字段'}权限
             </Button>
+            ) : null
           }
         />
         <Table<Permission>
@@ -483,6 +491,7 @@ const SortableMenuItem: React.FC<SortableMenuItemProps> = ({
 
 export default function MenuManagement() {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [menus, setMenus] = useState<Menu[]>([]);
   const [expanded, setExpanded] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -755,24 +764,24 @@ export default function MenuManagement() {
   };
 
   const rightClickMenuItems = rightClickMenu ? [
-    ...(rightClickMenu.menu.type === 'DIR' ? [{
+    ...(rightClickMenu.menu.type === 'DIR' && hasPermission('sys:menu:add') ? [{
       key: 'add-sub', label: '新增子菜单', icon: <PlusOutlined />,
       onClick: () => { setSelectedMenu(rightClickMenu.menu); setModalMode('add'); setIsModalOpen(true); setRightClickMenu(null); }
     }] : []),
-    {
+    ...(hasPermission('sys:menu:edit') ? [{
       key: 'edit', label: '编辑', icon: <EditOutlined />,
       onClick: () => { setSelectedMenu(rightClickMenu.menu); setModalMode('edit'); setIsModalOpen(true); setRightClickMenu(null); }
-    },
+    }] : []),
     {
       key: 'status', label: rightClickMenu.menu.status === 1 ? '禁用' : '启用',
       icon: rightClickMenu.menu.status === 1 ? <EyeInvisibleOutlined /> : <EyeOutlined />,
       onClick: () => { handleChangeStatus(rightClickMenu.menu.id, rightClickMenu.menu.status); setRightClickMenu(null); }
     },
     { type: 'divider' as const },
-    {
+    ...(hasPermission('sys:menu:delete') ? [{
       key: 'delete', label: '删除', icon: <DeleteOutlined />, danger: true,
       onClick: () => { handleDeleteMenu(rightClickMenu.menu.id); }
-    }
+    }] : [])
   ] : [];
 
   return (
@@ -791,7 +800,7 @@ export default function MenuManagement() {
         </div>
 
         <div style={{ padding: 16, borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Button type="primary" icon={<PlusOutlined />} disabled={selectedMenu?.type !== 'DIR'} onClick={() => { setModalMode('add'); setIsModalOpen(true); }}>
+          <Button type="primary" icon={<PlusOutlined />} disabled={selectedMenu?.type !== 'DIR'} onClick={() => { setModalMode('add'); setIsModalOpen(true); }} style={{ display: hasPermission('sys:menu:add') ? undefined : 'none' }}>
             新增菜单
           </Button>
           <Button icon={<VerticalAlignTopOutlined />} onClick={() => { setSearchKeyword(''); setFilteredMenus(null); fetchMenus(); }} title="刷新" />

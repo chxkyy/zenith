@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './Login';
+import { PermissionProvider } from './lib/PermissionContext';
 
 const { Content } = Layout;
 
@@ -29,6 +30,7 @@ function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState<{ username?: string; email?: string } | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [collapsed, setCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
     return saved ? JSON.parse(saved) : false;
@@ -47,15 +49,34 @@ function AppContent() {
       if (data.success) {
         setIsAuthenticated(true);
         setCurrentUser({ username: data.data.username, email: data.data.email });
+        fetchPermissions();
       } else {
         setIsAuthenticated(false);
         setCurrentUser(null);
+        setPermissions([]);
       }
     } catch (error) {
       setIsAuthenticated(false);
       setCurrentUser(null);
+      setPermissions([]);
     } finally {
       setCheckingAuth(false);
+    }
+  };
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await fetch('/api/auth/permissions', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPermissions(data.data || []);
+      } else {
+        setPermissions([]);
+      }
+    } catch (error) {
+      setPermissions([]);
     }
   };
 
@@ -75,6 +96,7 @@ function AppContent() {
     }
     setIsAuthenticated(false);
     setCurrentUser(null);
+    setPermissions([]);
     navigate('/dashboard');
   };
 
@@ -99,6 +121,7 @@ function AppContent() {
   }
 
   return (
+    <PermissionProvider value={permissions}>
     <Layout style={{ minHeight: '100vh' }}>
       <Sidebar collapsed={collapsed} />
       <Layout>
@@ -136,6 +159,7 @@ function AppContent() {
         </Content>
       </Layout>
     </Layout>
+    </PermissionProvider>
   );
 }
 

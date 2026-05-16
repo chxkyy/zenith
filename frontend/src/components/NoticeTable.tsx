@@ -13,6 +13,7 @@ import {
   ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { usePermission } from '../lib/PermissionContext';
 
 interface Notice {
   id: number;
@@ -57,6 +58,7 @@ const statusColorMap: Record<string, string> = {
 
 export default function NoticeTable() {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useState({
@@ -341,10 +343,13 @@ export default function NoticeTable() {
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleViewNotice(record)}>
             查看
           </Button>
+          {hasPermission('notice:edit') && (
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditNotice(record)}>
             编辑
           </Button>
-          {record.status === '1' ? (
+          )}
+          {hasPermission('notice:publish') && (
+          record.status === '1' ? (
             <Popconfirm
               title="确定要撤回该公告吗？"
               onConfirm={() => handlePublishNotice(record)}
@@ -366,7 +371,9 @@ export default function NoticeTable() {
                 发布
               </Button>
             </Popconfirm>
+          )
           )}
+          {hasPermission('notice:delete') && (
           <Popconfirm
             title="删除后数据不可恢复，是否确认删除？"
             icon={<ExclamationCircleOutlined style={{ color: '#faad14' }} />}
@@ -379,6 +386,7 @@ export default function NoticeTable() {
               删除
             </Button>
           </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -391,7 +399,7 @@ export default function NoticeTable() {
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>通知公告</h2>
           <p style={{ color: '#64748b', marginTop: 4 }}>管理系统内的通知、公告及重要规则发布。</p>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNotice}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNotice} style={{ display: hasPermission('notice:add') ? undefined : 'none' }}>
           新增公告
         </Button>
       </div>

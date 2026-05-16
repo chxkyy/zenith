@@ -55,6 +55,7 @@ public class RoleServiceImpl implements RoleService {
     public List<RoleDTO> listActiveRoles() {
         QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
         wrapper.eq("status", 1);
+        wrapper.orderByAsc("id");
 
         List<RoleDO> roleDOS = roleMapper.selectList(wrapper);
         return roleConvertor.toDTOList(roleDOS);
@@ -62,7 +63,9 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public List<RoleDTO> listAll() {
-        List<RoleDO> roleDOS = roleMapper.selectList(null);
+        QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
+        wrapper.orderByAsc("id");
+        List<RoleDO> roleDOS = roleMapper.selectList(wrapper);
         return roleConvertor.toDTOList(roleDOS);
     }
 

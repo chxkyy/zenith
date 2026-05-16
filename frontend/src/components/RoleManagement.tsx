@@ -3,6 +3,7 @@ import { Table, Button, Space, Tag, Popconfirm, App, Card, Input, Modal, Form, S
 import type { ColumnsType } from 'antd/es/table';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UndoOutlined, SafetyOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { usePermission } from '../lib/PermissionContext';
 import PermissionAssignModal from './PermissionAssignModal';
 
 interface Role {
@@ -21,6 +22,7 @@ interface Role {
 
 export default function RoleManagement() {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -136,17 +138,23 @@ export default function RoleManagement() {
       title: '操作', key: 'action', width: 200, fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          {hasPermission('sys:role:edit') && (
           <Button type="link" size="small" icon={<EditOutlined />}
             onClick={() => { setSelectedRole(record); setModalMode('edit'); setIsModalOpen(true); }}>
             编辑
           </Button>
+          )}
+          {hasPermission('sys:role:permission') && (
           <Button type="link" size="small" icon={<SafetyOutlined />}
             onClick={() => { setPermRole({ id: record.id, name: record.name }); setIsPermModalOpen(true); }}>
             权限
           </Button>
+          )}
+          {hasPermission('sys:role:delete') && (
           <Popconfirm title="确定删除该角色吗？删除后不可恢复" onConfirm={() => handleDeleteRole(record.id)} okText="确定" cancelText="取消">
             <Button type="link" size="small" danger icon={<DeleteOutlined />}>删除</Button>
           </Popconfirm>
+          )}
         </Space>
       )
     }
@@ -159,7 +167,7 @@ export default function RoleManagement() {
           <Space>
             <Input size="small" placeholder="搜索角色..." prefix={<SearchOutlined />} value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)} style={{ width: 200 }} allowClear />
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setModalMode('add'); setSelectedRole(null); setIsModalOpen(true); }}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setModalMode('add'); setSelectedRole(null); setIsModalOpen(true); }} style={{ display: hasPermission('sys:role:add') ? undefined : 'none' }}>
               新增角色
             </Button>
             <Button icon={<UndoOutlined />} onClick={fetchRoles}>刷新</Button>

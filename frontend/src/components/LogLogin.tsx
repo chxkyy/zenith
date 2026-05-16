@@ -3,6 +3,7 @@ import { Table, Button, Input, Space, Tag, Popconfirm, App, Card, Select } from 
 import type { ColumnsType } from 'antd/es/table';
 import { SearchOutlined, UndoOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { usePermission } from '../lib/PermissionContext';
 
 interface LoginLog {
   id: number;
@@ -22,6 +23,7 @@ interface LoginLog {
 
 const LogLogin: React.FC = () => {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [logs, setLogs] = useState<LoginLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -121,9 +123,11 @@ const LogLogin: React.FC = () => {
     {
       title: '操作', key: 'action', width: 80, fixed: 'right',
       render: (_, record) => (
+        hasPermission('ops:login-log:delete') ? (
         <Popconfirm title="确定删除该日志吗？" onConfirm={() => handleDelete(record.id)} okText="确定" cancelText="取消">
           <Button type="link" size="small" danger>删除</Button>
         </Popconfirm>
+        ) : null
       )
     }
   ];
@@ -161,7 +165,7 @@ const LogLogin: React.FC = () => {
       </Card>
 
       <Card size="small" title="登录日志列表"
-        extra={<Button size="small" icon={<DownloadOutlined />} style={{ borderColor: '#16a34a', color: '#16a34a' }} onClick={handleExport}>导出</Button>}
+        extra={hasPermission('ops:login-log:export') ? <Button size="small" icon={<DownloadOutlined />} style={{ borderColor: '#16a34a', color: '#16a34a' }} onClick={handleExport}>导出</Button> : null}
       >
         <Table<LoginLog>
           columns={columns}

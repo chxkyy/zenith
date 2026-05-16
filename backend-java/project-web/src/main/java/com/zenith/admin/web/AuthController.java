@@ -1,9 +1,11 @@
 package com.zenith.admin.web;
 
+import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.AuthService;
 import com.zenith.admin.api.LoginLogService;
+import com.zenith.admin.api.PermissionService;
 import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.dto.data.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -20,6 +23,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final LoginLogService loginLogService;
+    private final PermissionService permissionService;
 
     @PostMapping("/login")
     public SingleResponse<UserDTO> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
@@ -89,6 +93,17 @@ public class AuthController {
         }
         Long userId = (Long) session.getAttribute("userId");
         return authService.changePassword(userId, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+    }
+
+    @GetMapping("/permissions")
+    public MultiResponse<String> getCurrentUserPermissions(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return MultiResponse.buildFailure("NOT_LOGIN", "未登录");
+        }
+        Long userId = (Long) session.getAttribute("userId");
+        List<String> permissions = permissionService.getUserPermissions(userId);
+        return MultiResponse.of(permissions);
     }
 
     @PostMapping("/profile")

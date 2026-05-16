@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { formatDateTime } from '../lib/utils';
+import { usePermission } from '../lib/PermissionContext';
 
 interface FileItem {
   id: number;
@@ -31,6 +32,7 @@ interface FileItem {
 
 export default function FileTable() {
   const { message } = App.useApp();
+  const { hasPermission } = usePermission();
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -241,6 +243,7 @@ export default function FileTable() {
           >
             下载
           </Button>
+          {hasPermission('file:delete') && (
           <Popconfirm
             title="确定要删除该文件吗？"
             onConfirm={() => handleDelete(record.id)}
@@ -251,6 +254,7 @@ export default function FileTable() {
               删除
             </Button>
           </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -274,6 +278,7 @@ export default function FileTable() {
             type="primary"
             icon={<UploadOutlined />}
             onClick={() => fileInputRef.current?.click()}
+            style={{ display: hasPermission('file:upload') ? undefined : 'none' }}
           >
             上传文件
           </Button>
