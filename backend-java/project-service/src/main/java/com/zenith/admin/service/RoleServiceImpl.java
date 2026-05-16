@@ -19,15 +19,36 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
-
-    private final RoleMapper roleMapper;
     private final RoleConvertor roleConvertor;
+    private final RoleMapper roleMapper;
 
     @Override
-    public List<RoleDTO> listAll() {
-        List<RoleDO> roleDOS = roleMapper.selectList(null);
-        List<RoleDTO> dtos = roleConvertor.toDTOList(roleDOS);
-        return dtos;
+    public void changeStatus(Long id, Integer status, Long currentUserId) {
+        RoleDO role = roleMapper.selectById(id);
+        if (role != null) {
+            if (0 == status && "ADMIN".equals(role.getCode())) {
+                throw new RuntimeException("超级管理员角色不可禁用");
+            }
+            role.setStatus(status);
+            roleMapper.updateById(role);
+        }
+    }
+
+    @Override
+    public void delete(Long id, Long currentUserId) {
+        RoleDO role = roleMapper.selectById(id);
+        if (role != null) {
+            if ("ADMIN".equals(role.getCode())) {
+                throw new RuntimeException("超级管理员角色不可删除");
+            }
+            roleMapper.deleteById(id);
+        }
+    }
+
+    @Override
+    public RoleDTO getById(Long id) {
+        RoleDO roleDO = roleMapper.selectById(id);
+        return roleConvertor.toDTO(roleDO);
     }
 
     @Override
@@ -36,14 +57,18 @@ public class RoleServiceImpl implements RoleService {
         wrapper.eq("status", 1);
 
         List<RoleDO> roleDOS = roleMapper.selectList(wrapper);
-        List<RoleDTO> dtos = roleConvertor.toDTOList(roleDOS);
-        return dtos;
+        return roleConvertor.toDTOList(roleDOS);
+    }
+
+    @Override
+    public List<RoleDTO> listAll() {
+        List<RoleDO> roleDOS = roleMapper.selectList(null);
+        return roleConvertor.toDTOList(roleDOS);
     }
 
     @Override
     public PageInfo<RoleDTO> listByPage(RolePageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
-
         QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -90,7 +115,7 @@ public class RoleServiceImpl implements RoleService {
         if (existingRole != null && "ADMIN".equals(existingRole.getCode())) {
             cmd.setCode(existingRole.getCode());
         }
-        
+
         RoleDO roleDO = new RoleDO();
         roleDO.setId(cmd.getId());
         roleDO.setName(cmd.getName());
@@ -98,34 +123,5 @@ public class RoleServiceImpl implements RoleService {
         roleDO.setStatus(cmd.getStatus());
         roleDO.setDescription(cmd.getDescription());
         roleMapper.updateById(roleDO);
-    }
-
-    @Override
-    public void delete(Long id, Long currentUserId) {
-        RoleDO role = roleMapper.selectById(id);
-        if (role != null) {
-            if ("ADMIN".equals(role.getCode())) {
-                throw new RuntimeException("超级管理员角色不可删除");
-            }
-            roleMapper.deleteById(id);
-        }
-    }
-
-    @Override
-    public RoleDTO getById(Long id) {
-        RoleDO roleDO = roleMapper.selectById(id);
-        return roleConvertor.toDTO(roleDO);
-    }
-
-    @Override
-    public void changeStatus(Long id, Integer status, Long currentUserId) {
-        RoleDO role = roleMapper.selectById(id);
-        if (role != null) {
-            if (0 == status && "ADMIN".equals(role.getCode())) {
-                throw new RuntimeException("超级管理员角色不可禁用");
-            }
-            role.setStatus(status);
-            roleMapper.updateById(role);
-        }
     }
 }

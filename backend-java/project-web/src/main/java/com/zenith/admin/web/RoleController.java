@@ -23,57 +23,56 @@ import java.util.List;
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
 public class RoleController {
+    private final RoleService service;
 
-    private final RoleService roleService;
-
-    @GetMapping("/list")
-    public MultiResponse<RoleDTO> list() {
-        List<RoleDTO> list = roleService.listAll();
-        return MultiResponse.of(list);
-    }
-
-    @GetMapping("/list-active")
-    public MultiResponse<RoleDTO> listActive() {
-        List<RoleDTO> list = roleService.listActiveRoles();
-        return MultiResponse.of(list);
-    }
-
-    @PostMapping("/page")
-    public com.alibaba.cola.dto.PageResponse<RoleDTO> page(@RequestBody @Valid RolePageQuery query) {
-        PageInfo<RoleDTO> pageInfo = roleService.listByPage(query);
-        return PageResponseUtils.of(pageInfo);
-    }
-
-    @PostMapping
-    public Response save(@RequestBody @Valid RoleAddCmd cmd) {
+    @PostMapping("/status")
+    public Response changeStatus(@RequestBody StatusUpdateQuery query) {
         Long currentUserId = UserContext.getUserId();
-        roleService.save(cmd, currentUserId);
-        return Response.buildSuccess();
-    }
-
-    @PostMapping("/update")
-    public Response update(@RequestBody @Valid RoleUpdateCmd cmd) {
-        Long currentUserId = UserContext.getUserId();
-        roleService.update(cmd, currentUserId);
+        service.changeStatus(query.getId(), query.getStatus(), currentUserId);
         return Response.buildSuccess();
     }
 
     @PostMapping("/delete")
     public Response delete(@RequestBody IdQuery query) {
         Long currentUserId = UserContext.getUserId();
-        roleService.delete(query.getId(), currentUserId);
+        service.delete(query.getId(), currentUserId);
         return Response.buildSuccess();
     }
 
     @GetMapping("/get")
     public SingleResponse<RoleDTO> get(@RequestParam Long id) {
-        return SingleResponse.of(roleService.getById(id));
+        return SingleResponse.of(service.getById(id));
     }
 
-    @PostMapping("/status")
-    public Response changeStatus(@RequestBody StatusUpdateQuery query) {
+    @GetMapping("/list")
+    public MultiResponse<RoleDTO> list() {
+        List<RoleDTO> list = service.listAll();
+        return MultiResponse.of(list);
+    }
+
+    @GetMapping("/list-active")
+    public MultiResponse<RoleDTO> listActive() {
+        List<RoleDTO> list = service.listActiveRoles();
+        return MultiResponse.of(list);
+    }
+
+    @PostMapping("/page")
+    public com.alibaba.cola.dto.PageResponse<RoleDTO> page(@RequestBody @Valid RolePageQuery query) {
+        PageInfo<RoleDTO> pageInfo = service.listByPage(query);
+        return PageResponseUtils.of(pageInfo);
+    }
+
+    @PostMapping
+    public Response save(@RequestBody @Valid RoleAddCmd cmd) {
         Long currentUserId = UserContext.getUserId();
-        roleService.changeStatus(query.getId(), query.getStatus(), currentUserId);
+        service.save(cmd, currentUserId);
+        return Response.buildSuccess();
+    }
+
+    @PostMapping("/update")
+    public Response update(@RequestBody @Valid RoleUpdateCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        service.update(cmd, currentUserId);
         return Response.buildSuccess();
     }
 }
