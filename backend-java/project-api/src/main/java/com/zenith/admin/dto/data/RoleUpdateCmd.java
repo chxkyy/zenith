@@ -16,4 +16,6 @@ public class RoleUpdateCmd {
     private String code;
 
     private Integer status;
+
+    private String description;
 }

@@ -80,6 +80,7 @@ public class RoleServiceImpl implements RoleService {
         roleDO.setName(cmd.getName());
         roleDO.setCode(cmd.getCode());
         roleDO.setStatus(cmd.getStatus());
+        roleDO.setDescription(cmd.getDescription());
         roleMapper.insert(roleDO);
     }
 
@@ -95,6 +96,7 @@ public class RoleServiceImpl implements RoleService {
         roleDO.setName(cmd.getName());
         roleDO.setCode(cmd.getCode());
         roleDO.setStatus(cmd.getStatus());
+        roleDO.setDescription(cmd.getDescription());
         roleMapper.updateById(roleDO);
     }
 

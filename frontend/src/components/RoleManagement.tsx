@@ -10,7 +10,7 @@ interface Role {
   name: string;
   code: string;
   status: number;
-  remark: string;
+  description: string;
   createdTime: string;
   updateTime: string;
   createUserId: number;
@@ -67,7 +67,7 @@ export default function RoleManagement() {
         name: values.name,
         code: values.code,
         status: values.status,
-        remark: values.remark
+        description: values.description
       };
       const url = modalMode === 'add' ? '/api/roles' : '/api/roles/update';
       const response = await fetch(url, {
@@ -127,7 +127,7 @@ export default function RoleManagement() {
       title: '状态', dataIndex: 'status', key: 'status', width: 80,
       render: (v) => <Tag color={v === 1 ? 'success' : 'default'}>{v === 1 ? '启用' : '禁用'}</Tag>
     },
-    { title: '备注', dataIndex: 'remark', key: 'remark', width: 160, ellipsis: true, render: (v) => v || '-' },
+    { title: '备注', dataIndex: 'description', key: 'description', width: 160, ellipsis: true, render: (v) => v || '-' },
     { title: '创建人', dataIndex: 'createUserName', key: 'createUserName', width: 90, render: (v) => v || '-' },
     { title: '创建时间', dataIndex: 'createdTime', key: 'createdTime', width: 160, render: (v) => formatDateTime(v) },
     { title: '修改人', dataIndex: 'updateUserName', key: 'updateUserName', width: 90, render: (v) => v || '-' },
@@ -202,7 +202,7 @@ export default function RoleManagement() {
             name: selectedRole?.name || '',
             code: selectedRole?.code || '',
             status: selectedRole?.status ?? 1,
-            remark: selectedRole?.remark || ''
+            description: selectedRole?.description || ''
           }}>
           <Form.Item label="角色名称" name="name" rules={[{ required: true, message: '请输入角色名称' }]}>
             <Input placeholder="请输入角色名称" />
@@ -218,7 +218,7 @@ export default function RoleManagement() {
               ]}
             />
           </Form.Item>
-          <Form.Item label="备注" name="remark">
+          <Form.Item label="备注" name="description">
             <Input.TextArea rows={3} placeholder="请输入备注信息" />
           </Form.Item>
         </Form>

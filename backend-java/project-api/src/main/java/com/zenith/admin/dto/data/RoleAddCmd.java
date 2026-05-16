@@ -13,4 +13,6 @@ public class RoleAddCmd {
     private String code;
 
     private Integer status;
+
+    private String description;
 }

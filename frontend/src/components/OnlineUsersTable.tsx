@@ -20,6 +20,8 @@ export default function OnlineUsersTable() {
   const [users, setUsers] = useState<OnlineUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -143,7 +145,8 @@ export default function OnlineUsersTable() {
           prefix={<SearchOutlined />}
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
-          onSearch={(value) => fetchOnlineUsers(value)}
+          onSearch={(value) => { setCurrentPage(1); fetchOnlineUsers(value); }}
+          onClear={() => { setCurrentPage(1); fetchOnlineUsers(); }}
           style={{ width: 300 }}
           allowClear
         />
@@ -155,7 +158,19 @@ export default function OnlineUsersTable() {
         rowKey="sessionId"
         loading={loading}
         size="small"
-        pagination={false}
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: users.length,
+          showTotal: (total) => `共 ${total} 条`,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          size: 'default',
+          onChange: (page, size) => {
+            setCurrentPage(page);
+            setPageSize(size);
+          },
+        }}
         locale={{ emptyText: '暂无在线用户' }}
       />
     </div>
