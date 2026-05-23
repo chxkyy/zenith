@@ -9,9 +9,15 @@ import com.zenith.admin.api.PermissionService;
 import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.UserDTO;
+import com.zenith.admin.security.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +34,7 @@ public class AuthController {
     private final AuthService authService;
     private final LoginLogService loginLogService;
     private final PermissionService permissionService;
+    private final CustomUserDetailsService userDetailsService;
 
     @PostMapping("/password")
     public Response changePassword(@RequestBody ChangePasswordRequest changePasswordRequest,
@@ -101,6 +108,16 @@ public class AuthController {
             session.setAttribute("ip", ip);
             session.setAttribute("userAgent", userAgent);
             session.setAttribute("loginTime", System.currentTimeMillis());
+
+            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoginId());
+            UsernamePasswordAuthenticationToken authentication = 
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);
+            SecurityContextHolder.setContext(securityContext);
+            
+            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
         } else {
             loginLogDTO.setStatus("失败");
             loginLogDTO.setMsg(response.getErrMessage());
@@ -116,6 +133,7 @@ public class AuthController {
         if (session != null) {
             String username = (String) session.getAttribute("username");
             session.invalidate();
+            SecurityContextHolder.clearContext();
             if (username != null) {
                 loginLogService.updateLogoutAt(username);
             }
