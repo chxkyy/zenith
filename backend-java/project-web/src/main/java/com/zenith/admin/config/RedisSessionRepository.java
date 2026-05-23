@@ -97,14 +97,14 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
             JSONObject json = JSON.parseObject(sessionJson);
             RedisSession session = new RedisSession();
             session.setId(json.getString("id"));
-            session.setCreationTime(Instant.ofEpochMilli(json.getLongValue("creationTime")));
-            session.setLastAccessedTime(Instant.ofEpochMilli(json.getLongValue("lastAccessedTime")));
-            session.setMaxInactiveInterval(Duration.ofSeconds(json.getLongValue("maxInactiveInterval")));
+            session.setCreationTime(parseInstant(json.get("creationTime")));
+            session.setLastAccessedTime(parseInstant(json.get("lastAccessedTime")));
+            session.setMaxInactiveInterval(Duration.ofSeconds(parseLong(json.get("maxInactiveInterval"))));
             session.setUserId(json.getLong("userId"));
             session.setUsername(json.getString("username"));
             session.setIp(json.getString("ip"));
             session.setUserAgent(json.getString("userAgent"));
-            session.setLoginTime(json.getLong("loginTime"));
+            session.setLoginTime(parseLong(json.get("loginTime")));
             
             JSONObject attrs = json.getJSONObject("attributes");
             if (attrs != null) {
@@ -129,13 +129,22 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
 
     @Override
     public void deleteById(String sessionId) {
-        RedisSession session = findById(sessionId);
-        if (session != null && session.getUserId() != null) {
-            String userSessionsKey = USER_SESSIONS_KEY_PREFIX + session.getUserId();
-            redisTemplate.opsForSet().remove(userSessionsKey, sessionId);
-        }
-
         String sessionKey = SESSION_KEY_PREFIX + sessionId;
+        String sessionJson = redisTemplate.opsForValue().get(sessionKey);
+        
+        if (sessionJson != null) {
+            try {
+                JSONObject json = JSON.parseObject(sessionJson);
+                Long userId = json.getLong("userId");
+                if (userId != null) {
+                    String userSessionsKey = USER_SESSIONS_KEY_PREFIX + userId;
+                    redisTemplate.opsForSet().remove(userSessionsKey, sessionId);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse session for deletion: {}", sessionId, e);
+            }
+        }
+        
         redisTemplate.delete(sessionKey);
         log.debug("Deleted session: {}", sessionId);
     }
@@ -181,14 +190,14 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
                     JSONObject json = JSON.parseObject(sessionJson);
                     RedisSession session = new RedisSession();
                     session.setId(json.getString("id"));
-                    session.setCreationTime(Instant.ofEpochMilli(json.getLongValue("creationTime")));
-                    session.setLastAccessedTime(Instant.ofEpochMilli(json.getLongValue("lastAccessedTime")));
-                    session.setMaxInactiveInterval(Duration.ofSeconds(json.getLongValue("maxInactiveInterval")));
+                    session.setCreationTime(parseInstant(json.get("creationTime")));
+                    session.setLastAccessedTime(parseInstant(json.get("lastAccessedTime")));
+                    session.setMaxInactiveInterval(Duration.ofSeconds(parseLong(json.get("maxInactiveInterval"))));
                     session.setUserId(json.getLong("userId"));
                     session.setUsername(json.getString("username"));
                     session.setIp(json.getString("ip"));
                     session.setUserAgent(json.getString("userAgent"));
-                    session.setLoginTime(json.getLong("loginTime"));
+                    session.setLoginTime(parseLong(json.get("loginTime")));
                     
                     if (!isKicked(session.getId())) {
                         sessions.add(session);
@@ -232,6 +241,45 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
                 kickSession(session.getId());
             }
         }
+    }
+
+    private Instant parseInstant(Object value) {
+        if (value == null) {
+            return Instant.now();
+        }
+        if (value instanceof Number) {
+            return Instant.ofEpochMilli(((Number) value).longValue());
+        }
+        if (value instanceof String) {
+            String str = (String) value;
+            try {
+                return Instant.parse(str);
+            } catch (Exception e) {
+                try {
+                    return Instant.ofEpochMilli(Long.parseLong(str));
+                } catch (Exception ex) {
+                    return Instant.now();
+                }
+            }
+        }
+        return Instant.now();
+    }
+
+    private long parseLong(Object value) {
+        if (value == null) {
+            return 0;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        if (value instanceof String) {
+            try {
+                return Long.parseLong((String) value);
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+        return 0;
     }
 
     @Data
