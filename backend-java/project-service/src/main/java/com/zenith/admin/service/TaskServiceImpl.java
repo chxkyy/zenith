@@ -122,7 +122,7 @@ public class TaskServiceImpl implements TaskService {
         record.setNodeOrder(task.getNodeOrder());
         record.setNodeName(task.getNodeName());
         record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getNickname() : "");
+        record.setOperatorName(operator != null ? operator.getUsername() : "");
         record.setActionType(ActionTypeEnum.APPROVE.getCode());
         record.setOpinion(cmd.getOpinion());
         approvalRecordMapper.insert(record);
@@ -157,7 +157,7 @@ public class TaskServiceImpl implements TaskService {
         record.setNodeOrder(task.getNodeOrder());
         record.setNodeName(task.getNodeName());
         record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getNickname() : "");
+        record.setOperatorName(operator != null ? operator.getUsername() : "");
         record.setActionType(ActionTypeEnum.REJECT.getCode());
         record.setOpinion(cmd.getOpinion());
         approvalRecordMapper.insert(record);
@@ -217,7 +217,7 @@ public class TaskServiceImpl implements TaskService {
         record.setNodeOrder(task.getNodeOrder());
         record.setNodeName(task.getNodeName());
         record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getNickname() : "");
+        record.setOperatorName(operator != null ? operator.getUsername() : "");
         record.setActionType(ActionTypeEnum.COUNTERSIGN.getCode());
         record.setOpinion(cmd.getOpinion());
         approvalRecordMapper.insert(record);
@@ -284,7 +284,7 @@ public class TaskServiceImpl implements TaskService {
         record.setNodeOrder(task.getNodeOrder());
         record.setNodeName(task.getNodeName());
         record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getNickname() : "");
+        record.setOperatorName(operator != null ? operator.getUsername() : "");
         record.setActionType(ActionTypeEnum.TERMINATE.getCode());
         record.setOpinion(opinion);
         approvalRecordMapper.insert(record);
@@ -434,8 +434,18 @@ public class TaskServiceImpl implements TaskService {
             UserDO initiator = userMapper.selectById(initiatorId);
             if (initiator != null && initiator.getOrgId() != null) {
                 OrgDO org = orgMapper.selectById(initiator.getOrgId());
-                if (org != null && org.getManagerId() != null) {
-                    approverIds.add(org.getManagerId());
+                if (org != null && org.getParentId() != null) {
+                    OrgDO parentOrg = orgMapper.selectById(org.getParentId());
+                    if (parentOrg != null) {
+                        LambdaQueryWrapper<UserDO> userQuery = new LambdaQueryWrapper<>();
+                        userQuery.eq(UserDO::getOrgId, parentOrg.getId());
+                        userQuery.eq(UserDO::getStatus, 1);
+                        userQuery.last("LIMIT 1");
+                        UserDO superior = userMapper.selectOne(userQuery);
+                        if (superior != null) {
+                            approverIds.add(superior.getId());
+                        }
+                    }
                 }
             }
         }
@@ -464,7 +474,7 @@ public class TaskServiceImpl implements TaskService {
 
             UserDO initiator = userMapper.selectById(instance.getInitiatorId());
             if (initiator != null) {
-                dto.setInitiatorName(initiator.getNickname());
+                dto.setInitiatorName(initiator.getUsername());
             }
 
             ProcessTemplateDO template = processTemplateMapper.selectById(instance.getProcessTemplateId());
@@ -476,3 +486,4 @@ public class TaskServiceImpl implements TaskService {
         return dto;
     }
 }
+
