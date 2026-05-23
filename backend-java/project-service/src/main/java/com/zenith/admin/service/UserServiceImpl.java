@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.DataPermissionService;
 import com.zenith.admin.api.UserService;
 import com.zenith.admin.UserConvertor;
 import com.zenith.admin.dataobject.OrgDO;
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserConvertor userConvertor;
     private final UserRoleMapper userRoleMapper;
     private final RoleMapper roleMapper;
+    private final DataPermissionService dataPermissionService;
 
     @Override
     public PageInfo<UserDTO> listByPage(UserPageQuery query) {
@@ -55,6 +57,15 @@ public class UserServiceImpl implements UserService {
 
         if (query.getStatus() != null) {
             wrapper.eq("status", query.getStatus());
+        }
+
+        if (query.getCurrentUserId() != null && !dataPermissionService.hasFullAccess(query.getCurrentUserId())) {
+            List<Long> accessibleOrgIds = dataPermissionService.getAccessibleOrgIds(query.getCurrentUserId());
+            if (accessibleOrgIds.isEmpty()) {
+                wrapper.apply("1 = 0");
+            } else {
+                wrapper.in("org_id", accessibleOrgIds);
+            }
         }
 
         if (query.getSortField() != null && !query.getSortField().isEmpty()) {
@@ -250,6 +261,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getById(Long id) {
         UserDO userDO = userMapper.selectById(id);
+        if (userDO == null) {
+            return null;
+        }
+        List<UserDTO> dtos = convertToDTOsWithRoles(Collections.singletonList(userDO));
+        return dtos.isEmpty() ? null : dtos.get(0);
+    }
+
+    @Override
+    public UserDTO getByLoginId(String loginId) {
+        LambdaQueryWrapper<UserDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserDO::getLoginId, loginId);
+        UserDO userDO = userMapper.selectOne(wrapper);
         if (userDO == null) {
             return null;
         }

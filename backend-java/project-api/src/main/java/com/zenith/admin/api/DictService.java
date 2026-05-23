@@ -13,17 +13,29 @@ import com.zenith.admin.dto.data.DictUpdateCmd;
 import java.util.List;
 
 public interface DictService {
-    List<DictDTO> listAll();
-    List<DictDTO> listByType(String type);
-    void update(DictUpdateCmd cmd, Long currentUserId);
-    DictDTO getById(Long id);
-    PageInfo<DictDTO> page(DictPageQuery query);
     void delete(Long id);
-    void save(DictAddCmd cmd, Long currentUserId);
-    List<DictItemDTO> listItemsByType(String type);
-    PageInfo<DictItemDTO> pageItems(DictItemPageQuery query);
-    void saveItem(DictItemAddCmd cmd, Long currentUserId);
-    void updateItem(DictItemUpdateCmd cmd, Long currentUserId);
+
     void deleteItem(Long id);
+
+    DictDTO getById(Long id);
+
     DictItemDTO getItemById(Long id);
+
+    List<DictDTO> listAll();
+
+    List<DictDTO> listByType(String type);
+
+    List<DictItemDTO> listItemsByType(String type);
+
+    PageInfo<DictDTO> page(DictPageQuery query);
+
+    PageInfo<DictItemDTO> pageItems(DictItemPageQuery query);
+
+    void save(DictAddCmd cmd, Long currentUserId);
+
+    void saveItem(DictItemAddCmd cmd, Long currentUserId);
+
+    void update(DictUpdateCmd cmd, Long currentUserId);
+
+    void updateItem(DictItemUpdateCmd cmd, Long currentUserId);
 }

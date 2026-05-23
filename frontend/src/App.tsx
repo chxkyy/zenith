@@ -31,6 +31,7 @@ function AppContent() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState<{ username?: string; email?: string } | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [menus, setMenus] = useState<any[]>([]);
   const [collapsed, setCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
     return saved ? JSON.parse(saved) : false;
@@ -50,15 +51,18 @@ function AppContent() {
         setIsAuthenticated(true);
         setCurrentUser({ username: data.data.username, email: data.data.email });
         fetchPermissions();
+        fetchMenus();
       } else {
         setIsAuthenticated(false);
         setCurrentUser(null);
         setPermissions([]);
+        setMenus([]);
       }
     } catch (error) {
       setIsAuthenticated(false);
       setCurrentUser(null);
       setPermissions([]);
+      setMenus([]);
     } finally {
       setCheckingAuth(false);
     }
@@ -80,6 +84,22 @@ function AppContent() {
     }
   };
 
+  const fetchMenus = async () => {
+    try {
+      const response = await fetch('/api/auth/menus', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMenus(data.data || []);
+      } else {
+        setMenus([]);
+      }
+    } catch (error) {
+      setMenus([]);
+    }
+  };
+
   const handleLoginSuccess = () => {
     checkAuth();
     navigate('/dashboard');
@@ -97,6 +117,7 @@ function AppContent() {
     setIsAuthenticated(false);
     setCurrentUser(null);
     setPermissions([]);
+    setMenus([]);
     navigate('/dashboard');
   };
 
@@ -121,9 +142,9 @@ function AppContent() {
   }
 
   return (
-    <PermissionProvider value={permissions}>
+    <PermissionProvider value={{ permissions, menus }}>
     <Layout style={{ minHeight: '100vh' }}>
-      <Sidebar collapsed={collapsed} />
+      <Sidebar collapsed={collapsed} menus={menus} />
       <Layout>
         <Header
           username={currentUser?.username}

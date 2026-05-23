@@ -25,6 +25,7 @@ public class UserController {
 
     @PostMapping("/page")
     public com.alibaba.cola.dto.PageResponse<UserDTO> page(@RequestBody @Valid UserPageQuery query) {
+        query.setCurrentUserId(UserContext.getUserId());
         PageInfo<UserDTO> pageInfo = userService.listByPage(query);
         return PageResponseUtils.of(pageInfo);
     }

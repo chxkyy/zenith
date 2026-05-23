@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zenith.admin.api.PermissionService;
 import com.zenith.admin.dataobject.FunctionDO;
+import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.RoleFunctionDO;
 import com.zenith.admin.dataobject.RoleMenuDO;
 import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.mapper.FunctionMapper;
+import com.zenith.admin.mapper.MenuMapper;
 import com.zenith.admin.mapper.RoleFunctionMapper;
 import com.zenith.admin.mapper.RoleMenuMapper;
 import com.zenith.admin.mapper.RoleMapper;
@@ -32,6 +34,7 @@ public class PermissionServiceImpl implements PermissionService {
     private final RoleFunctionMapper roleFunctionMapper;
     private final RoleMapper roleMapper;
     private final FunctionMapper functionMapper;
+    private final MenuMapper menuMapper;
 
     private static final long CACHE_TTL_MS = 5 * 60 * 1000L;
 
@@ -120,7 +123,91 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public List<MenuDTO> getAccessibleMenus(Long userId) {
-        return Collections.emptyList();
+        List<UserRoleDO> userRoles = userRoleMapper.selectList(
+                new LambdaQueryWrapper<UserRoleDO>().eq(UserRoleDO::getUserId, userId)
+        );
+        if (userRoles.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> roleIds = userRoles.stream()
+                .map(UserRoleDO::getRoleId)
+                .collect(Collectors.toList());
+
+        List<RoleDO> roles = roleMapper.selectList(
+                new LambdaQueryWrapper<RoleDO>().in(RoleDO::getId, roleIds)
+        );
+
+        boolean isAdmin = roles.stream()
+                .anyMatch(role -> "ROLE_ADMIN".equals(role.getCode()));
+
+        List<MenuDO> allMenus = menuMapper.selectList(
+                new LambdaQueryWrapper<MenuDO>()
+                        .eq(MenuDO::getStatus, 1)
+                        .orderByAsc(MenuDO::getSort)
+        );
+
+        if (isAdmin) {
+            return convertToMenuDTOList(allMenus);
+        }
+
+        List<RoleMenuDO> roleMenus = roleMenuMapper.selectList(
+                new LambdaQueryWrapper<RoleMenuDO>().in(RoleMenuDO::getRoleId, roleIds)
+        );
+
+        Set<Long> accessibleMenuIds = roleMenus.stream()
+                .map(RoleMenuDO::getMenuId)
+                .collect(Collectors.toSet());
+
+        Set<Long> allAccessibleMenuIds = new HashSet<>(accessibleMenuIds);
+        for (MenuDO menu : allMenus) {
+            if (allAccessibleMenuIds.contains(menu.getId())) {
+                addParentMenuIds(allMenus, menu.getParentId(), allAccessibleMenuIds);
+            }
+        }
+
+        List<MenuDO> accessibleMenus = allMenus.stream()
+                .filter(menu -> allAccessibleMenuIds.contains(menu.getId()))
+                .collect(Collectors.toList());
+
+        return convertToMenuDTOList(accessibleMenus);
+    }
+
+    private void addParentMenuIds(List<MenuDO> allMenus, Long parentId, Set<Long> accessibleMenuIds) {
+        if (parentId == null || parentId == 0L) {
+            return;
+        }
+        if (accessibleMenuIds.contains(parentId)) {
+            return;
+        }
+        accessibleMenuIds.add(parentId);
+        for (MenuDO menu : allMenus) {
+            if (menu.getId().equals(parentId)) {
+                addParentMenuIds(allMenus, menu.getParentId(), accessibleMenuIds);
+                break;
+            }
+        }
+    }
+
+    private List<MenuDTO> convertToMenuDTOList(List<MenuDO> menuDOs) {
+        return menuDOs.stream().map(menuDO -> {
+            MenuDTO dto = new MenuDTO();
+            dto.setId(menuDO.getId());
+            dto.setParentId(menuDO.getParentId());
+            dto.setName(menuDO.getName());
+            dto.setPath(menuDO.getPath());
+            dto.setComponent(menuDO.getComponent());
+            dto.setIcon(menuDO.getIcon());
+            dto.setSort(menuDO.getSort());
+            dto.setStatus(menuDO.getStatus());
+            dto.setType(menuDO.getType());
+            dto.setPermission(menuDO.getPermission());
+            dto.setCreatedTime(menuDO.getCreatedTime());
+            dto.setUpdateTime(menuDO.getUpdateTime());
+            dto.setCreateUserId(menuDO.getCreateUserId());
+            dto.setUpdateUserId(menuDO.getUpdateUserId());
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     @Override

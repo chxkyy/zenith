@@ -18,6 +18,7 @@ public class RoleDO {
     private String description;
     private Integer status;
     private Integer memberCount;
+    private Integer dataScope;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdTime;

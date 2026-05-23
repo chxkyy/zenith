@@ -3,7 +3,6 @@ package com.zenith.admin.service.impl;
 import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.AuthService;
-import com.zenith.admin.api.TokenService;
 import com.zenith.admin.api.UserService;
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dto.data.UserDTO;
@@ -31,9 +30,6 @@ class AuthServiceImplTest {
     private UserMapper userMapper;
 
     @Mock
-    private TokenService tokenService;
-
-    @Mock
     private UserService userService;
 
     @InjectMocks
@@ -56,19 +52,17 @@ class AuthServiceImplTest {
     @DisplayName("登录成功 - 用户名密码正确")
     void testLogin_Success() {
         when(userMapper.selectOne(any())).thenReturn(testUser);
-        when(tokenService.generateToken(anyLong(), anyString())).thenReturn("test-token-123");
 
         UserDTO userDTO = new UserDTO();
         userDTO.setId(1L);
         userDTO.setUsername("admin");
         when(userService.getById(anyLong())).thenReturn(userDTO);
 
-        SingleResponse<UserDTO> response = authService.login("admin", "000000", "127.0.0.1");
+        SingleResponse<UserDTO> response = authService.login("admin", "000000", "127.0.0.1", "test-agent");
 
         assertTrue(response.isSuccess());
         assertNotNull(response.getData());
         assertEquals("admin", response.getData().getUsername());
-        verify(tokenService).generateToken(1L, "127.0.0.1");
     }
 
     @Test
@@ -76,11 +70,10 @@ class AuthServiceImplTest {
     void testLogin_UserNotFound() {
         when(userMapper.selectOne(any())).thenReturn(null);
 
-        SingleResponse<UserDTO> response = authService.login("nonexistent", "password", "127.0.0.1");
+        SingleResponse<UserDTO> response = authService.login("nonexistent", "password", "127.0.0.1", "test-agent");
 
         assertFalse(response.isSuccess());
         assertEquals("USER_NOT_FOUND", response.getErrCode());
-        verify(tokenService, never()).generateToken(anyLong(), anyString());
     }
 
     @Test
@@ -88,11 +81,10 @@ class AuthServiceImplTest {
     void testLogin_WrongPassword() {
         when(userMapper.selectOne(any())).thenReturn(testUser);
 
-        SingleResponse<UserDTO> response = authService.login("admin", "wrongpassword", "127.0.0.1");
+        SingleResponse<UserDTO> response = authService.login("admin", "wrongpassword", "127.0.0.1", "test-agent");
 
         assertFalse(response.isSuccess());
         assertEquals("PASSWORD_ERROR", response.getErrCode());
-        verify(tokenService, never()).generateToken(anyLong(), anyString());
     }
 
     @Test
@@ -101,28 +93,10 @@ class AuthServiceImplTest {
         testUser.setStatus(0);
         when(userMapper.selectOne(any())).thenReturn(testUser);
 
-        SingleResponse<UserDTO> response = authService.login("admin", "000000", "127.0.0.1");
+        SingleResponse<UserDTO> response = authService.login("admin", "000000", "127.0.0.1", "test-agent");
 
         assertFalse(response.isSuccess());
         assertEquals("USER_DISABLED", response.getErrCode());
-    }
-
-    @Test
-    @DisplayName("退出登录成功")
-    void testLogout_Success() {
-        Response response = authService.logout("test-token-123");
-
-        assertTrue(response.isSuccess());
-        verify(tokenService).deleteToken("test-token-123");
-    }
-
-    @Test
-    @DisplayName("退出登录 - token为空")
-    void testLogout_EmptyToken() {
-        Response response = authService.logout("");
-
-        assertTrue(response.isSuccess());
-        verify(tokenService, never()).deleteToken(anyString());
     }
 
     @Test

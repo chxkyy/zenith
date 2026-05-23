@@ -7,6 +7,7 @@ import com.zenith.admin.api.AuthService;
 import com.zenith.admin.api.LoginLogService;
 import com.zenith.admin.api.PermissionService;
 import com.zenith.admin.dto.data.LoginLogDTO;
+import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -104,6 +105,17 @@ public class AuthController {
         Long userId = (Long) session.getAttribute("userId");
         List<String> permissions = permissionService.getUserPermissions(userId);
         return MultiResponse.of(permissions);
+    }
+
+    @GetMapping("/menus")
+    public MultiResponse<MenuDTO> getCurrentUserMenus(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return MultiResponse.buildFailure("NOT_LOGIN", "未登录");
+        }
+        Long userId = (Long) session.getAttribute("userId");
+        List<MenuDTO> menus = permissionService.getAccessibleMenus(userId);
+        return MultiResponse.of(menus);
     }
 
     @PostMapping("/profile")

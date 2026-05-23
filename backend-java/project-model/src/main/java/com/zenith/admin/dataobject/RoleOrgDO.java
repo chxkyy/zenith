@@ -8,13 +8,11 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("t_sys_online_user")
-public class OnlineUserDO {
+@TableName("t_sys_role_org")
+public class RoleOrgDO {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private String ip;
-    private LocalDateTime lastAccessTime;
-    private LocalDateTime loginTime;
-    private String token;
-    private Long userId;
+    private Long roleId;
+    private Long orgId;
+    private LocalDateTime createdTime;
 }

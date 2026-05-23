@@ -13,6 +13,8 @@ public interface UserService {
 
     UserDTO getById(Long id);
 
+    UserDTO getByLoginId(String loginId);
+
     PageInfo<UserDTO> listByPage(UserPageQuery query);
 
     void resetPassword(Long id);

@@ -11,6 +11,7 @@ import lombok.EqualsAndHashCode;
 public class UserPageQuery extends PageQuery {
     private String keyword; // 关键词搜索（用户名、昵称、手机号、邮箱）
     private Long orgId; // 组织ID筛选
+    private Long currentUserId; // 当前用户ID（用于数据权限过滤）
 
     @Min(value = 0, message = "状态值不合法")
     @Max(value = 1, message = "状态值不合法")

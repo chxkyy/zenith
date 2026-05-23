@@ -21,17 +21,6 @@ CREATE TABLE t_sys_role_menu (
     UNIQUE(role_id, menu_id)
 );
 
--- 创建在线用户表
-CREATE TABLE t_sys_online_user (
-    id bigserial PRIMARY KEY,
-    user_id bigint NOT NULL,
-    token varchar(64) NOT NULL,
-    login_time timestamp DEFAULT CURRENT_TIMESTAMP,
-    last_access_time timestamp DEFAULT CURRENT_TIMESTAMP,
-    ip varchar(50),
-    UNIQUE(token)
-);
-
 -- 为admin用户分配admin角色（假设admin角色ID为1）
 INSERT INTO t_sys_user_role (user_id, role_id) VALUES (1, 1) ON CONFLICT DO NOTHING;
 
