@@ -12,7 +12,11 @@ import com.zenith.admin.dto.data.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,10 +25,54 @@ import java.util.List;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-
     private final AuthService authService;
     private final LoginLogService loginLogService;
     private final PermissionService permissionService;
+
+    @PostMapping("/password")
+    public Response changePassword(@RequestBody ChangePasswordRequest changePasswordRequest,
+                                   HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return Response.buildFailure("NOT_LOGIN", "未登录");
+        }
+        Long userId = (Long) session.getAttribute("userId");
+        return authService.changePassword(userId, changePasswordRequest.getOldPassword(),
+                changePasswordRequest.getNewPassword());
+    }
+
+    @GetMapping("/me")
+    public SingleResponse<UserDTO> getCurrentUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return SingleResponse.buildFailure("NOT_LOGIN", "未登录");
+        }
+        Long userId = (Long) session.getAttribute("userId");
+        UserDTO user = authService.getCurrentUser(userId);
+        return SingleResponse.of(user);
+    }
+
+    @GetMapping("/menus")
+    public MultiResponse<MenuDTO> getCurrentUserMenus(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return MultiResponse.buildFailure("NOT_LOGIN", "未登录");
+        }
+        Long userId = (Long) session.getAttribute("userId");
+        List<MenuDTO> menus = permissionService.getAccessibleMenus(userId);
+        return MultiResponse.of(menus);
+    }
+
+    @GetMapping("/permissions")
+    public MultiResponse<String> getCurrentUserPermissions(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return MultiResponse.buildFailure("NOT_LOGIN", "未登录");
+        }
+        Long userId = (Long) session.getAttribute("userId");
+        List<String> permissions = permissionService.getUserPermissions(userId);
+        return MultiResponse.of(permissions);
+    }
 
     @PostMapping("/login")
     public SingleResponse<UserDTO> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
@@ -75,49 +123,6 @@ public class AuthController {
         return Response.buildSuccess();
     }
 
-    @GetMapping("/me")
-    public SingleResponse<UserDTO> getCurrentUser(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return SingleResponse.buildFailure("NOT_LOGIN", "未登录");
-        }
-        Long userId = (Long) session.getAttribute("userId");
-        UserDTO user = authService.getCurrentUser(userId);
-        return SingleResponse.of(user);
-    }
-
-    @PostMapping("/password")
-    public Response changePassword(@RequestBody ChangePasswordRequest changePasswordRequest, HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return Response.buildFailure("NOT_LOGIN", "未登录");
-        }
-        Long userId = (Long) session.getAttribute("userId");
-        return authService.changePassword(userId, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
-    }
-
-    @GetMapping("/permissions")
-    public MultiResponse<String> getCurrentUserPermissions(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return MultiResponse.buildFailure("NOT_LOGIN", "未登录");
-        }
-        Long userId = (Long) session.getAttribute("userId");
-        List<String> permissions = permissionService.getUserPermissions(userId);
-        return MultiResponse.of(permissions);
-    }
-
-    @GetMapping("/menus")
-    public MultiResponse<MenuDTO> getCurrentUserMenus(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return MultiResponse.buildFailure("NOT_LOGIN", "未登录");
-        }
-        Long userId = (Long) session.getAttribute("userId");
-        List<MenuDTO> menus = permissionService.getAccessibleMenus(userId);
-        return MultiResponse.of(menus);
-    }
-
     @PostMapping("/profile")
     public Response updateProfile(@RequestBody UpdateProfileRequest updateProfileRequest, HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -125,7 +130,8 @@ public class AuthController {
             return Response.buildFailure("NOT_LOGIN", "未登录");
         }
         Long userId = (Long) session.getAttribute("userId");
-        return authService.updateProfile(userId, updateProfileRequest.getUsername(), updateProfileRequest.getEmail(), updateProfileRequest.getPhone());
+        return authService.updateProfile(userId, updateProfileRequest.getUsername(), updateProfileRequest.getEmail(),
+                updateProfileRequest.getPhone());
     }
 
     @lombok.Data
@@ -136,14 +142,14 @@ public class AuthController {
 
     @lombok.Data
     public static class ChangePasswordRequest {
-        private String oldPassword;
         private String newPassword;
+        private String oldPassword;
     }
 
     @lombok.Data
     public static class UpdateProfileRequest {
-        private String username;
         private String email;
         private String phone;
+        private String username;
     }
 }
