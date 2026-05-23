@@ -10,16 +10,11 @@ import com.zenith.admin.config.RedisSessionRepository;
 import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.UserDTO;
-import com.zenith.admin.security.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,7 +32,6 @@ public class AuthController {
     private final AuthService authService;
     private final LoginLogService loginLogService;
     private final PermissionService permissionService;
-    private final CustomUserDetailsService userDetailsService;
     private final RedisSessionRepository sessionRepository;
 
     @PostMapping("/password")
@@ -116,16 +110,6 @@ public class AuthController {
             session.setAttribute("ip", ip);
             session.setAttribute("userAgent", userAgent);
             session.setAttribute("loginTime", System.currentTimeMillis());
-
-            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoginId());
-            UsernamePasswordAuthenticationToken authentication = 
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            
-            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-            securityContext.setAuthentication(authentication);
-            SecurityContextHolder.setContext(securityContext);
-            
-            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
 
             String sessionId = session.getId();
             log.info("Login success for user {}, sessionId: {}", username, sessionId);

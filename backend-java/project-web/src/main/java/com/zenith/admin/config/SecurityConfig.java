@@ -11,7 +11,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.session.SessionManagementFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -26,7 +26,6 @@ import java.util.List;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    private final RedisSessionRepository sessionRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,7 +48,6 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .maximumSessions(-1)
             )
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
@@ -57,7 +55,8 @@ public class SecurityConfig {
                     response.setContentType("application/json; charset=UTF-8");
                     response.getWriter().write("{\"success\":false,\"errCode\":\"UNAUTHORIZED\",\"errMessage\":\"未登录或会话已过期\"}");
                 })
-            );
+            )
+            .addFilterBefore(new SessionAuthenticationFilter(userDetailsService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
