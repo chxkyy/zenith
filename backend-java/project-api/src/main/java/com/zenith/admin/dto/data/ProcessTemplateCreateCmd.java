@@ -16,14 +16,4 @@ public class ProcessTemplateCreateCmd {
     private String formSchema;
 
     private List<NodeTemplateCreateCmd> nodes;
-
-    @Data
-    public static class NodeTemplateCreateCmd {
-        private Integer nodeOrder;
-        private String nodeName;
-        private Integer nodeType;
-        private Integer approverType;
-        private String approverValue;
-        private Integer opinionRequired;
-    }
 }

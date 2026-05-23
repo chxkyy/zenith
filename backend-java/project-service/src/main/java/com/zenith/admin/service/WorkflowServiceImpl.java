@@ -6,15 +6,35 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.WorkflowService;
-import com.zenith.admin.dataobject.*;
-import com.zenith.admin.dto.data.*;
-import com.zenith.admin.enums.*;
-import com.zenith.admin.mapper.*;
+import com.zenith.admin.dataobject.ApprovalRecordDO;
+import com.zenith.admin.dataobject.NodeTemplateDO;
+import com.zenith.admin.dataobject.OrgDO;
+import com.zenith.admin.dataobject.ProcessInstanceDO;
+import com.zenith.admin.dataobject.ProcessTemplateDO;
+import com.zenith.admin.dataobject.TaskDO;
+import com.zenith.admin.dataobject.UserDO;
+import com.zenith.admin.dataobject.UserRoleDO;
+import com.zenith.admin.dto.data.ApprovalRecordDTO;
+import com.zenith.admin.dto.data.NodeProgressDTO;
+import com.zenith.admin.dto.data.ProcessInstanceCreateCmd;
+import com.zenith.admin.dto.data.ProcessInstanceDTO;
+import com.zenith.admin.dto.data.ProcessInstancePageQuery;
+import com.zenith.admin.enums.ActionTypeEnum;
+import com.zenith.admin.enums.ApproverTypeEnum;
+import com.zenith.admin.enums.ProcessStatusEnum;
+import com.zenith.admin.enums.TaskStatusEnum;
+import com.zenith.admin.mapper.ApprovalRecordMapper;
+import com.zenith.admin.mapper.NodeTemplateMapper;
+import com.zenith.admin.mapper.OrgMapper;
+import com.zenith.admin.mapper.ProcessInstanceMapper;
+import com.zenith.admin.mapper.ProcessTemplateMapper;
+import com.zenith.admin.mapper.TaskMapper;
+import com.zenith.admin.mapper.UserMapper;
+import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -100,7 +120,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         record.setNodeOrder(0);
         record.setNodeName("发起申请");
         record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getNickname() : "");
+        record.setOperatorName(operator != null ? operator.getUsername() : "");
         record.setActionType(ActionTypeEnum.SUBMIT.getCode());
         approvalRecordMapper.insert(record);
     }
@@ -134,7 +154,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         record.setNodeOrder(instance.getCurrentNodeOrder());
         record.setNodeName("");
         record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getNickname() : "");
+        record.setOperatorName(operator != null ? operator.getUsername() : "");
         record.setActionType(ActionTypeEnum.REVOKE.getCode());
         approvalRecordMapper.insert(record);
     }
@@ -162,7 +182,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         record.setNodeOrder(0);
         record.setNodeName("");
         record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getNickname() : "");
+        record.setOperatorName(operator != null ? operator.getUsername() : "");
         record.setActionType(ActionTypeEnum.CANCEL.getCode());
         approvalRecordMapper.insert(record);
     }
@@ -203,7 +223,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         record.setNodeOrder(0);
         record.setNodeName("重新提交");
         record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getNickname() : "");
+        record.setOperatorName(operator != null ? operator.getUsername() : "");
         record.setActionType(ActionTypeEnum.RESUBMIT.getCode());
         approvalRecordMapper.insert(record);
     }
@@ -252,7 +272,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 for (TaskDO task : nodeTasks) {
                     UserDO user = userMapper.selectById(task.getAssigneeId());
                     if (user != null) {
-                        assigneeNames.add(user.getNickname());
+                        assigneeNames.add(user.getUsername());
                     }
                 }
                 progress.setAssigneeNames(String.join("、", assigneeNames));
@@ -364,8 +384,18 @@ public class WorkflowServiceImpl implements WorkflowService {
             UserDO initiator = userMapper.selectById(initiatorId);
             if (initiator != null && initiator.getOrgId() != null) {
                 OrgDO org = orgMapper.selectById(initiator.getOrgId());
-                if (org != null && org.getManagerId() != null) {
-                    approverIds.add(org.getManagerId());
+                if (org != null && org.getParentId() != null) {
+                    OrgDO parentOrg = orgMapper.selectById(org.getParentId());
+                    if (parentOrg != null) {
+                        LambdaQueryWrapper<UserDO> userQuery = new LambdaQueryWrapper<>();
+                        userQuery.eq(UserDO::getOrgId, parentOrg.getId());
+                        userQuery.eq(UserDO::getStatus, 1);
+                        userQuery.last("LIMIT 1");
+                        UserDO superior = userMapper.selectOne(userQuery);
+                        if (superior != null) {
+                            approverIds.add(superior.getId());
+                        }
+                    }
                 }
             }
         }
@@ -418,7 +448,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
         UserDO initiator = userMapper.selectById(dO.getInitiatorId());
         if (initiator != null) {
-            dto.setInitiatorName(initiator.getNickname());
+            dto.setInitiatorName(initiator.getUsername());
         }
 
         ProcessTemplateDO template = processTemplateMapper.selectById(dO.getProcessTemplateId());
@@ -446,3 +476,4 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dto;
     }
 }
+

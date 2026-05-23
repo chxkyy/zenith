@@ -100,7 +100,7 @@ public class ProcessTemplateServiceImpl implements ProcessTemplateService {
         processTemplateMapper.insert(templateDO);
         
         if (cmd.getNodes() != null && !cmd.getNodes().isEmpty()) {
-            for (ProcessTemplateCreateCmd.NodeTemplateCreateCmd nodeCmd : cmd.getNodes()) {
+            for (NodeTemplateCreateCmd nodeCmd : cmd.getNodes()) {
                 NodeTemplateDO nodeDO = new NodeTemplateDO();
                 nodeDO.setProcessTemplateId(templateDO.getId());
                 nodeDO.setNodeOrder(nodeCmd.getNodeOrder());
@@ -131,7 +131,7 @@ public class ProcessTemplateServiceImpl implements ProcessTemplateService {
         nodeTemplateMapper.deleteByProcessTemplateId(cmd.getId());
         
         if (cmd.getNodes() != null && !cmd.getNodes().isEmpty()) {
-            for (ProcessTemplateCreateCmd.NodeTemplateCreateCmd nodeCmd : cmd.getNodes()) {
+            for (NodeTemplateCreateCmd nodeCmd : cmd.getNodes()) {
                 NodeTemplateDO nodeDO = new NodeTemplateDO();
                 nodeDO.setProcessTemplateId(cmd.getId());
                 nodeDO.setNodeOrder(nodeCmd.getNodeOrder());
