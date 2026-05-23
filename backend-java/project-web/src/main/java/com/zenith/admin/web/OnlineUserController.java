@@ -82,7 +82,11 @@ public class OnlineUserController {
             return SingleResponse.buildFailure("NOT_LOGIN", "未登录");
         }
         
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = null;
+        Object userIdAttr = session.getAttribute("userId");
+        if (userIdAttr instanceof Number) {
+            userId = ((Number) userIdAttr).longValue();
+        }
         if (userId == null) {
             return SingleResponse.buildFailure("NOT_LOGIN", "未登录");
         }
@@ -122,7 +126,11 @@ public class OnlineUserController {
             return Response.buildFailure("NOT_LOGIN", "未登录");
         }
         
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = null;
+        Object userIdAttr = session.getAttribute("userId");
+        if (userIdAttr instanceof Number) {
+            userId = ((Number) userIdAttr).longValue();
+        }
         if (userId == null) {
             return Response.buildFailure("NOT_LOGIN", "未登录");
         }

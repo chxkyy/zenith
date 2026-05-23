@@ -41,7 +41,7 @@ public class AuthController {
         if (session == null) {
             return Response.buildFailure("NOT_LOGIN", "未登录");
         }
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = getUserIdFromSession(session);
         return authService.changePassword(userId, changePasswordRequest.getOldPassword(),
                 changePasswordRequest.getNewPassword());
     }
@@ -52,7 +52,7 @@ public class AuthController {
         if (session == null) {
             return SingleResponse.buildFailure("NOT_LOGIN", "未登录");
         }
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = getUserIdFromSession(session);
         UserDTO user = authService.getCurrentUser(userId);
         return SingleResponse.of(user);
     }
@@ -63,7 +63,7 @@ public class AuthController {
         if (session == null) {
             return MultiResponse.buildFailure("NOT_LOGIN", "未登录");
         }
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = getUserIdFromSession(session);
         List<MenuDTO> menus = permissionService.getAccessibleMenus(userId);
         return MultiResponse.of(menus);
     }
@@ -74,9 +74,17 @@ public class AuthController {
         if (session == null) {
             return MultiResponse.buildFailure("NOT_LOGIN", "未登录");
         }
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = getUserIdFromSession(session);
         List<String> permissions = permissionService.getUserPermissions(userId);
         return MultiResponse.of(permissions);
+    }
+
+    private Long getUserIdFromSession(HttpSession session) {
+        Object userIdAttr = session.getAttribute("userId");
+        if (userIdAttr instanceof Number) {
+            return ((Number) userIdAttr).longValue();
+        }
+        return null;
     }
 
     @PostMapping("/login")
@@ -104,9 +112,11 @@ public class AuthController {
             HttpSession session = httpRequest.getSession(true);
             Long userId = response.getData().getId();
             String username = response.getData().getUsername();
+            String loginId = request.getLoginId();
             
             session.setAttribute("userId", userId);
             session.setAttribute("username", username);
+            session.setAttribute("loginId", loginId);
             session.setAttribute("ip", ip);
             session.setAttribute("userAgent", userAgent);
             session.setAttribute("loginTime", System.currentTimeMillis());

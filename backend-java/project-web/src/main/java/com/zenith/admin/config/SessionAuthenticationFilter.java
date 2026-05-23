@@ -35,14 +35,14 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
+        String loginId = (String) session.getAttribute("loginId");
+        if (loginId == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(loginId);
             UsernamePasswordAuthenticationToken authentication = 
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             

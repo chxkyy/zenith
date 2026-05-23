@@ -41,7 +41,11 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = null;
+        Object userIdAttr = session.getAttribute("userId");
+        if (userIdAttr instanceof Number) {
+            userId = ((Number) userIdAttr).longValue();
+        }
         if (userId == null) {
             sendUnauthorizedResponse(response, "NOT_LOGIN", "未登录或会话已过期");
             return false;
