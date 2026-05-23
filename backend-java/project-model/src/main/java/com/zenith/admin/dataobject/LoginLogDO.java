@@ -15,6 +15,7 @@ public class LoginLogDO {
     private String ip;
     private String status;
     private String msg;
+    private String userAgent;
     private LocalDateTime loginAt;
     private LocalDateTime logoutAt;
     private LocalDateTime createdTime;

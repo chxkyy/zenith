@@ -1,15 +1,18 @@
 package com.zenith.admin.config;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.session.SessionIdGenerator;
 import org.springframework.session.web.http.CookieHttpSessionIdResolver;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
+import org.springframework.session.web.http.HeaderHttpSessionIdResolver;
+import org.springframework.session.web.http.HttpSessionIdResolver;
 import org.springframework.session.web.http.SessionRepositoryFilter;
-import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.List;
 import java.util.UUID;
 
 @Configuration
@@ -21,10 +24,10 @@ public class SpringSessionConfig {
     }
 
     @Bean
-    public CustomJdbcSessionRepository sessionRepository(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate, SessionIdGenerator sessionIdGenerator) {
-        CustomJdbcSessionRepository repository = new CustomJdbcSessionRepository(jdbcTemplate, transactionTemplate, sessionIdGenerator);
-        repository.setDefaultMaxInactiveInterval(java.time.Duration.ofMinutes(30));
-        return repository;
+    public RedisSessionRepository sessionRepository(StringRedisTemplate redisTemplate, 
+                                                     SessionIdGenerator sessionIdGenerator,
+                                                     SessionProperties sessionProperties) {
+        return new RedisSessionRepository(redisTemplate, sessionIdGenerator, sessionProperties);
     }
 
     @Bean
@@ -32,21 +35,68 @@ public class SpringSessionConfig {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setCookieName("ZENITH_TOKEN");
         serializer.setUseHttpOnlyCookie(true);
-        serializer.setSameSite("Lax");
-        serializer.setCookieMaxAge(1800);
+        serializer.setSameSite("Strict");
+        serializer.setCookieMaxAge(-1);
         serializer.setUseSecureCookie(false);
-//        serializer.setUseSecureFlag(false);
-//        serializer.setPath("/");
         serializer.setCookiePath("/");
         return serializer;
     }
 
     @Bean
-    public SessionRepositoryFilter<?> sessionRepositoryFilter(CustomJdbcSessionRepository sessionRepository, CookieSerializer cookieSerializer) {
-        SessionRepositoryFilter<CustomJdbcSessionRepository.CustomSession> filter = new SessionRepositoryFilter<>(sessionRepository);
-        CookieHttpSessionIdResolver sessionIdResolver = new CookieHttpSessionIdResolver();
-        sessionIdResolver.setCookieSerializer(cookieSerializer);
-        filter.setHttpSessionIdResolver(sessionIdResolver);
-        return filter;
+    public HttpSessionIdResolver httpSessionIdResolver(CookieSerializer cookieSerializer) {
+        return new CompositeHttpSessionIdResolver(cookieSerializer);
+    }
+
+    @Bean
+    public FilterRegistrationBean<SessionRepositoryFilter<?>> sessionRepositoryFilterRegistration(
+            RedisSessionRepository sessionRepository,
+            HttpSessionIdResolver httpSessionIdResolver) {
+        
+        SessionRepositoryFilter<RedisSessionRepository.RedisSession> filter = 
+            new SessionRepositoryFilter<>(sessionRepository);
+        filter.setHttpSessionIdResolver(httpSessionIdResolver);
+        
+        FilterRegistrationBean<SessionRepositoryFilter<?>> registration = 
+            new FilterRegistrationBean<>(filter);
+        registration.setOrder(-101);
+        registration.addUrlPatterns("/*");
+        
+        return registration;
+    }
+
+    public static class CompositeHttpSessionIdResolver implements HttpSessionIdResolver {
+
+        private final CookieHttpSessionIdResolver cookieResolver;
+        private final HeaderHttpSessionIdResolver headerResolver;
+
+        public CompositeHttpSessionIdResolver(CookieSerializer cookieSerializer) {
+            this.cookieResolver = new CookieHttpSessionIdResolver();
+            this.cookieResolver.setCookieSerializer(cookieSerializer);
+            this.headerResolver = HeaderHttpSessionIdResolver.xAuthToken();
+        }
+
+        @Override
+        public List<String> resolveSessionIds(jakarta.servlet.http.HttpServletRequest request) {
+            List<String> sessionIds = cookieResolver.resolveSessionIds(request);
+            if (!sessionIds.isEmpty() && !sessionIds.get(0).isEmpty()) {
+                return sessionIds;
+            }
+            return headerResolver.resolveSessionIds(request);
+        }
+
+        @Override
+        public void setSessionId(jakarta.servlet.http.HttpServletRequest request, 
+                                  jakarta.servlet.http.HttpServletResponse response, 
+                                  String sessionId) {
+            cookieResolver.setSessionId(request, response, sessionId);
+            headerResolver.setSessionId(request, response, sessionId);
+        }
+
+        @Override
+        public void expireSession(jakarta.servlet.http.HttpServletRequest request, 
+                                   jakarta.servlet.http.HttpServletResponse response) {
+            cookieResolver.expireSession(request, response);
+            headerResolver.expireSession(request, response);
+        }
     }
 }

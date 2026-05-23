@@ -9,7 +9,13 @@ spring:
       mode: NEVER
   servlet:
     session:
-      timeout: 30m
+      timeout: 120m
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
 
 server:
   servlet:
@@ -18,12 +24,16 @@ server:
         name: ZENITH_TOKEN
         http-only: true
         secure: false
-        same-site: lax
-        max-age: 1800
+        same-site: strict
         path: /
   web:
     resources:
       static-locations: file:uploads/
+
+session:
+  max-concurrent: 5
+  timeout-minutes: 120
+  kicked-record-expire-minutes: 10
 
 mybatis-plus:
   configuration:

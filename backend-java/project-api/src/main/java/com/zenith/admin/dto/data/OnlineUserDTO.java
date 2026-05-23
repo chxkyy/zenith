@@ -13,4 +13,5 @@ public class OnlineUserDTO {
     private String browser;
     private Long loginTime;
     private Long lastAccessTime;
+    private Boolean current;
 }

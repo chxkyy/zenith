@@ -6,6 +6,7 @@ import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.AuthService;
 import com.zenith.admin.api.LoginLogService;
 import com.zenith.admin.api.PermissionService;
+import com.zenith.admin.config.RedisSessionRepository;
 import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.UserDTO;
@@ -13,6 +14,7 @@ import com.zenith.admin.security.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -35,6 +38,7 @@ public class AuthController {
     private final LoginLogService loginLogService;
     private final PermissionService permissionService;
     private final CustomUserDetailsService userDetailsService;
+    private final RedisSessionRepository sessionRepository;
 
     @PostMapping("/password")
     public Response changePassword(@RequestBody ChangePasswordRequest changePasswordRequest,
@@ -95,6 +99,7 @@ public class AuthController {
         loginLogDTO.setLoginAt(LocalDateTime.now());
         loginLogDTO.setCreatedTime(LocalDateTime.now());
         loginLogDTO.setUpdateTime(LocalDateTime.now());
+        loginLogDTO.setUserAgent(userAgent);
 
         if (response.isSuccess()) {
             loginLogDTO.setStatus("成功");
@@ -103,8 +108,11 @@ public class AuthController {
             loginLogDTO.setUpdateUserId(response.getData().getId());
 
             HttpSession session = httpRequest.getSession(true);
-            session.setAttribute("userId", response.getData().getId());
-            session.setAttribute("username", response.getData().getUsername());
+            Long userId = response.getData().getId();
+            String username = response.getData().getUsername();
+            
+            session.setAttribute("userId", userId);
+            session.setAttribute("username", username);
             session.setAttribute("ip", ip);
             session.setAttribute("userAgent", userAgent);
             session.setAttribute("loginTime", System.currentTimeMillis());
@@ -118,6 +126,23 @@ public class AuthController {
             SecurityContextHolder.setContext(securityContext);
             
             session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+
+            String sessionId = session.getId();
+            log.info("Login success for user {}, sessionId: {}", username, sessionId);
+            
+            RedisSessionRepository.RedisSession redisSession = sessionRepository.findById(sessionId);
+            if (redisSession != null) {
+                redisSession.setUserId(userId);
+                redisSession.setUsername(username);
+                redisSession.setIp(ip);
+                redisSession.setUserAgent(userAgent);
+                redisSession.setLoginTime(System.currentTimeMillis());
+                sessionRepository.save(redisSession);
+                
+                sessionRepository.enforceMaxConcurrentSessions(userId, sessionId);
+            } else {
+                log.warn("RedisSession not found for sessionId: {}", sessionId);
+            }
         } else {
             loginLogDTO.setStatus("失败");
             loginLogDTO.setMsg(response.getErrMessage());
@@ -132,8 +157,13 @@ public class AuthController {
         HttpSession session = request.getSession(false);
         if (session != null) {
             String username = (String) session.getAttribute("username");
+            String sessionId = session.getId();
+            
+            sessionRepository.deleteById(sessionId);
+            
             session.invalidate();
             SecurityContextHolder.clearContext();
+            
             if (username != null) {
                 loginLogService.updateLogoutAt(username);
             }
