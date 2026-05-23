@@ -1,6 +1,7 @@
 package com.zenith.admin.config;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -39,7 +40,9 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
     public RedisSession createSession() {
         String sessionId = sessionIdGenerator.generate();
         Instant now = Instant.now();
-        return new RedisSession(sessionId, now, now, defaultMaxInactiveInterval);
+        RedisSession session = new RedisSession(sessionId, now, now, defaultMaxInactiveInterval);
+        log.debug("Creating new session: {}", sessionId);
+        return session;
     }
 
     @Override
@@ -50,10 +53,21 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         }
 
         String sessionKey = SESSION_KEY_PREFIX + session.getId();
-        String sessionJson = JSON.toJSONString(session);
+        
+        JSONObject json = new JSONObject();
+        json.put("id", session.getId());
+        json.put("creationTime", session.getCreationTime().toEpochMilli());
+        json.put("lastAccessedTime", session.getLastAccessedTime().toEpochMilli());
+        json.put("maxInactiveInterval", session.getMaxInactiveInterval().getSeconds());
+        json.put("userId", session.getUserId());
+        json.put("username", session.getUsername());
+        json.put("ip", session.getIp());
+        json.put("userAgent", session.getUserAgent());
+        json.put("loginTime", session.getLoginTime());
+        json.put("attributes", session.getAttributes());
 
         long ttlSeconds = session.getMaxInactiveInterval().getSeconds();
-        redisTemplate.opsForValue().set(sessionKey, sessionJson, ttlSeconds, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(sessionKey, json.toJSONString(), ttlSeconds, TimeUnit.SECONDS);
 
         if (session.getUserId() != null) {
             String userSessionsKey = USER_SESSIONS_KEY_PREFIX + session.getUserId();
@@ -62,6 +76,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         }
 
         session.setChanged(false);
+        log.debug("Saved session: {}", session.getId());
     }
 
     @Override
@@ -74,17 +89,42 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         String sessionJson = redisTemplate.opsForValue().get(sessionKey);
 
         if (sessionJson == null) {
+            log.debug("Session not found: {}", sessionId);
             return null;
         }
 
-        RedisSession session = JSON.parseObject(sessionJson, RedisSession.class);
-        
-        if (session.isExpired()) {
-            deleteById(sessionId);
+        try {
+            JSONObject json = JSON.parseObject(sessionJson);
+            RedisSession session = new RedisSession();
+            session.setId(json.getString("id"));
+            session.setCreationTime(Instant.ofEpochMilli(json.getLongValue("creationTime")));
+            session.setLastAccessedTime(Instant.ofEpochMilli(json.getLongValue("lastAccessedTime")));
+            session.setMaxInactiveInterval(Duration.ofSeconds(json.getLongValue("maxInactiveInterval")));
+            session.setUserId(json.getLong("userId"));
+            session.setUsername(json.getString("username"));
+            session.setIp(json.getString("ip"));
+            session.setUserAgent(json.getString("userAgent"));
+            session.setLoginTime(json.getLong("loginTime"));
+            
+            JSONObject attrs = json.getJSONObject("attributes");
+            if (attrs != null) {
+                Map<String, Object> attributes = new HashMap<>();
+                for (String key : attrs.keySet()) {
+                    attributes.put(key, attrs.get(key));
+                }
+                session.setAttributes(attributes);
+            }
+            
+            if (session.isExpired()) {
+                deleteById(sessionId);
+                return null;
+            }
+
+            return session;
+        } catch (Exception e) {
+            log.error("Failed to parse session: {}", sessionId, e);
             return null;
         }
-
-        return session;
     }
 
     @Override
@@ -97,6 +137,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
 
         String sessionKey = SESSION_KEY_PREFIX + sessionId;
         redisTemplate.delete(sessionKey);
+        log.debug("Deleted session: {}", sessionId);
     }
 
     @Override
@@ -136,9 +177,24 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         for (String key : keys) {
             String sessionJson = redisTemplate.opsForValue().get(key);
             if (sessionJson != null) {
-                RedisSession session = JSON.parseObject(sessionJson, RedisSession.class);
-                if (!isKicked(session.getId())) {
-                    sessions.add(session);
+                try {
+                    JSONObject json = JSON.parseObject(sessionJson);
+                    RedisSession session = new RedisSession();
+                    session.setId(json.getString("id"));
+                    session.setCreationTime(Instant.ofEpochMilli(json.getLongValue("creationTime")));
+                    session.setLastAccessedTime(Instant.ofEpochMilli(json.getLongValue("lastAccessedTime")));
+                    session.setMaxInactiveInterval(Duration.ofSeconds(json.getLongValue("maxInactiveInterval")));
+                    session.setUserId(json.getLong("userId"));
+                    session.setUsername(json.getString("username"));
+                    session.setIp(json.getString("ip"));
+                    session.setUserAgent(json.getString("userAgent"));
+                    session.setLoginTime(json.getLong("loginTime"));
+                    
+                    if (!isKicked(session.getId())) {
+                        sessions.add(session);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to parse session from key: {}", key, e);
                 }
             }
         }
