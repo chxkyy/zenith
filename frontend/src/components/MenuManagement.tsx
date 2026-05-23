@@ -67,6 +67,8 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
         status: menu?.status || 1,
         remark: menu?.remark || ''
       });
+    } else {
+      form.resetFields();
     }
   }, [isOpen, menu, mode, hideParentSelect]);
 
@@ -88,8 +90,9 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
       onOk={handleOk}
       okText={mode === 'add' ? '保存菜单' : '更新菜单'}
       destroyOnHidden
+      forceRender
     >
-      <Form form={form} layout="vertical" preserve={false}>
+      <Form form={form} layout="vertical">
         <Form.Item label="菜单名称" name="name" rules={[{ required: true, message: '请输入菜单名称' }]}>
           <Input placeholder="请输入菜单名称" />
         </Form.Item>
@@ -174,6 +177,8 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
       } else {
         form.setFieldsValue({ name: '', status: 1 });
       }
+    } else {
+      form.resetFields();
     }
   }, [isOpen, permission, menuId, permissionType]);
 
@@ -196,8 +201,9 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, onSa
       onOk={handleOk}
       okText={mode === 'add' ? '保存' : '更新'}
       destroyOnHidden
+      forceRender
     >
-      <Form form={form} layout="vertical" preserve={false}>
+      <Form form={form} layout="vertical">
         <Form.Item label="权限名称" name="name" rules={[{ required: true, message: '请输入权限名称' }]}>
           <Input placeholder={`请输入${permissionType === 'FUNCTION' ? '功能' : '字段'}权限名称`} />
         </Form.Item>

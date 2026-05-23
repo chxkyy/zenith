@@ -1,0 +1,21 @@
+package com.zenith.admin.api;
+
+import com.github.pagehelper.PageInfo;
+import com.zenith.admin.dto.data.*;
+
+import java.util.List;
+
+public interface ProcessTemplateService {
+
+    PageInfo<ProcessTemplateDTO> page(ProcessTemplatePageQuery query);
+
+    ProcessTemplateDTO getById(Long id);
+
+    List<ProcessTemplateDTO> listActive();
+
+    void create(ProcessTemplateCreateCmd cmd);
+
+    void update(ProcessTemplateUpdateCmd cmd);
+
+    void updateStatus(Long id, Integer status);
+}

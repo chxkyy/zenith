@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zenith.admin.mapper.ApprovalRecordMapper">
+
+    <insert id="insert">
+        INSERT INTO t_wf_approval_record (
+            process_instance_id, node_order, node_name, 
+            operator_id, operator_name, action_type, 
+            opinion, operate_time
+        ) VALUES (
+            #{processInstanceId}, #{nodeOrder}, #{nodeName},
+            #{operatorId}, #{operatorName}, #{actionType},
+            #{opinion}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <select id="selectByProcessInstanceId" resultType="com.zenith.admin.dataobject.ApprovalRecordDO">
+        SELECT * FROM t_wf_approval_record 
+        WHERE process_instance_id = #{processInstanceId} 
+        ORDER BY operate_time ASC
+    </select>
+
+</mapper>

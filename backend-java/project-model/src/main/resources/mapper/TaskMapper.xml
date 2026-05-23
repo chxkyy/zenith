@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zenith.admin.mapper.TaskMapper">
+
+    <select id="selectByProcessInstanceId" resultType="com.zenith.admin.dataobject.TaskDO">
+        SELECT * FROM t_wf_task 
+        WHERE process_instance_id = #{processInstanceId} 
+        ORDER BY node_order ASC, id ASC
+    </select>
+
+    <select id="selectByProcessInstanceAndNode" resultType="com.zenith.admin.dataobject.TaskDO">
+        SELECT * FROM t_wf_task 
+        WHERE process_instance_id = #{processInstanceId} 
+        AND node_order = #{nodeOrder}
+    </select>
+
+    <update id="updateStatusWithVersion">
+        UPDATE t_wf_task 
+        SET status = #{status}, 
+            version = version + 1,
+            update_time = CURRENT_TIMESTAMP
+        WHERE id = #{id} AND version = #{version}
+    </update>
+
+    <select id="selectPendingByAssignee" resultType="com.zenith.admin.dataobject.TaskDO">
+        SELECT * FROM t_wf_task 
+        WHERE assignee_id = #{assigneeId} 
+        AND status = 0
+        ORDER BY created_time DESC
+    </select>
+
+    <select id="selectDoneByAssignee" resultType="com.zenith.admin.dataobject.TaskDO">
+        SELECT * FROM t_wf_task 
+        WHERE assignee_id = #{assigneeId} 
+        AND status IN (1, 2, 4)
+        ORDER BY action_time DESC
+    </select>
+
+</mapper>
