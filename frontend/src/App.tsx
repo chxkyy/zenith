@@ -23,6 +23,11 @@ const FileTable = lazy(() => import('./components/FileTable'));
 const MonitoringTable = lazy(() => import('./components/MonitoringTable'));
 const CacheTable = lazy(() => import('./components/CacheTable'));
 const OnlineUsersTable = lazy(() => import('./components/OnlineUsersTable'));
+const ProcessTemplateTable = lazy(() => import('./components/ProcessTemplateTable'));
+const TaskList = lazy(() => import('./components/TaskList'));
+const StartProcess = lazy(() => import('./components/StartProcess'));
+const MyProcess = lazy(() => import('./components/MyProcess'));
+const ProcessDetail = lazy(() => import('./components/ProcessDetail'));
 
 function AppContent() {
   const location = useLocation();
@@ -174,6 +179,11 @@ function AppContent() {
               <Route path="/monitoring" element={<MonitoringTable />} />
               <Route path="/cache" element={<CacheTable />} />
               <Route path="/online" element={<OnlineUsersTable />} />
+              <Route path="/workflow/templates" element={<ProcessTemplateTable />} />
+              <Route path="/workflow/todo" element={<TaskList />} />
+              <Route path="/workflow/start" element={<StartProcess />} />
+              <Route path="/workflow/my" element={<MyProcess />} />
+              <Route path="/workflow/detail" element={<ProcessDetail />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Suspense>
