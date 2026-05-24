@@ -15,6 +15,9 @@ import {
   UserOutlined,
   MonitorOutlined,
   AppstoreOutlined,
+  SolutionOutlined,
+  FormOutlined,
+  ScheduleOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -158,6 +161,17 @@ function getDefaultMenuItems() {
         { key: 'files', icon: <FolderOpenOutlined />, label: '文件管理', path: '/files' },
         { key: 'notices', icon: <BellOutlined />, label: '通知公告', path: '/notices' },
         { key: 'online', icon: <UserOutlined />, label: '在线用户', path: '/online' },
+      ],
+    },
+    {
+      key: 'workflow',
+      label: '工作流审批',
+      type: 'group' as const,
+      children: [
+        { key: 'workflow_start', icon: <FormOutlined />, label: '发起申请', path: '/workflow/start' },
+        { key: 'workflow_todo', icon: <SolutionOutlined />, label: '待办任务', path: '/workflow/todo' },
+        { key: 'workflow_my', icon: <ScheduleOutlined />, label: '我的申请', path: '/workflow/my' },
+        { key: 'workflow_templates', icon: <SettingOutlined />, label: '流程模板', path: '/workflow/templates' },
       ],
     },
     {
