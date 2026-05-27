@@ -41,7 +41,6 @@ public class OrgServiceImpl implements OrgService {
 
     @Override
     public PageInfo<OrgDTO> page(OrgPageQuery query) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<OrgDO> queryWrapper = new LambdaQueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -49,8 +48,9 @@ public class OrgServiceImpl implements OrgService {
         }
 
         queryWrapper.orderByAsc(OrgDO::getSort);
-        List<OrgDO> orgDOS = orgMapper.selectList(queryWrapper);
-        PageInfo<OrgDO> pageInfo = new PageInfo<>(orgDOS);
+
+        PageInfo<OrgDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> orgMapper.selectList(queryWrapper));
         List<OrgDTO> dtos = orgConvertor.toDTOList(pageInfo.getList());
 
         for (OrgDTO dto : dtos) {

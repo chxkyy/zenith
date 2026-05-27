@@ -30,8 +30,6 @@ public class ProcessTemplateServiceImpl implements ProcessTemplateService {
 
     @Override
     public PageInfo<ProcessTemplateDTO> page(ProcessTemplatePageQuery query) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
-        
         LambdaQueryWrapper<ProcessTemplateDO> queryWrapper = new LambdaQueryWrapper<>();
         if (query.getName() != null && !query.getName().isEmpty()) {
             queryWrapper.like(ProcessTemplateDO::getName, query.getName());
@@ -41,8 +39,8 @@ public class ProcessTemplateServiceImpl implements ProcessTemplateService {
         }
         queryWrapper.orderByDesc(ProcessTemplateDO::getCreatedTime);
         
-        List<ProcessTemplateDO> list = processTemplateMapper.selectList(queryWrapper);
-        PageInfo<ProcessTemplateDO> pageInfo = new PageInfo<>(list);
+        PageInfo<ProcessTemplateDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> processTemplateMapper.selectList(queryWrapper));
         
         List<ProcessTemplateDTO> dtos = pageInfo.getList().stream()
                 .map(this::convertToDTO)

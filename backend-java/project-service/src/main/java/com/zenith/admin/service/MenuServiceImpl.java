@@ -38,7 +38,6 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public PageInfo<MenuDTO> page(MenuPageQuery query) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<MenuDO> queryWrapper = new LambdaQueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -57,8 +56,9 @@ public class MenuServiceImpl implements MenuService {
         }
 
         queryWrapper.orderByAsc(MenuDO::getSort);
-        List<MenuDO> menuDOS = menuMapper.selectList(queryWrapper);
-        PageInfo<MenuDO> pageInfo = new PageInfo<>(menuDOS);
+
+        PageInfo<MenuDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> menuMapper.selectList(queryWrapper));
         List<MenuDTO> dtos = menuConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<MenuDTO> result = new PageInfo<>();

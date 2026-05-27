@@ -24,7 +24,6 @@ public class ErrorLogServiceImpl implements ErrorLogService {
 
     @Override
     public PageInfo<ErrorLogDTO> listByPage(int pageIndex, int pageSize, String module, String ip) {
-        PageHelper.startPage(pageIndex, pageSize);
         LambdaQueryWrapper<ErrorLogDO> queryWrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(module)) {
             queryWrapper.eq(ErrorLogDO::getModule, module);
@@ -33,8 +32,9 @@ public class ErrorLogServiceImpl implements ErrorLogService {
             queryWrapper.like(ErrorLogDO::getIp, ip);
         }
         queryWrapper.orderByDesc(ErrorLogDO::getCreatedTime);
-        List<ErrorLogDO> errorLogDOS = errorLogMapper.selectList(queryWrapper);
-        PageInfo<ErrorLogDO> pageInfo = new PageInfo<>(errorLogDOS);
+
+        PageInfo<ErrorLogDO> pageInfo = PageHelper.startPage(pageIndex, pageSize)
+                .doSelectPageInfo(() -> errorLogMapper.selectList(queryWrapper));
 
         List<ErrorLogDTO> dtos = errorLogConvertor.toDTOList(pageInfo.getList());
 

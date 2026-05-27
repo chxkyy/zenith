@@ -62,15 +62,15 @@ public class DictServiceImpl implements DictService {
 
     @Override
     public PageInfo<DictDTO> page(DictPageQuery query) {
-        com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictDO> queryWrapper = new LambdaQueryWrapper<>();
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
             queryWrapper.and(wrapper -> {
                 wrapper.like(DictDO::getName, query.getKeyword()).or().like(DictDO::getType, query.getKeyword());
             });
         }
-        List<DictDO> dictDOS = dictMapper.selectList(queryWrapper);
-        com.github.pagehelper.PageInfo<DictDO> pageInfo = new com.github.pagehelper.PageInfo<>(dictDOS);
+
+        com.github.pagehelper.PageInfo<DictDO> pageInfo = com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> dictMapper.selectList(queryWrapper));
         List<DictDTO> dtos = dictConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<DictDTO> result = new PageInfo<>();
@@ -123,7 +123,6 @@ public class DictServiceImpl implements DictService {
 
     @Override
     public PageInfo<DictItemDTO> pageItems(DictItemPageQuery query) {
-        com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<DictItemDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictItemDO::getType, query.getType());
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -132,8 +131,9 @@ public class DictServiceImpl implements DictService {
             });
         }
         queryWrapper.orderByAsc(DictItemDO::getSort);
-        List<DictItemDO> dictItemDOS = dictItemMapper.selectList(queryWrapper);
-        com.github.pagehelper.PageInfo<DictItemDO> pageInfo = new com.github.pagehelper.PageInfo<>(dictItemDOS);
+
+        com.github.pagehelper.PageInfo<DictItemDO> pageInfo = com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> dictItemMapper.selectList(queryWrapper));
         List<DictItemDTO> dtos = dictConvertor.toItemDTOList(pageInfo.getList());
 
         PageInfo<DictItemDTO> result = new PageInfo<>();

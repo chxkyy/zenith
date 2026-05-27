@@ -29,7 +29,6 @@ public class LoginLogServiceImpl implements LoginLogService {
 
     @Override
     public PageInfo<LoginLogDTO> listByPage(int pageIndex, int pageSize, String username, String status, String ip) {
-        PageHelper.startPage(pageIndex, pageSize);
         LambdaQueryWrapper<LoginLogDO> queryWrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(username)) {
             queryWrapper.like(LoginLogDO::getUsername, username);
@@ -41,8 +40,9 @@ public class LoginLogServiceImpl implements LoginLogService {
             queryWrapper.like(LoginLogDO::getIp, ip);
         }
         queryWrapper.orderByDesc(LoginLogDO::getLoginAt);
-        List<LoginLogDO> loginLogDOS = loginLogMapper.selectList(queryWrapper);
-        PageInfo<LoginLogDO> pageInfo = new PageInfo<>(loginLogDOS);
+
+        PageInfo<LoginLogDO> pageInfo = PageHelper.startPage(pageIndex, pageSize)
+                .doSelectPageInfo(() -> loginLogMapper.selectList(queryWrapper));
 
         List<LoginLogDTO> dtos = loginLogConvertor.toDTOList(pageInfo.getList());
 

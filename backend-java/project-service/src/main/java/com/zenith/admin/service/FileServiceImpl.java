@@ -32,7 +32,6 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public PageInfo<FileDTO> page(FilePageQuery query) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<FileDO> queryWrapper = new LambdaQueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -40,8 +39,9 @@ public class FileServiceImpl implements FileService {
         }
 
         queryWrapper.orderByDesc(FileDO::getCreatedTime);
-        List<FileDO> fileDOS = fileMapper.selectList(queryWrapper);
-        PageInfo<FileDO> pageInfo = new PageInfo<>(fileDOS);
+
+        PageInfo<FileDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> fileMapper.selectList(queryWrapper));
         List<FileDTO> fileDTOS = fileConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<FileDTO> result = new PageInfo<>();

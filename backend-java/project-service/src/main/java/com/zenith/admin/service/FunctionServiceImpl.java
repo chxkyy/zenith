@@ -43,7 +43,6 @@ public class FunctionServiceImpl implements FunctionService {
 
     @Override
     public PageInfo<FunctionDTO> page(FunctionPageQuery query) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<FunctionDO> queryWrapper = new LambdaQueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -59,8 +58,9 @@ public class FunctionServiceImpl implements FunctionService {
         }
 
         queryWrapper.orderByAsc(FunctionDO::getSort);
-        List<FunctionDO> functionDOS = functionMapper.selectList(queryWrapper);
-        PageInfo<FunctionDO> pageInfo = new PageInfo<>(functionDOS);
+
+        PageInfo<FunctionDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> functionMapper.selectList(queryWrapper));
         List<FunctionDTO> dtos = functionConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<FunctionDTO> result = new PageInfo<>();

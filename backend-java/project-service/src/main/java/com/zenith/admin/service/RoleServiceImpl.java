@@ -82,7 +82,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public PageInfo<RoleDTO> listByPage(RolePageQuery query) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
+        PageHelper.startPage(query.getPageIndex(), query.getPageSize()).doSelectPageInfo();
         QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {

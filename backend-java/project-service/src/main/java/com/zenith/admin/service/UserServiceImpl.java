@@ -38,8 +38,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PageInfo<UserDTO> listByPage(UserPageQuery query) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
-
         QueryWrapper<UserDO> wrapper = new QueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -73,10 +71,10 @@ public class UserServiceImpl implements UserService {
             wrapper.orderBy(true, "asc".equals(order), query.getSortField());
         }
 
-        List<UserDO> userDOS = userMapper.selectList(wrapper);
-        PageInfo<UserDO> pageInfo = new PageInfo<>(userDOS);
+        PageInfo<UserDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> userMapper.selectList(wrapper));
 
-        List<UserDTO> dtos = convertToDTOsWithRoles(userDOS);
+        List<UserDTO> dtos = convertToDTOsWithRoles(pageInfo.getList());
 
         PageInfo<UserDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());

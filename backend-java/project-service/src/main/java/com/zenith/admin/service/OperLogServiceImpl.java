@@ -23,7 +23,6 @@ public class OperLogServiceImpl implements OperLogService {
 
     @Override
     public PageInfo<OperLogDTO> listByPage(int pageIndex, int pageSize, String operator, String module, String result) {
-        PageHelper.startPage(pageIndex, pageSize);
         LambdaQueryWrapper<OperLogDO> queryWrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(operator)) {
             queryWrapper.like(OperLogDO::getOperator, operator);
@@ -35,8 +34,9 @@ public class OperLogServiceImpl implements OperLogService {
             queryWrapper.eq(OperLogDO::getResult, result);
         }
         queryWrapper.orderByDesc(OperLogDO::getCreatedTime);
-        List<OperLogDO> operLogDOS = operLogMapper.selectList(queryWrapper);
-        PageInfo<OperLogDO> pageInfo = new PageInfo<>(operLogDOS);
+
+        PageInfo<OperLogDO> pageInfo = PageHelper.startPage(pageIndex, pageSize)
+                .doSelectPageInfo(() -> operLogMapper.selectList(queryWrapper));
 
         List<OperLogDTO> dtos = operLogConvertor.toDTOList(pageInfo.getList());
 

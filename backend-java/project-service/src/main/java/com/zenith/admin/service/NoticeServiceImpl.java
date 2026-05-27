@@ -31,7 +31,6 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public PageInfo<NoticeDTO> page(NoticePageQuery query) {
-        com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize());
         LambdaQueryWrapper<NoticeDO> queryWrapper = new LambdaQueryWrapper<>();
 
         if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
@@ -48,8 +47,8 @@ public class NoticeServiceImpl implements NoticeService {
 
         queryWrapper.orderByDesc(NoticeDO::getCreatedTime);
 
-        List<NoticeDO> noticeDOS = noticeMapper.selectList(queryWrapper);
-        com.github.pagehelper.PageInfo<NoticeDO> pageInfo = new com.github.pagehelper.PageInfo<>(noticeDOS);
+        com.github.pagehelper.PageInfo<NoticeDO> pageInfo = com.github.pagehelper.PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> noticeMapper.selectList(queryWrapper));
         List<NoticeDTO> noticeDTOS = noticeConvertor.toDTOList(pageInfo.getList());
 
         PageInfo<NoticeDTO> result = new PageInfo<>();

@@ -1,7 +1,6 @@
 package com.zenith.admin.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.WorkflowDomainService;
@@ -144,16 +143,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public PageInfo<ProcessInstanceDTO> pageAllProcess(ProcessInstancePageQuery query) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
-
         LambdaQueryWrapper<ProcessInstanceDO> queryWrapper = new LambdaQueryWrapper<>();
         if (query.getStatus() != null) {
             queryWrapper.eq(ProcessInstanceDO::getStatus, query.getStatus());
         }
         queryWrapper.orderByDesc(ProcessInstanceDO::getCreatedTime);
 
-        List<ProcessInstanceDO> list = processInstanceMapper.selectList(queryWrapper);
-        PageInfo<ProcessInstanceDO> pageInfo = new PageInfo<>(list);
+        PageInfo<ProcessInstanceDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> processInstanceMapper.selectList(queryWrapper));
 
         List<ProcessInstanceDTO> dtos = pageInfo.getList().stream()
                 .map(this::convertToDTO)
@@ -170,8 +167,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public PageInfo<ProcessInstanceDTO> pageMyProcess(ProcessInstancePageQuery query, Long currentUserId) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
-
         LambdaQueryWrapper<ProcessInstanceDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ProcessInstanceDO::getInitiatorId, currentUserId);
         if (query.getStatus() != null) {
@@ -179,8 +174,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
         queryWrapper.orderByDesc(ProcessInstanceDO::getCreatedTime);
 
-        List<ProcessInstanceDO> list = processInstanceMapper.selectList(queryWrapper);
-        PageInfo<ProcessInstanceDO> pageInfo = new PageInfo<>(list);
+        PageInfo<ProcessInstanceDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> processInstanceMapper.selectList(queryWrapper));
 
         List<ProcessInstanceDTO> dtos = pageInfo.getList().stream()
                 .map(this::convertToDTO)
