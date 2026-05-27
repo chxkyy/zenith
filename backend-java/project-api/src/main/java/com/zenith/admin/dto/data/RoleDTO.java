@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 public class RoleDTO extends DTO {
     private Long id;
     private String name;
-    private String code;
     private String description;
     private Integer status;
     private Integer memberCount;

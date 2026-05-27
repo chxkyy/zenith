@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>架构审视报告 - Zenith Admin System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+        .badge-strong { background: #fee2e2; color: #dc2626; }
+        .badge-worth { background: #fef3c7; color: #d97706; }
+        .badge-speculative { background: #dbeafe; color: #2563eb; }
+        .diagram-container { background: #f8fafc; border-radius: 8px; padding: 16px; }
+        pre { margin: 0; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">架构审视报告</h1>
+            <p class="text-gray-600">Zenith Admin System - 工作流管理系统</p>
+            <p class="text-sm text-gray-500 mt-2">生成时间: 2026-05-27</p>
+        </header>
+
+        <section class="mb-8 bg-white rounded-xl p-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">项目概述</h2>
+            <p class="text-gray-700 mb-4">这是一个基于 Spring Boot 3.5 + MyBatis-Plus 的后台管理系统，采用分层架构：</p>
+            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                <li><strong>project-api</strong>: 服务接口定义与DTO</li>
+                <li><strong>project-model</strong>: 数据对象(DO)与Mapper</li>
+                <li><strong>project-service</strong>: 服务实现</li>
+                <li><strong>project-web</strong>: 控制器层</li>
+                <li><strong>start</strong>: 启动模块</li>
+            </ul>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">发现的架构问题</h2>
+            
+            <div class="space-y-6">
+                <div class="card bg-white rounded-xl p-6 shadow-sm border-l-4 border-red-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">1. TaskService 与 WorkflowService 严重耦合</h3>
+                            <p class="text-sm text-gray-500 mt-1">涉及文件: TaskServiceImpl.java, WorkflowServiceImpl.java</p>
+                        </div>
+                        <span class="badge badge-strong">Strong</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">问题</h4>
+                        <p class="text-gray-600">两个服务类都直接依赖 <strong>8个Mapper</strong>，存在大量重复代码：</p>
+                        <ul class="list-disc list-inside text-gray-600 mt-2 space-y-1">
+                            <li><code>createTasksForNode()</code> 方法在两个类中完全相同</li>
+                            <li><code>getApprovers()</code> 方法在两个类中完全相同</li>
+                            <li>审批记录创建逻辑重复</li>
+                            <li>流程状态转换逻辑分散</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">影响</h4>
+                        <p class="text-gray-600">违反DRY原则，修改工作流逻辑需要在多处同步修改，极易引入bug。服务类变成了"上帝类"，难以测试和维护。</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">解决方案</h4>
+                        <p class="text-gray-600">提取 <strong>WorkflowDomainService</strong> 领域服务，封装：</p>
+                        <ul class="list-disc list-inside text-gray-600 mt-2 space-y-1">
+                            <li>审批人解析逻辑</li>
+                            <li>任务创建逻辑</li>
+                            <li>流程状态转换规则</li>
+                        </ul>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="diagram-container">
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">Before - 当前架构</h5>
+                            <pre class="mermaid">
+graph TD
+    subgraph TaskServiceImpl
+        T1[8个Mapper依赖]
+        T2[createTasksForNode]
+        T3[getApprovers]
+        T4[审批记录创建]
+    end
+    
+    subgraph WorkflowServiceImpl
+        W1[8个Mapper依赖]
+        W2[createTasksForNode 重复]
+        W3[getApprovers 重复]
+        W4[审批记录创建 重复]
+    end
+    
+    T1 --> DB[(Database)]
+    W1 --> DB
+    
+    style T2 fill:#ffcdd2
+    style T3 fill:#ffcdd2
+    style W2 fill:#ffcdd2
+    style W3 fill:#ffcdd2
+                            </pre>
+                        </div>
+                        <div class="diagram-container">
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">After - 重构后</h5>
+                            <pre class="mermaid">
+graph TD
+    subgraph WorkflowDomainService
+        DS1[createTasksForNode]
+        DS2[resolveApprovers]
+        DS3[createApprovalRecord]
+        DS4[状态转换规则]
+    end
+    
+    subgraph TaskServiceImpl
+        T1[TaskMapper]
+        T2[WorkflowDomainService]
+    end
+    
+    subgraph WorkflowServiceImpl
+        W1[ProcessInstanceMapper]
+        W2[WorkflowDomainService]
+    end
+    
+    T2 --> DS1
+    T2 --> DS2
+    W2 --> DS1
+    W2 --> DS2
+    
+    style DS1 fill:#c8e6c9
+    style DS2 fill:#c8e6c9
+    style DS3 fill:#c8e6c9
+    style DS4 fill:#c8e6c9
+                            </pre>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-green-50 rounded-lg">
+                        <h5 class="font-medium text-green-800 mb-1">收益</h5>
+                        <p class="text-green-700 text-sm">Locality（局部性）: 工作流核心逻辑集中在一处，修改只需改一个模块。Leverage（杠杆）: 新的审批类型只需扩展领域服务。</p>
+                    </div>
+                </div>
+
+                <div class="card bg-white rounded-xl p-6 shadow-sm border-l-4 border-red-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">2. 缺少工作流领域抽象</h3>
+                            <p class="text-sm text-gray-500 mt-1">涉及文件: TaskServiceImpl.java, WorkflowServiceImpl.java</p>
+                        </div>
+                        <span class="badge badge-strong">Strong</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">问题</h4>
+                        <p class="text-gray-600">工作流的核心领域概念没有抽象：</p>
+                        <ul class="list-disc list-inside text-gray-600 mt-2 space-y-1">
+                            <li><strong>流程实例(ProcessInstance)</strong> - 状态转换规则散落在多处</li>
+                            <li><strong>任务(Task)</strong> - 任务生命周期管理分散</li>
+                            <li><strong>审批节点(Node)</strong> - 节点类型处理逻辑分散</li>
+                            <li><strong>审批人解析</strong> - 三种审批人类型(角色/用户/上级)的解析逻辑重复</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">影响</h4>
+                        <p class="text-gray-600">这是典型的"贫血模型"问题。业务规则分散在服务方法中，难以形成清晰的领域边界。新增审批类型或流程类型需要修改多处代码。</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">解决方案</h4>
+                        <p class="text-gray-600">引入领域模型和领域服务：</p>
+                        <ul class="list-disc list-inside text-gray-600 mt-2 space-y-1">
+                            <li><code>ApproverResolver</code> - 审批人解析策略接口</li>
+                            <li><code>TaskLifecycle</code> - 任务生命周期管理</li>
+                            <li><code>ProcessStateMachine</code> - 流程状态机</li>
+                        </ul>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="diagram-container">
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">Before - 贫血模型</h5>
+                            <pre class="mermaid">
+graph LR
+    subgraph 服务层
+        S1[TaskServiceImpl]
+        S2[WorkflowServiceImpl]
+    end
+    
+    subgraph 数据层
+        D1[TaskDO]
+        D2[ProcessInstanceDO]
+        D3[NodeTemplateDO]
+    end
+    
+    S1 --> D1
+    S1 --> D2
+    S1 --> D3
+    S2 --> D1
+    S2 --> D2
+    S2 --> D3
+    
+    style D1 fill:#ffcdd2
+    style D2 fill:#ffcdd2
+    style D3 fill:#ffcdd2
+                            </pre>
+                        </div>
+                        <div class="diagram-container">
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">After - 领域模型</h5>
+                            <pre class="mermaid">
+graph LR
+    subgraph 领域层
+        DS[WorkflowDomainService]
+        AR[ApproverResolver]
+        TLM[TaskLifecycle]
+        PSM[ProcessStateMachine]
+    end
+    
+    subgraph 数据层
+        D1[TaskDO]
+        D2[ProcessInstanceDO]
+    end
+    
+    DS --> AR
+    DS --> TLM
+    DS --> PSM
+    TLM --> D1
+    PSM --> D2
+    
+    style DS fill:#c8e6c9
+    style AR fill:#c8e6c9
+    style TLM fill:#c8e6c9
+    style PSM fill:#c8e6c9
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-white rounded-xl p-6 shadow-sm border-l-4 border-amber-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">3. N+1 查询问题</h3>
+                            <p class="text-sm text-gray-500 mt-1">涉及文件: TaskServiceImpl.java:convertToDTO, WorkflowServiceImpl.java:convertToDTO</p>
+                        </div>
+                        <span class="badge badge-worth">Worth exploring</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">问题</h4>
+                        <p class="text-gray-600"><code>convertToDTO</code> 方法在循环中执行数据库查询：</p>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto mt-2"><code>// TaskServiceImpl.java:456-486
+private TaskDTO convertToDTO(TaskDO dO) {
+    // ...
+    ProcessInstanceDO instance = processInstanceMapper.selectById(...); // N+1
+    UserDO initiator = userMapper.selectById(...); // N+1
+    ProcessTemplateDO template = processTemplateMapper.selectById(...); // N+1
+    // ...
+}</code></pre>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">影响</h4>
+                        <p class="text-gray-600">分页查询10条任务可能触发 30+ 次数据库查询，严重影响性能。</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">解决方案</h4>
+                        <p class="text-gray-600">批量预加载关联数据，使用 Map 缓存后按需取用：</p>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto mt-2"><code>// 批量查询
+List<Long> instanceIds = tasks.stream().map(TaskDO::getProcessInstanceId).toList();
+Map<Long, ProcessInstanceDO> instanceMap = processInstanceMapper.selectBatchIds(instanceIds)
+    .stream().collect(Collectors.toMap(ProcessInstanceDO::getId, Function.identity()));</code></pre>
+                    </div>
+                </div>
+
+                <div class="card bg-white rounded-xl p-6 shadow-sm border-l-4 border-amber-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">4. 测试与实现不匹配</h3>
+                            <p class="text-sm text-gray-500 mt-1">涉及文件: UserServiceImplTest.java, UserServiceImpl.java</p>
+                        </div>
+                        <span class="badge badge-worth">Worth exploring</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">问题</h4>
+                        <p class="text-gray-600">测试用例与实际服务实现签名不匹配：</p>
+                        <ul class="list-disc list-inside text-gray-600 mt-2 space-y-1">
+                            <li>测试调用 <code>userService.save(UserDTO)</code>，但实际方法签名是 <code>save(UserAddCmd, Long currentUserId)</code></li>
+                            <li>测试调用 <code>userService.update(UserDTO)</code>，但实际方法签名是 <code>update(UserUpdateCmd, Long currentUserId)</code></li>
+                            <li>测试调用 <code>userService.delete(Long)</code>，但实际方法签名是 <code>delete(Long, Long currentUserId)</code></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">影响</h4>
+                        <p class="text-gray-600">测试无法验证实际业务逻辑，可能存在未被发现的问题。服务依赖过多Mapper导致单元测试需要mock大量依赖。</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">解决方案</h4>
+                        <p class="text-gray-600">1. 更新测试用例以匹配当前API签名<br>2. 通过领域服务拆分降低mock复杂度<br>3. 考虑引入集成测试验证完整流程</p>
+                    </div>
+                </div>
+
+                <div class="card bg-white rounded-xl p-6 shadow-sm border-l-4 border-blue-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">5. 分页逻辑重复</h3>
+                            <p class="text-sm text-gray-500 mt-1">涉及文件: 多个 *ServiceImpl.java</p>
+                        </div>
+                        <span class="badge badge-speculative">Speculative</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">问题</h4>
+                        <p class="text-gray-600">每个服务的分页方法都有相似的PageInfo构建代码：</p>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto mt-2"><code>PageInfo<XxxDTO> result = new PageInfo<>();
+result.setTotal(pageInfo.getTotal());
+result.setPageNum(pageInfo.getPageNum());
+result.setPageSize(pageInfo.getPageSize());
+result.setPages(pageInfo.getPages());
+result.setList(dtos);
+return result;</code></pre>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">解决方案</h4>
+                        <p class="text-gray-600">已有 <code>PageResponseUtils</code> 工具类，但仅在Controller层使用。可扩展为通用的分页转换工具。</p>
+                    </div>
+                </div>
+
+                <div class="card bg-white rounded-xl p-6 shadow-sm border-l-4 border-blue-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">6. 异常处理不规范</h3>
+                            <p class="text-sm text-gray-500 mt-1">涉及文件: 所有 *ServiceImpl.java</p>
+                        </div>
+                        <span class="badge badge-speculative">Speculative</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">问题</h4>
+                        <p class="text-gray-600">所有异常都使用 <code>RuntimeException</code>：</p>
+                        <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto mt-2"><code>throw new RuntimeException("任务不存在");
+throw new RuntimeException("流程实例不存在");
+throw new RuntimeException("当前状态不允许取消");</code></pre>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">影响</h4>
+                        <p class="text-gray-600">无法区分业务异常类型，前端难以做针对性处理。日志分析困难。</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">解决方案</h4>
+                        <p class="text-gray-600">引入业务异常体系：<code>BusinessException</code> 基类 + 具体异常类型，配合 <code>GlobalExceptionHandler</code> 统一处理。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
+            <h2 class="text-xl font-bold mb-4">优先建议</h2>
+            <div class="bg-white/10 rounded-lg p-4">
+                <h3 class="font-semibold mb-2">首选重构目标：提取 WorkflowDomainService</h3>
+                <p class="text-blue-100 mb-3">这是影响最大的重构，能同时解决代码重复、测试困难和领域抽象缺失的问题。</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-sm">消除代码重复</span>
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-sm">提升测试性</span>
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-sm">建立领域边界</span>
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-sm">降低服务复杂度</span>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-8 text-center text-gray-500 text-sm">
+            <p>架构审视报告 - 基于 improve-codebase-architecture 技能生成</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+</body>
+</html>

@@ -1,11 +1,11 @@
 package com.zenith.admin.service;
 
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.TaskService;
+import com.zenith.admin.api.WorkflowDomainService;
 import com.zenith.admin.dataobject.*;
 import com.zenith.admin.dto.data.*;
 import com.zenith.admin.enums.*;
@@ -27,10 +27,10 @@ public class TaskServiceImpl implements TaskService {
     private final ProcessInstanceMapper processInstanceMapper;
     private final ProcessTemplateMapper processTemplateMapper;
     private final NodeTemplateMapper nodeTemplateMapper;
-    private final ApprovalRecordMapper approvalRecordMapper;
     private final UserMapper userMapper;
     private final UserRoleMapper userRoleMapper;
-    private final OrgMapper orgMapper;
+    private final ApprovalRecordMapper approvalRecordMapper;
+    private final WorkflowDomainService workflowDomainService;
 
     @Override
     public PageInfo<TaskDTO> pageTodo(TaskPageQuery query, Long currentUserId) {
@@ -116,16 +116,7 @@ public class TaskServiceImpl implements TaskService {
         }
 
         ProcessInstanceDO instance = processInstanceMapper.selectById(task.getProcessInstanceId());
-        UserDO operator = userMapper.selectById(currentUserId);
-        ApprovalRecordDO record = new ApprovalRecordDO();
-        record.setProcessInstanceId(task.getProcessInstanceId());
-        record.setNodeOrder(task.getNodeOrder());
-        record.setNodeName(task.getNodeName());
-        record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getUsername() : "");
-        record.setActionType(ActionTypeEnum.APPROVE.getCode());
-        record.setOpinion(cmd.getOpinion());
-        approvalRecordMapper.insert(record);
+        workflowDomainService.createApprovalRecord(instance, task, currentUserId, ActionTypeEnum.APPROVE, cmd.getOpinion());
 
         processAfterApprove(instance, task);
     }
@@ -151,16 +142,7 @@ public class TaskServiceImpl implements TaskService {
         taskMapper.updateById(task);
 
         ProcessInstanceDO instance = processInstanceMapper.selectById(task.getProcessInstanceId());
-        UserDO operator = userMapper.selectById(currentUserId);
-        ApprovalRecordDO record = new ApprovalRecordDO();
-        record.setProcessInstanceId(task.getProcessInstanceId());
-        record.setNodeOrder(task.getNodeOrder());
-        record.setNodeName(task.getNodeName());
-        record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getUsername() : "");
-        record.setActionType(ActionTypeEnum.REJECT.getCode());
-        record.setOpinion(cmd.getOpinion());
-        approvalRecordMapper.insert(record);
+        workflowDomainService.createApprovalRecord(instance, task, currentUserId, ActionTypeEnum.REJECT, cmd.getOpinion());
 
         if (NodeTypeEnum.COUNTERSIGN.getCode().equals(task.getNodeType())) {
             LambdaUpdateWrapper<TaskDO> updateWrapper = new LambdaUpdateWrapper<>();
@@ -184,7 +166,7 @@ public class TaskServiceImpl implements TaskService {
             
             if (prevNode != null) {
                 instance.setCurrentNodeOrder(prevNodeOrder);
-                createTasksForNode(instance, prevNode);
+                workflowDomainService.createTasksForNode(instance, prevNode);
             }
         }
         processInstanceMapper.updateById(instance);
@@ -211,17 +193,12 @@ public class TaskServiceImpl implements TaskService {
         taskMapper.updateById(task);
 
         ProcessInstanceDO instance = processInstanceMapper.selectById(task.getProcessInstanceId());
-        UserDO operator = userMapper.selectById(currentUserId);
-        ApprovalRecordDO record = new ApprovalRecordDO();
-        record.setProcessInstanceId(task.getProcessInstanceId());
-        record.setNodeOrder(task.getNodeOrder());
-        record.setNodeName(task.getNodeName());
-        record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getUsername() : "");
-        record.setActionType(ActionTypeEnum.COUNTERSIGN.getCode());
-        record.setOpinion(cmd.getOpinion());
-        approvalRecordMapper.insert(record);
+        workflowDomainService.createApprovalRecord(instance, task, currentUserId, ActionTypeEnum.COUNTERSIGN, cmd.getOpinion());
 
+        createCountersignTasks(cmd, task, instance);
+    }
+
+    private void createCountersignTasks(TaskCountersignCmd cmd, TaskDO task, ProcessInstanceDO instance) {
         List<Long> approverIds = cmd.getApproverIds();
         if (ApproverTypeEnum.ROLE.getCode().equals(cmd.getApproverType())) {
             LambdaQueryWrapper<UserRoleDO> queryWrapper = new LambdaQueryWrapper<>();
@@ -272,22 +249,8 @@ public class TaskServiceImpl implements TaskService {
         instance.setStatus(ProcessStatusEnum.PASSED.getCode());
         processInstanceMapper.updateById(instance);
 
-        LambdaUpdateWrapper<TaskDO> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(TaskDO::getProcessInstanceId, task.getProcessInstanceId())
-                .eq(TaskDO::getStatus, TaskStatusEnum.PENDING.getCode())
-                .set(TaskDO::getStatus, TaskStatusEnum.TERMINATED.getCode());
-        taskMapper.update(null, updateWrapper);
-
-        UserDO operator = userMapper.selectById(currentUserId);
-        ApprovalRecordDO record = new ApprovalRecordDO();
-        record.setProcessInstanceId(task.getProcessInstanceId());
-        record.setNodeOrder(task.getNodeOrder());
-        record.setNodeName(task.getNodeName());
-        record.setOperatorId(currentUserId);
-        record.setOperatorName(operator != null ? operator.getUsername() : "");
-        record.setActionType(ActionTypeEnum.TERMINATE.getCode());
-        record.setOpinion(opinion);
-        approvalRecordMapper.insert(record);
+        workflowDomainService.terminatePendingTasks(task.getProcessInstanceId());
+        workflowDomainService.createApprovalRecord(instance, task, currentUserId, ActionTypeEnum.TERMINATE, opinion);
     }
 
     @Override
@@ -301,11 +264,7 @@ public class TaskServiceImpl implements TaskService {
         instance.setStatus(result == 1 ? ProcessStatusEnum.PASSED.getCode() : ProcessStatusEnum.CANCELLED.getCode());
         processInstanceMapper.updateById(instance);
 
-        LambdaUpdateWrapper<TaskDO> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(TaskDO::getProcessInstanceId, processInstanceId)
-                .eq(TaskDO::getStatus, TaskStatusEnum.PENDING.getCode())
-                .set(TaskDO::getStatus, TaskStatusEnum.TERMINATED.getCode());
-        taskMapper.update(null, updateWrapper);
+        workflowDomainService.terminatePendingTasks(processInstanceId);
 
         ApprovalRecordDO record = new ApprovalRecordDO();
         record.setProcessInstanceId(processInstanceId);
@@ -350,29 +309,8 @@ public class TaskServiceImpl implements TaskService {
 
     private void processAfterApprove(ProcessInstanceDO instance, TaskDO currentTask) {
         if (NodeTypeEnum.COUNTERSIGN.getCode().equals(currentTask.getNodeType())) {
-            List<TaskDO> nodeTasks = taskMapper.selectByProcessInstanceAndNode(
-                    instance.getId(), currentTask.getNodeOrder());
-            
-            List<TaskDO> originalTasks = nodeTasks.stream()
-                    .filter(t -> t.getAssigneeType() == 1)
-                    .collect(Collectors.toList());
-            
-            boolean allApproved = originalTasks.stream()
-                    .allMatch(t -> TaskStatusEnum.APPROVED.getCode().equals(t.getStatus()) 
-                            || TaskStatusEnum.COUNTERSIGNED.getCode().equals(t.getStatus()));
-            
-            if (!allApproved) {
+            if (!workflowDomainService.isAllOriginalTasksApproved(instance.getId(), currentTask.getNodeOrder())) {
                 return;
-            }
-
-            List<TaskDO> countersignTasks = nodeTasks.stream()
-                    .filter(t -> t.getAssigneeType() == 2 && t.getParentTaskId() != null)
-                    .collect(Collectors.toList());
-            
-            for (TaskDO csTask : countersignTasks) {
-                if (TaskStatusEnum.PENDING.getCode().equals(csTask.getStatus())) {
-                    return;
-                }
             }
         }
 
@@ -390,67 +328,8 @@ public class TaskServiceImpl implements TaskService {
         } else {
             instance.setCurrentNodeOrder(nextNodeOrder);
             processInstanceMapper.updateById(instance);
-            createTasksForNode(instance, nextNode);
+            workflowDomainService.createTasksForNode(instance, nextNode);
         }
-    }
-
-    private void createTasksForNode(ProcessInstanceDO instance, NodeTemplateDO node) {
-        List<Long> approverIds = getApprovers(node, instance.getInitiatorId());
-
-        for (Long approverId : approverIds) {
-            TaskDO task = new TaskDO();
-            task.setProcessInstanceId(instance.getId());
-            task.setNodeOrder(node.getNodeOrder());
-            task.setNodeName(node.getNodeName());
-            task.setNodeType(node.getNodeType());
-            task.setAssigneeId(approverId);
-            task.setAssigneeType(1);
-            task.setStatus(TaskStatusEnum.PENDING.getCode());
-            task.setVersion(0);
-            taskMapper.insert(task);
-        }
-    }
-
-    private List<Long> getApprovers(NodeTemplateDO node, Long initiatorId) {
-        List<Long> approverIds = new java.util.ArrayList<>();
-
-        if (ApproverTypeEnum.ROLE.getCode().equals(node.getApproverType())) {
-            List<Long> roleIds = JSON.parseArray(node.getApproverValue(), Long.class);
-            if (roleIds != null && !roleIds.isEmpty()) {
-                LambdaQueryWrapper<UserRoleDO> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.in(UserRoleDO::getRoleId, roleIds);
-                List<UserRoleDO> userRoles = userRoleMapper.selectList(queryWrapper);
-                approverIds = userRoles.stream()
-                        .map(UserRoleDO::getUserId)
-                        .distinct()
-                        .collect(Collectors.toList());
-            }
-        } else if (ApproverTypeEnum.USER.getCode().equals(node.getApproverType())) {
-            approverIds = JSON.parseArray(node.getApproverValue(), Long.class);
-            if (approverIds == null) {
-                approverIds = new java.util.ArrayList<>();
-            }
-        } else if (ApproverTypeEnum.SUPERIOR.getCode().equals(node.getApproverType())) {
-            UserDO initiator = userMapper.selectById(initiatorId);
-            if (initiator != null && initiator.getOrgId() != null) {
-                OrgDO org = orgMapper.selectById(initiator.getOrgId());
-                if (org != null && org.getParentId() != null) {
-                    OrgDO parentOrg = orgMapper.selectById(org.getParentId());
-                    if (parentOrg != null) {
-                        LambdaQueryWrapper<UserDO> userQuery = new LambdaQueryWrapper<>();
-                        userQuery.eq(UserDO::getOrgId, parentOrg.getId());
-                        userQuery.eq(UserDO::getStatus, 1);
-                        userQuery.last("LIMIT 1");
-                        UserDO superior = userMapper.selectOne(userQuery);
-                        if (superior != null) {
-                            approverIds.add(superior.getId());
-                        }
-                    }
-                }
-            }
-        }
-
-        return approverIds;
     }
 
     private TaskDTO convertToDTO(TaskDO dO) {
@@ -486,4 +365,3 @@ public class TaskServiceImpl implements TaskService {
         return dto;
     }
 }
-

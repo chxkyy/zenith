@@ -67,7 +67,7 @@ public class PermissionServiceImpl implements PermissionService {
         );
 
         boolean isAdmin = roles.stream()
-                .anyMatch(role -> "ROLE_ADMIN".equals(role.getCode()));
+                .anyMatch(role -> Long.valueOf(1L).equals(role.getId()));
         if (isAdmin) {
             return Collections.singleton("*");
         }
@@ -139,7 +139,7 @@ public class PermissionServiceImpl implements PermissionService {
         );
 
         boolean isAdmin = roles.stream()
-                .anyMatch(role -> "ROLE_ADMIN".equals(role.getCode()));
+                .anyMatch(role -> Long.valueOf(1L).equals(role.getId()));
 
         List<MenuDO> allMenus = menuMapper.selectList(
                 new LambdaQueryWrapper<MenuDO>()

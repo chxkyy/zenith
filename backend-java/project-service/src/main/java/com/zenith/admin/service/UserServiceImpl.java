@@ -96,25 +96,25 @@ public class UserServiceImpl implements UserService {
                 .map(UserDO::getId)
                 .collect(Collectors.toList());
 
-        Map<Long, List<String>> userRolesMap = getUserRolesMap(userIds);
-        Map<String, String> roleCodeToNameMap = getRoleCodeToNameMap();
+        Map<Long, List<Long>> userRoleIdsMap = getUserRoleIdsMap(userIds);
+        Map<Long, String> roleIdToNameMap = getRoleIdToNameMap();
 
         return userDOS.stream().map(userDO -> {
             UserDTO dto = userConvertor.toDTO(userDO);
 
-            List<String> roleCodes = userRolesMap.getOrDefault(userDO.getId(), Collections.emptyList());
-            dto.setRoles(roleCodes);
-
-            String roleNames = roleCodes.stream()
-                    .map(code -> roleCodeToNameMap.getOrDefault(code, code))
-                    .collect(Collectors.joining(", "));
-            dto.setRoleNames(roleNames);
+            List<Long> roleIds = userRoleIdsMap.getOrDefault(userDO.getId(), Collections.emptyList());
+            List<String> roleNames = roleIds.stream()
+                    .map(roleId -> roleIdToNameMap.getOrDefault(roleId, "未知角色"))
+                    .collect(Collectors.toList());
+            
+            dto.setRoles(roleIds.stream().map(String::valueOf).collect(Collectors.toList()));
+            dto.setRoleNames(String.join(", ", roleNames));
 
             return dto;
         }).collect(Collectors.toList());
     }
 
-    private Map<Long, List<String>> getUserRolesMap(List<Long> userIds) {
+    private Map<Long, List<Long>> getUserRoleIdsMap(List<Long> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -124,64 +124,19 @@ public class UserServiceImpl implements UserService {
 
         List<UserRoleDO> userRoles = userRoleMapper.selectList(wrapper);
 
-        Map<Long, List<Long>> roleIdMap = userRoles.stream()
+        return userRoles.stream()
                 .collect(Collectors.groupingBy(
                         UserRoleDO::getUserId,
                         Collectors.mapping(UserRoleDO::getRoleId, Collectors.toList())
                 ));
-
-        if (roleIdMap.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Set<Long> allRoleIds = roleIdMap.values().stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
-
-        Map<Long, String> roleIdToCodeMap = getRoleIdToCodeMap(allRoleIds);
-
-        Map<Long, List<String>> result = new HashMap<>();
-        roleIdMap.forEach((userId, roleIds) -> {
-            List<String> roleCodes = roleIds.stream()
-                    .map(roleId -> roleIdToCodeMap.getOrDefault(roleId, "UNKNOWN"))
-                    .collect(Collectors.toList());
-            result.put(userId, roleCodes);
-        });
-
-        return result;
     }
 
-    private Map<Long, String> getRoleIdToCodeSet(Set<Long> roleIds) {
-        if (roleIds == null || roleIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        LambdaQueryWrapper<RoleDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.in(RoleDO::getId, roleIds);
-
-        List<RoleDO> roles = roleMapper.selectList(wrapper);
-
-        return roles.stream()
-                .collect(Collectors.toMap(RoleDO::getId, RoleDO::getCode));
-    }
-
-    private Map<Long, String> getRoleIdToCodeMap(Collection<Long> roleIds) {
-        if (roleIds == null || roleIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Set<Long> roleIdSet = new HashSet<>(roleIds);
-        return getRoleIdToCodeSet(roleIdSet);
-    }
-
-    private Map<String, String> getRoleCodeToNameMap() {
+    private Map<Long, String> getRoleIdToNameMap() {
         QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
         wrapper.eq("status", 1);
-
         List<RoleDO> roles = roleMapper.selectList(wrapper);
-
         return roles.stream()
-                .collect(Collectors.toMap(RoleDO::getCode, RoleDO::getName));
+                .collect(Collectors.toMap(RoleDO::getId, RoleDO::getName));
     }
 
     @Override
@@ -199,16 +154,16 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void saveUserRoles(Long userId, List<String> roleCodes) {
-        for (String roleCode : roleCodes) {
-            QueryWrapper<RoleDO> wrapper = new QueryWrapper<>();
-            wrapper.eq("code", roleCode);
-            RoleDO roleDO = roleMapper.selectOne(wrapper);
-            if (roleDO != null) {
+    private void saveUserRoles(Long userId, List<String> roleIds) {
+        for (String roleIdStr : roleIds) {
+            try {
+                Long roleId = Long.parseLong(roleIdStr);
                 UserRoleDO userRoleDO = new UserRoleDO();
                 userRoleDO.setUserId(userId);
-                userRoleDO.setRoleId(roleDO.getId());
+                userRoleDO.setRoleId(roleId);
                 userRoleMapper.insert(userRoleDO);
+            } catch (NumberFormatException e) {
+                // ignore invalid role id
             }
         }
     }
@@ -232,13 +187,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void updateUserRoles(Long userId, List<String> roleCodes) {
+    private void updateUserRoles(Long userId, List<String> roleIds) {
         LambdaQueryWrapper<UserRoleDO> deleteWrapper = new LambdaQueryWrapper<>();
         deleteWrapper.eq(UserRoleDO::getUserId, userId);
         userRoleMapper.delete(deleteWrapper);
 
-        if (roleCodes != null && !roleCodes.isEmpty()) {
-            saveUserRoles(userId, roleCodes);
+        if (roleIds != null && !roleIds.isEmpty()) {
+            saveUserRoles(userId, roleIds);
         }
     }
 

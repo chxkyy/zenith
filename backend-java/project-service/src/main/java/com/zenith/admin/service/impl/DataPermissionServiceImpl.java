@@ -57,7 +57,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
         );
 
         boolean isAdmin = roles.stream()
-                .anyMatch(role -> "ROLE_ADMIN".equals(role.getCode()));
+                .anyMatch(role -> Long.valueOf(1L).equals(role.getId()));
         if (isAdmin) {
             return new DataScopeInfo(DATA_SCOPE_ALL, Collections.emptyList());
         }

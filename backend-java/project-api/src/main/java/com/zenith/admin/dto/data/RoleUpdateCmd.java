@@ -13,8 +13,6 @@ public class RoleUpdateCmd {
     @NotBlank(message = "角色名称不能为空")
     private String name;
 
-    private String code;
-
     private Integer status;
 
     private String description;

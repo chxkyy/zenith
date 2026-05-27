@@ -1,36 +1,31 @@
 package com.zenith.admin.service;
 
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.WorkflowDomainService;
 import com.zenith.admin.api.WorkflowService;
 import com.zenith.admin.dataobject.ApprovalRecordDO;
 import com.zenith.admin.dataobject.NodeTemplateDO;
-import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dataobject.ProcessTemplateDO;
 import com.zenith.admin.dataobject.TaskDO;
 import com.zenith.admin.dataobject.UserDO;
-import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.ApprovalRecordDTO;
 import com.zenith.admin.dto.data.NodeProgressDTO;
 import com.zenith.admin.dto.data.ProcessInstanceCreateCmd;
 import com.zenith.admin.dto.data.ProcessInstanceDTO;
 import com.zenith.admin.dto.data.ProcessInstancePageQuery;
 import com.zenith.admin.enums.ActionTypeEnum;
-import com.zenith.admin.enums.ApproverTypeEnum;
 import com.zenith.admin.enums.ProcessStatusEnum;
 import com.zenith.admin.enums.TaskStatusEnum;
 import com.zenith.admin.mapper.ApprovalRecordMapper;
 import com.zenith.admin.mapper.NodeTemplateMapper;
-import com.zenith.admin.mapper.OrgMapper;
 import com.zenith.admin.mapper.ProcessInstanceMapper;
 import com.zenith.admin.mapper.ProcessTemplateMapper;
 import com.zenith.admin.mapper.TaskMapper;
 import com.zenith.admin.mapper.UserMapper;
-import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,12 +43,11 @@ import java.util.stream.Collectors;
 public class WorkflowServiceImpl implements WorkflowService {
     private final ApprovalRecordMapper approvalRecordMapper;
     private final NodeTemplateMapper nodeTemplateMapper;
-    private final OrgMapper orgMapper;
     private final ProcessInstanceMapper processInstanceMapper;
     private final ProcessTemplateMapper processTemplateMapper;
     private final TaskMapper taskMapper;
     private final UserMapper userMapper;
-    private final UserRoleMapper userRoleMapper;
+    private final WorkflowDomainService workflowDomainService;
 
     @Override
     @Transactional
@@ -228,7 +222,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 .findFirst()
                 .orElse(null);
         if (firstNode != null) {
-            createTasksForNode(instance, firstNode);
+            workflowDomainService.createTasksForNode(instance, firstNode);
         }
 
         UserDO operator = userMapper.selectById(currentUserId);
@@ -259,11 +253,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         instance.setStatus(ProcessStatusEnum.REVOKED.getCode());
         processInstanceMapper.updateById(instance);
 
-        LambdaUpdateWrapper<TaskDO> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(TaskDO::getProcessInstanceId, processInstanceId)
-                .eq(TaskDO::getStatus, TaskStatusEnum.PENDING.getCode())
-                .set(TaskDO::getStatus, TaskStatusEnum.TERMINATED.getCode());
-        taskMapper.update(null, updateWrapper);
+        workflowDomainService.terminatePendingTasks(processInstanceId);
 
         UserDO operator = userMapper.selectById(currentUserId);
         ApprovalRecordDO record = new ApprovalRecordDO();
@@ -332,7 +322,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         instance.setCurrentNodeOrder(1);
         processInstanceMapper.updateById(instance);
 
-        createTasksForNode(instance, firstNode);
+        workflowDomainService.createTasksForNode(instance, firstNode);
 
         UserDO operator = userMapper.selectById(currentUserId);
         ApprovalRecordDO record = new ApprovalRecordDO();
@@ -398,69 +388,10 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dto;
     }
 
-    private void createTasksForNode(ProcessInstanceDO instance, NodeTemplateDO node) {
-        List<Long> approverIds = getApprovers(node, instance.getInitiatorId());
-
-        for (Long approverId : approverIds) {
-            TaskDO task = new TaskDO();
-            task.setProcessInstanceId(instance.getId());
-            task.setNodeOrder(node.getNodeOrder());
-            task.setNodeName(node.getNodeName());
-            task.setNodeType(node.getNodeType());
-            task.setAssigneeId(approverId);
-            task.setAssigneeType(1);
-            task.setStatus(TaskStatusEnum.PENDING.getCode());
-            task.setVersion(0);
-            taskMapper.insert(task);
-        }
-    }
-
     private String generateProcessNo(String code) {
         String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String prefix = getProcessTypePrefix(code);
         return prefix + dateStr + String.format("%04d", System.currentTimeMillis() % 10000);
-    }
-
-    private List<Long> getApprovers(NodeTemplateDO node, Long initiatorId) {
-        List<Long> approverIds = new ArrayList<>();
-
-        if (ApproverTypeEnum.ROLE.getCode().equals(node.getApproverType())) {
-            List<Long> roleIds = JSON.parseArray(node.getApproverValue(), Long.class);
-            if (roleIds != null && !roleIds.isEmpty()) {
-                LambdaQueryWrapper<UserRoleDO> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.in(UserRoleDO::getRoleId, roleIds);
-                List<UserRoleDO> userRoles = userRoleMapper.selectList(queryWrapper);
-                approverIds = userRoles.stream()
-                        .map(UserRoleDO::getUserId)
-                        .distinct()
-                        .collect(Collectors.toList());
-            }
-        } else if (ApproverTypeEnum.USER.getCode().equals(node.getApproverType())) {
-            approverIds = JSON.parseArray(node.getApproverValue(), Long.class);
-            if (approverIds == null) {
-                approverIds = new ArrayList<>();
-            }
-        } else if (ApproverTypeEnum.SUPERIOR.getCode().equals(node.getApproverType())) {
-            UserDO initiator = userMapper.selectById(initiatorId);
-            if (initiator != null && initiator.getOrgId() != null) {
-                OrgDO org = orgMapper.selectById(initiator.getOrgId());
-                if (org != null && org.getParentId() != null) {
-                    OrgDO parentOrg = orgMapper.selectById(org.getParentId());
-                    if (parentOrg != null) {
-                        LambdaQueryWrapper<UserDO> userQuery = new LambdaQueryWrapper<>();
-                        userQuery.eq(UserDO::getOrgId, parentOrg.getId());
-                        userQuery.eq(UserDO::getStatus, 1);
-                        userQuery.last("LIMIT 1");
-                        UserDO superior = userMapper.selectOne(userQuery);
-                        if (superior != null) {
-                            approverIds.add(superior.getId());
-                        }
-                    }
-                }
-            }
-        }
-
-        return approverIds;
     }
 
     private String getProcessTypePrefix(String code) {
@@ -477,4 +408,3 @@ public class WorkflowServiceImpl implements WorkflowService {
         return "LC";
     }
 }
-

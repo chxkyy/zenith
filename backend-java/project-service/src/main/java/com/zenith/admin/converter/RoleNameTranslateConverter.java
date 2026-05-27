@@ -15,9 +15,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -27,10 +25,10 @@ public class RoleNameTranslateConverter implements FieldTranslateConverter {
 
     private final RoleMapper roleMapper;
 
-    private final LoadingCache<String, String> roleCodeCache = Caffeine.newBuilder()
+    private final LoadingCache<Long, String> roleIdCache = Caffeine.newBuilder()
             .expireAfterWrite(10, TimeUnit.MINUTES)
             .maximumSize(500)
-            .build(this::getRoleNameByCode);
+            .build(this::getRoleNameById);
 
     @Override
     public Class<? extends Annotation> supportAnnotation() {
@@ -53,29 +51,43 @@ public class RoleNameTranslateConverter implements FieldTranslateConverter {
             return;
         }
 
-        List<String> roleCodes;
+        List<Long> roleIds;
         if (sourceValue instanceof Collection) {
-            roleCodes = ((Collection<?>) sourceValue).stream()
-                    .map(String::valueOf)
+            roleIds = ((Collection<?>) sourceValue).stream()
+                    .map(v -> {
+                        if (v instanceof Long) return (Long) v;
+                        if (v instanceof Number) return ((Number) v).longValue();
+                        try {
+                            return Long.parseLong(String.valueOf(v));
+                        } catch (NumberFormatException e) {
+                            return null;
+                        }
+                    })
+                    .filter(id -> id != null)
                     .collect(Collectors.toList());
         } else {
             String sourceStr = String.valueOf(sourceValue);
             if (!StringUtils.hasText(sourceStr)) {
                 return;
             }
-            roleCodes = Arrays.stream(sourceStr.split(separator))
+            roleIds = Arrays.stream(sourceStr.split(separator))
                     .map(String::trim)
                     .filter(StringUtils::hasText)
+                    .map(s -> {
+                        try {
+                            return Long.parseLong(s);
+                        } catch (NumberFormatException e) {
+                            return null;
+                        }
+                    })
+                    .filter(id -> id != null)
                     .collect(Collectors.toList());
         }
 
-        String roleNames = roleCodes.stream()
-                .map(code -> {
-                    String name = roleCodeCache.get(code);
-                    if (name == null && code.startsWith("ROLE_")) {
-                        name = roleCodeCache.get(code.substring(5));
-                    }
-                    return name != null ? name : code;
+        String roleNames = roleIds.stream()
+                .map(roleId -> {
+                    String name = roleIdCache.get(roleId);
+                    return name != null ? name : "未知角色";
                 })
                 .collect(Collectors.joining(separator));
 
@@ -83,15 +95,11 @@ public class RoleNameTranslateConverter implements FieldTranslateConverter {
         ReflectionUtils.setField(targetField, dto, roleNames);
     }
 
-    private String getRoleNameByCode(String code) {
-        Map<String, String> roleMap = new HashMap<>();
-        List<RoleDO> roleList = roleMapper.selectList(new QueryWrapper<RoleDO>().in("code", code));
-        for (RoleDO role : roleList) {
-            roleMap.put(role.getCode(), role.getName());
-            if (role.getCode().startsWith("ROLE_")) {
-                roleMap.put(role.getCode().substring(5), role.getName());
-            }
+    private String getRoleNameById(Long roleId) {
+        if (roleId == null) {
+            return null;
         }
-        return roleMap.getOrDefault(code, code);
+        RoleDO role = roleMapper.selectById(roleId);
+        return role != null ? role.getName() : null;
     }
 }
