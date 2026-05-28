@@ -1,7 +1,6 @@
 package com.zenith.admin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zenith.admin.api.PermissionService;
 import com.zenith.admin.dataobject.FunctionDO;
 import com.zenith.admin.dataobject.MenuDO;
@@ -17,6 +16,7 @@ import com.zenith.admin.mapper.RoleMenuMapper;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +25,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PermissionServiceImpl implements PermissionService {
+
+    private static final Long SUPER_ADMIN_ROLE_ID = 1L;
+
+    private static final long CACHE_TTL_MS = 5 * 60 * 1000L;
 
     private final UserRoleMapper userRoleMapper;
     private final RoleMenuMapper roleMenuMapper;
@@ -35,8 +40,6 @@ public class PermissionServiceImpl implements PermissionService {
     private final RoleMapper roleMapper;
     private final FunctionMapper functionMapper;
     private final MenuMapper menuMapper;
-
-    private static final long CACHE_TTL_MS = 5 * 60 * 1000L;
 
     private final ConcurrentHashMap<Long, CachedPermissions> permissionCache = new ConcurrentHashMap<>();
 
@@ -66,8 +69,7 @@ public class PermissionServiceImpl implements PermissionService {
                 new LambdaQueryWrapper<RoleDO>().in(RoleDO::getId, roleIds)
         );
 
-        boolean isAdmin = roles.stream()
-                .anyMatch(role -> Long.valueOf(1L).equals(role.getId()));
+        boolean isAdmin = isSuperAdmin(roles);
         if (isAdmin) {
             return Collections.singleton("*");
         }
@@ -138,18 +140,22 @@ public class PermissionServiceImpl implements PermissionService {
                 new LambdaQueryWrapper<RoleDO>().in(RoleDO::getId, roleIds)
         );
 
-        boolean isAdmin = roles.stream()
-                .anyMatch(role -> Long.valueOf(1L).equals(role.getId()));
+        boolean isAdmin = isSuperAdmin(roles);
 
-        List<MenuDO> allMenus = menuMapper.selectList(
+        List<MenuDO> allMenus;
+        if (isAdmin) {
+            allMenus = menuMapper.selectList(
+                    new LambdaQueryWrapper<MenuDO>()
+                            .orderByAsc(MenuDO::getSort)
+            );
+            return convertToMenuDTOList(allMenus);
+        }
+
+        allMenus = menuMapper.selectList(
                 new LambdaQueryWrapper<MenuDO>()
                         .eq(MenuDO::getStatus, 1)
                         .orderByAsc(MenuDO::getSort)
         );
-
-        if (isAdmin) {
-            return convertToMenuDTOList(allMenus);
-        }
 
         List<RoleMenuDO> roleMenus = roleMenuMapper.selectList(
                 new LambdaQueryWrapper<RoleMenuDO>().in(RoleMenuDO::getRoleId, roleIds)
@@ -225,7 +231,8 @@ public class PermissionServiceImpl implements PermissionService {
                 .collect(Collectors.toList());
     }
 
-    public List<Long> getMenusByRoleId(Long roleId) {
+    @Override
+    public List<Long> getRoleMenus(Long roleId) {
         List<RoleMenuDO> roleMenus = roleMenuMapper.selectList(
                 new LambdaQueryWrapper<RoleMenuDO>().eq(RoleMenuDO::getRoleId, roleId)
         );
@@ -280,18 +287,35 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void assignRolePermissions(Long roleId, List<Long> functionIds) {
-        LambdaQueryWrapper<RoleFunctionDO> deleteWrapper = new LambdaQueryWrapper<>();
-        deleteWrapper.eq(RoleFunctionDO::getRoleId, roleId);
-        roleFunctionMapper.delete(deleteWrapper);
+    public void assignRolePermissions(Long roleId, List<Long> functionIds, List<Long> menuIds) {
+        LambdaQueryWrapper<RoleFunctionDO> functionDeleteWrapper = new LambdaQueryWrapper<>();
+        functionDeleteWrapper.eq(RoleFunctionDO::getRoleId, roleId);
+        roleFunctionMapper.delete(functionDeleteWrapper);
+
+        LambdaQueryWrapper<RoleMenuDO> menuDeleteWrapper = new LambdaQueryWrapper<>();
+        menuDeleteWrapper.eq(RoleMenuDO::getRoleId, roleId);
+        roleMenuMapper.delete(menuDeleteWrapper);
+
+        LocalDateTime now = LocalDateTime.now();
 
         if (functionIds != null && !functionIds.isEmpty()) {
             for (Long functionId : functionIds) {
                 RoleFunctionDO roleFunction = new RoleFunctionDO();
                 roleFunction.setRoleId(roleId);
                 roleFunction.setFunctionId(functionId);
-                roleFunction.setCreatedTime(LocalDateTime.now());
+                roleFunction.setCreatedTime(now);
                 roleFunctionMapper.insert(roleFunction);
+            }
+        }
+
+        Set<Long> resolvedMenuIds = resolveMenuIds(functionIds, menuIds);
+        if (!resolvedMenuIds.isEmpty()) {
+            for (Long menuId : resolvedMenuIds) {
+                RoleMenuDO roleMenu = new RoleMenuDO();
+                roleMenu.setRoleId(roleId);
+                roleMenu.setMenuId(menuId);
+                roleMenu.setCreatedTime(now);
+                roleMenuMapper.insert(roleMenu);
             }
         }
 
@@ -301,5 +325,64 @@ public class PermissionServiceImpl implements PermissionService {
         for (UserRoleDO ur : userRoles) {
             invalidateCache(ur.getUserId());
         }
+    }
+
+    private Set<Long> resolveMenuIds(List<Long> functionIds, List<Long> menuIds) {
+        Set<Long> result = new HashSet<>();
+
+        if (menuIds != null) {
+            result.addAll(menuIds);
+        }
+
+        if (functionIds != null && !functionIds.isEmpty()) {
+            List<FunctionDO> functions = functionMapper.selectList(
+                    new LambdaQueryWrapper<FunctionDO>().in(FunctionDO::getId, functionIds)
+            );
+
+            Set<Long> functionMenuIds = functions.stream()
+                    .map(FunctionDO::getMenuId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            result.addAll(functionMenuIds);
+        }
+
+        if (!result.isEmpty()) {
+            List<MenuDO> allMenus = menuMapper.selectList(null);
+            Set<Long> fullPathIds = new HashSet<>(result);
+            for (Long menuId : result) {
+                MenuDO menu = allMenus.stream()
+                        .filter(m -> m.getId().equals(menuId))
+                        .findFirst()
+                        .orElse(null);
+                if (menu != null) {
+                    collectParentIds(allMenus, menu.getParentId(), fullPathIds);
+                }
+            }
+            return fullPathIds;
+        }
+
+        return result;
+    }
+
+    private void collectParentIds(List<MenuDO> allMenus, Long parentId, Set<Long> collectedIds) {
+        if (parentId == null || parentId == 0L) {
+            return;
+        }
+        if (collectedIds.contains(parentId)) {
+            return;
+        }
+        collectedIds.add(parentId);
+        for (MenuDO menu : allMenus) {
+            if (menu.getId().equals(parentId)) {
+                collectParentIds(allMenus, menu.getParentId(), collectedIds);
+                break;
+            }
+        }
+    }
+
+    private boolean isSuperAdmin(List<RoleDO> roles) {
+        return roles.stream()
+                .anyMatch(role -> SUPER_ADMIN_ROLE_ID.equals(role.getId()));
     }
 }

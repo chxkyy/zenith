@@ -15,14 +15,19 @@ public class RolePermissionController {
 
     private final PermissionService permissionService;
 
-    @GetMapping
-    public MultiResponse<Long> list(@RequestParam Long roleId) {
+    @GetMapping("/functions")
+    public MultiResponse<Long> listFunctions(@RequestParam Long roleId) {
         return MultiResponse.of(permissionService.getRolePermissions(roleId));
+    }
+
+    @GetMapping("/menus")
+    public MultiResponse<Long> listMenus(@RequestParam Long roleId) {
+        return MultiResponse.of(permissionService.getRoleMenus(roleId));
     }
 
     @PostMapping("/assign")
     public Response assign(@RequestBody @Valid RolePermissionAssignCmd cmd) {
-        permissionService.assignRolePermissions(cmd.getRoleId(), cmd.getFunctionIds());
+        permissionService.assignRolePermissions(cmd.getRoleId(), cmd.getFunctionIds(), cmd.getMenuIds());
         return Response.buildSuccess();
     }
 }

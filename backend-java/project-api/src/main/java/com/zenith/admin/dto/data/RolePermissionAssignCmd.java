@@ -11,4 +11,6 @@ public class RolePermissionAssignCmd {
     private Long roleId;
 
     private List<Long> functionIds;
+
+    private List<Long> menuIds;
 }

@@ -116,10 +116,10 @@ class PermissionServiceImplTest {
 
     @Test
     @DisplayName("根据角色ID获取菜单ID列表")
-    void testGetMenusByRoleId_Success() {
+    void testGetRoleMenus_Success() {
         when(roleMenuMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Arrays.asList(testRoleMenu));
 
-        List<Long> menuIds = permissionService.getMenusByRoleId(2L);
+        List<Long> menuIds = permissionService.getRoleMenus(2L);
 
         assertNotNull(menuIds);
         assertEquals(1, menuIds.size());

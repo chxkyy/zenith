@@ -10,7 +10,9 @@ public interface PermissionService {
     boolean hasPermission(Long userId, String permission);
     void updateUserRoles(Long userId, List<Long> roleIds);
 
-    void assignRolePermissions(Long roleId, List<Long> functionIds);
+    void assignRolePermissions(Long roleId, List<Long> functionIds, List<Long> menuIds);
 
     List<Long> getRolePermissions(Long roleId);
+
+    List<Long> getRoleMenus(Long roleId);
 }
