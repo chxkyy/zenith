@@ -1,23 +1,20 @@
 package com.zenith.admin.api;
 
-import com.zenith.admin.dataobject.ApprovalRecordDO;
-import com.zenith.admin.dataobject.NodeTemplateDO;
-import com.zenith.admin.dataobject.ProcessInstanceDO;
-import com.zenith.admin.dataobject.TaskDO;
+import com.zenith.admin.dto.data.TaskDTO;
 import com.zenith.admin.enums.ActionTypeEnum;
 
 import java.util.List;
 
 public interface WorkflowDomainService {
 
-    List<Long> resolveApprovers(NodeTemplateDO node, Long initiatorId);
+    List<Long> resolveApprovers(Long nodeTemplateId, Long initiatorId);
 
-    void createTasksForNode(ProcessInstanceDO instance, NodeTemplateDO node);
+    void createTasksForNode(Long processInstanceId, Long nodeTemplateId);
 
-    ApprovalRecordDO createApprovalRecord(ProcessInstanceDO instance, TaskDO task, Long operatorId, 
-            ActionTypeEnum actionType, String opinion);
+    void createApprovalRecord(Long processInstanceId, Integer nodeOrder, String nodeName,
+            Long taskId, Long operatorId, ActionTypeEnum actionType, String opinion);
 
-    List<TaskDO> getTasksByProcessInstanceAndNode(Long processInstanceId, Integer nodeOrder);
+    List<TaskDTO> getTasksByProcessInstanceAndNode(Long processInstanceId, Integer nodeOrder);
 
     boolean isAllOriginalTasksApproved(Long processInstanceId, Integer nodeOrder);
 

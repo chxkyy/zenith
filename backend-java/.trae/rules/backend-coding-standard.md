@@ -1,3 +1,4 @@
+JDK21路径在C:\java\jdk-21.0.9
 # 后端编码规范
 
 ## 2. 命名规范
@@ -454,7 +455,262 @@ return\s+(MultiResponse|SingleResponse|PageResponse|Response)\.(of|buildSuccess|
 | **维护困难** | 新开发者容易效仿错误模式，导致问题扩散 |
 | **测试复杂度增加** | Service 层单元测试需要模拟 HTTP 响应结构 |
 
-## 16. 总结
+## 16. Executor 层规范
+
+### 16.1 Executor 层职责
+
+Executor 层位于 Service 层和 Model 层之间，负责执行具体的业务逻辑。遵循 COLA 架构的分层设计，将复杂的业务逻辑从 Service 层下沉到 Executor 层。
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Controller 层                             │
+│  职责：接收请求 → 调用Service → 包装响应 → 返回给前端         │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ DTO
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Service 层                                │
+│  职责：用例编排，调用 Executor                               │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ DTO / 基本类型
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Executor 层                               │
+│  职责：执行具体业务逻辑，DO 操作，DTO 转换                    │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ DO
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Model 层                                  │
+│  职责：数据库操作                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 16.2 Executor 分类
+
+| 类型 | 后缀 | 职责 | 示例 |
+|------|------|------|------|
+| **命令执行器** | `CmdExe` | 执行写操作（增、删、改） | `UserAddCmdExe`、`UserDeleteCmdExe` |
+| **查询执行器** | `QryExe` | 执行读操作（查询） | `UserGetQryExe`、`UserListQryExe` |
+
+### 16.3 命名规范
+
+#### 类命名
+
+| 操作类型 | 命名格式 | 示例 |
+|---------|---------|------|
+| 新增 | `{Entity}AddCmdExe` | `UserAddCmdExe` |
+| 修改 | `{Entity}UpdateCmdExe` | `UserUpdateCmdExe` |
+| 删除 | `{Entity}DeleteCmdExe` | `UserDeleteCmdExe` |
+| 单对象查询 | `{Entity}GetQryExe` | `UserGetQryExe` |
+| 列表查询 | `{Entity}ListQryExe` | `UserListQryExe` |
+| 分页查询 | `{Entity}PageQryExe` | `UserPageQryExe` |
+
+#### 方法命名
+
+Executor 层统一使用 `execute` 方法名：
+
+```java
+public void execute(UserAddCmd cmd) { }           // 写操作，无返回值
+public UserDTO execute(UserGetQry qry) { }        // 读操作，返回 DTO
+public List<UserDTO> execute(UserListQry qry) { } // 读操作，返回 List
+```
+
+### 16.4 分层职责对比
+
+| 层级 | 职责 | 返回类型 | 是否操作 DO |
+|------|------|----------|-------------|
+| **Controller** | HTTP 适配、响应格式化 | `Response` / `SingleResponse` / `MultiResponse` | ❌ 禁止 |
+| **Service** | 用例编排、调用 Executor | DTO / List / void / boolean | ❌ 禁止 |
+| **Executor** | 具体业务逻辑、数据转换 | DTO / List / void / boolean | ✅ 允许 |
+| **Mapper** | 数据库操作 | DO / List\<DO\> | ✅ 允许 |
+
+### 16.5 代码示例
+
+#### ❌ 错误写法：Service 层直接操作 DO
+
+```java
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserMapper userMapper;
+    private final UserConvertor userConvertor;
+
+    @Override
+    public UserDTO getById(Long id) {
+        UserDO userDO = userMapper.selectById(id);  // ❌ Service 层直接操作 DO
+        return userConvertor.toDTO(userDO);
+    }
+
+    @Override
+    public void add(UserAddCmd cmd) {
+        UserDO userDO = new UserDO();               // ❌ Service 层直接操作 DO
+        userDO.setName(cmd.getName());
+        userMapper.insert(userDO);
+    }
+}
+```
+
+#### ✅ 正确写法：Service 层编排，Executor 层执行
+
+```java
+// Service 接口
+public interface UserService {
+    UserDTO getById(Long id);
+    void add(UserAddCmd cmd);
+}
+
+// Service 实现 - 只做编排
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserGetQryExe userGetQryExe;
+    private final UserAddCmdExe userAddCmdExe;
+
+    @Override
+    public UserDTO getById(Long id) {
+        UserGetQry qry = new UserGetQry();
+        qry.setUserId(id);
+        return userGetQryExe.execute(qry);  // ✅ 调用 Executor
+    }
+
+    @Override
+    public void add(UserAddCmd cmd) {
+        userAddCmdExe.execute(cmd);  // ✅ 调用 Executor
+    }
+}
+
+// 查询 Executor
+@Component
+@RequiredArgsConstructor
+public class UserGetQryExe {
+
+    private final UserMapper userMapper;
+    private final UserConvertor userConvertor;
+
+    public UserDTO execute(UserGetQry qry) {
+        UserDO userDO = userMapper.selectById(qry.getUserId());  // ✅ Executor 层操作 DO
+        if (userDO == null) {
+            throw new BizException("USER_NOT_FOUND", "用户不存在");
+        }
+        return userConvertor.toDTO(userDO);  // ✅ Executor 层转换 DTO
+    }
+}
+
+// 命令 Executor
+@Component
+@RequiredArgsConstructor
+public class UserAddCmdExe {
+
+    private final UserMapper userMapper;
+
+    public void execute(UserAddCmd cmd) {
+        if (userMapper.countByEmail(cmd.getEmail()) > 0) {
+            throw new BizException("EMAIL_EXISTS", "邮箱已存在");
+        }
+        
+        UserDO userDO = new UserDO();  // ✅ Executor 层操作 DO
+        userDO.setName(cmd.getName());
+        userDO.setEmail(cmd.getEmail());
+        userMapper.insert(userDO);
+    }
+}
+```
+
+### 16.6 目录结构
+
+```
+project-service/src/main/java/com/zenith/admin/
+├── executor/                              # Executor 层
+│   ├── UserAddCmdExe.java                 # 新增用户命令
+│   ├── UserUpdateCmdExe.java              # 修改用户命令
+│   ├── UserDeleteCmdExe.java              # 删除用户命令
+│   ├── UserGetQryExe.java                 # 获取单个用户查询
+│   ├── UserListQryExe.java                # 获取用户列表查询
+│   └── UserPageQryExe.java                # 分页查询用户
+├── service/
+│   ├── UserService.java                   # Service 接口
+│   └── impl/
+│       └── UserServiceImpl.java           # Service 实现（只做编排）
+├── UserConvertor.java                     # DO ↔ DTO 转换器
+└── ...
+```
+
+### 16.7 强制规则清单
+
+#### 【强制】Service 层禁止事项
+
+- ❌ **禁止**直接操作 DO（`UserDO`、`RoleDO` 等）
+- ❌ **禁止**直接调用 Mapper 进行数据库操作
+- ❌ **禁止**在 Service 层进行 DO → DTO 转换
+
+#### 【强制】Service 层必须遵守
+
+- ✅ 只做用例编排，调用 Executor
+- ✅ 将业务逻辑下沉到 Executor 层
+- ✅ 返回 Executor 的执行结果
+
+#### 【强制】Executor 层必须遵守
+
+- ✅ 负责具体的业务逻辑实现
+- ✅ 可以操作 DO 和调用 Mapper
+- ✅ 负责 DO → DTO 的转换
+- ✅ 返回 DTO 或基本类型，**禁止返回 DO**
+
+### 16.8 Domain Service 规范
+
+对于领域服务（如 `WorkflowDomainService`），同样需要遵循分层规范：
+
+#### ❌ 错误写法：接口中使用 DO
+
+```java
+public interface WorkflowDomainService {
+    List<Long> resolveApprovers(NodeTemplateDO node, Long initiatorId);  // ❌ 参数使用 DO
+    void createTasksForNode(ProcessInstanceDO instance, NodeTemplateDO node);  // ❌ 参数使用 DO
+    List<TaskDO> getTasksByProcessInstanceAndNode(Long processInstanceId, Integer nodeOrder);  // ❌ 返回 DO
+}
+```
+
+#### ✅ 正确写法：接口中使用 DTO 或基本类型
+
+```java
+public interface WorkflowDomainService {
+    List<Long> resolveApprovers(Long nodeTemplateId, Long initiatorId);  // ✅ 使用 ID
+    void createTasksForNode(Long processInstanceId, Long nodeTemplateId);  // ✅ 使用 ID
+    List<TaskDTO> getTasksByProcessInstanceAndNode(Long processInstanceId, Integer nodeOrder);  // ✅ 返回 DTO
+}
+```
+
+#### 实现层结构
+
+```
+project-service/src/main/java/com/zenith/admin/
+├── executor/
+│   ├── WorkflowResolveApproversQryExe.java    # 解析审批人
+│   ├── WorkflowCreateTaskCmdExe.java          # 创建任务
+│   ├── WorkflowCreateApprovalRecordCmdExe.java # 创建审批记录
+│   ├── WorkflowGetTasksQryExe.java            # 查询任务
+│   ├── WorkflowCheckApprovalQryExe.java       # 检查审批状态
+│   └── WorkflowTerminateTaskCmdExe.java       # 终止任务
+├── service/
+│   └── impl/
+│       └── WorkflowDomainServiceImpl.java     # 只做编排
+└── TaskConvertor.java                         # DO ↔ DTO 转换器
+```
+
+### 16.9 架构优势
+
+| 优势 | 说明 |
+|------|------|
+| **职责清晰** | Service 编排、Executor 执行、Mapper 持久化 |
+| **易于测试** | Executor 可独立单元测试，无需模拟整个 Service |
+| **代码复用** | 多个 Service 可复用同一个 Executor |
+| **易于维护** | 业务逻辑集中在 Executor，修改影响范围小 |
+| **符合 COLA** | 遵循整洁架构分层原则 |
+
+## 17. 总结
 
 本编码规范旨在提高代码质量和可维护性，确保团队成员在开发过程中遵循一致的标准。所有团队成员应该熟悉并遵守本规范，共同维护高质量的代码库。
 

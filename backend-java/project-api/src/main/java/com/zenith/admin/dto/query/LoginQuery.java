@@ -4,6 +4,8 @@ import lombok.Data;
 
 @Data
 public class LoginQuery {
-    private String username;
+    private String loginId;
     private String password;
+    private String ip;
+    private String userAgent;
 }

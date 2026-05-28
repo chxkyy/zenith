@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>架构审查报告 - Zenith Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        .badge-strong { background: #dc2626; color: white; }
+        .badge-worth { background: #f59e0b; color: white; }
+        .badge-speculative { background: #6b7280; color: white; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .code-block { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 16px; overflow-x: auto; }
+        .code-block code { font-family: 'Fira Code', monospace; font-size: 13px; }
+        .violation { border-left: 4px solid #dc2626; }
+        .warning { border-left: 4px solid #f59e0b; }
+        .diagram-container { display: flex; gap: 24px; flex-wrap: wrap; }
+        .diagram-box { flex: 1; min-width: 300px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">架构审查报告</h1>
+            <p class="text-gray-600">Zenith Admin 后端项目 - COLA 架构合规性分析</p>
+            <p class="text-sm text-gray-500 mt-2">生成时间: 2026-05-28</p>
+        </header>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">📊 审查摘要</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-red-50 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-red-600">6</div>
+                    <div class="text-sm text-red-700">严重违规</div>
+                </div>
+                <div class="bg-amber-50 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-amber-600">3</div>
+                    <div class="text-sm text-amber-700">中等风险</div>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-blue-600">8</div>
+                    <div class="text-sm text-blue-700">受影响文件</div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-green-600">1</div>
+                    <div class="text-sm text-green-700">正确示例</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 card violation">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">🔴 Service 层直接操作 DO 对象</h3>
+                <span class="px-3 py-1 rounded-full text-sm font-medium badge-strong">Strong</span>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">📁 涉及文件</h4>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-2 py-1 bg-gray-100 rounded text-sm">WorkflowServiceImpl.java (381行)</span>
+                    <span class="px-2 py-1 bg-gray-100 rounded text-sm">TaskServiceImpl.java (363行)</span>
+                    <span class="px-2 py-1 bg-gray-100 rounded text-sm">UserServiceImpl.java (267行)</span>
+                    <span class="px-2 py-1 bg-gray-100 rounded text-sm">DictServiceImpl.java (188行)</span>
+                    <span class="px-2 py-1 bg-gray-100 rounded text-sm">RoleServiceImpl.java (149行)</span>
+                    <span class="px-2 py-1 bg-gray-100 rounded text-sm">OrgServiceImpl.java (114行)</span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">❌ 问题描述</h4>
+                <p class="text-gray-600 text-sm">
+                    根据 COLA 架构规范，Service 层应该只做用例编排，将业务逻辑下沉到 Executor 层。
+                    但当前代码中，所有 Service 实现类都直接注入 Mapper 并操作 DO 对象，严重违反分层原则。
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">💻 违规代码示例</h4>
+                <div class="code-block">
+                    <code><pre>// WorkflowServiceImpl.java - Service 层直接操作 DO
+@Service
+@RequiredArgsConstructor
+public class WorkflowServiceImpl implements WorkflowService {
+    private final ProcessInstanceMapper processInstanceMapper;  // ❌ 直接注入 Mapper
+    private final TaskMapper taskMapper;                         // ❌ 直接注入 Mapper
+    private final UserMapper userMapper;                         // ❌ 直接注入 Mapper
+    
+    public void cancel(Long processInstanceId, Long currentUserId) {
+        ProcessInstanceDO instance = processInstanceMapper.selectById(processInstanceId);  // ❌ 直接操作 DO
+        instance.setStatus(ProcessStatusEnum.CANCELLED.getCode());
+        processInstanceMapper.updateById(instance);  // ❌ 直接操作 DO
+    }
+}</pre></code>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">✅ 解决方案</h4>
+                <p class="text-gray-600 text-sm">
+                    为每个 Service 创建对应的 Executor 类，将 DO 操作下沉到 Executor 层。
+                    Service 层只负责用例编排，调用 Executor 执行具体业务逻辑。
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">📈 架构对比</h4>
+                <div class="diagram-container">
+                    <div class="diagram-box">
+                        <h5 class="text-sm font-medium text-red-600 mb-2">❌ 当前架构（违规）</h5>
+                        <div class="mermaid">
+                            flowchart TB
+                                subgraph Controller
+                                    C[WorkflowController]
+                                end
+                                subgraph Service["Service 层 (违规)"]
+                                    S[WorkflowServiceImpl]
+                                    M1[ProcessInstanceMapper]
+                                    M2[TaskMapper]
+                                    M3[UserMapper]
+                                end
+                                C --> S
+                                S --> M1
+                                S --> M2
+                                S --> M3
+                                style S fill:#fecaca
+                                style M1 fill:#fca5a5
+                                style M2 fill:#fca5a5
+                                style M3 fill:#fca5a5
+                        </div>
+                    </div>
+                    <div class="diagram-box">
+                        <h5 class="text-sm font-medium text-green-600 mb-2">✅ 正确架构</h5>
+                        <div class="mermaid">
+                            flowchart TB
+                                subgraph Controller
+                                    C[WorkflowController]
+                                end
+                                subgraph Service
+                                    S[WorkflowServiceImpl]
+                                end
+                                subgraph Executor
+                                    E1[WorkflowCancelCmdExe]
+                                    E2[WorkflowGetDetailQryExe]
+                                    E3[WorkflowSubmitCmdExe]
+                                end
+                                subgraph Mapper
+                                    M[Mapper Layer]
+                                end
+                                C --> S
+                                S --> E1
+                                S --> E2
+                                S --> E3
+                                E1 --> M
+                                E2 --> M
+                                E3 --> M
+                                style S fill:#bbf7d0
+                                style E1 fill:#86efac
+                                style E2 fill:#86efac
+                                style E3 fill:#86efac
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-blue-700 mb-2">🎯 收益</h4>
+                <ul class="text-sm text-blue-800 space-y-1">
+                    <li>• <strong>Locality（局部性）</strong>：业务逻辑集中在 Executor，修改影响范围小</li>
+                    <li>• <strong>Leverage（杠杆）</strong>：Service 接口简洁，Executor 可复用</li>
+                    <li>• <strong>Testability（可测试性）</strong>：Executor 可独立单元测试</li>
+                    <li>• <strong>AI-Navigability</strong>：清晰的分层使 AI 更容易理解和导航代码</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 card violation">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">🔴 AuthService 返回 COLA Response 对象</h3>
+                <span class="px-3 py-1 rounded-full text-sm font-medium badge-strong">Strong</span>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">📁 涉及文件</h4>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-2 py-1 bg-gray-100 rounded text-sm">AuthServiceImpl.java</span>
+                    <span class="px-2 py-1 bg-gray-100 rounded text-sm">AuthService.java (接口)</span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">❌ 问题描述</h4>
+                <p class="text-gray-600 text-sm">
+                    Service 层返回了 COLA Response 对象（SingleResponse、Response），违反了分层原则。
+                    这导致 AOP 切面（TranslateAspect）无法正确拦截和处理返回值，字段翻译功能失效。
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">💻 违规代码示例</h4>
+                <div class="code-block">
+                    <code><pre>// AuthServiceImpl.java - Service 层返回 COLA Response
+@Service
+@RequiredArgsConstructor
+public class AuthServiceImpl implements AuthService {
+    @Override
+    public SingleResponse&lt;UserDTO&gt; login(String loginId, String password, String ip, String userAgent) {
+        UserDO user = userMapper.selectOne(...);
+        if (user == null) {
+            return SingleResponse.buildFailure("USER_NOT_FOUND", "登录账号不存在");  // ❌ 返回 COLA Response
+        }
+        UserDTO userDTO = userService.getById(user.getId());
+        return SingleResponse.of(userDTO);  // ❌ 返回 COLA Response
+    }
+    
+    @Override
+    public Response changePassword(Long userId, String oldPassword, String newPassword) {
+        // ...
+        return Response.buildSuccess();  // ❌ 返回 COLA Response
+    }
+}</pre></code>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">✅ 解决方案</h4>
+                <p class="text-gray-600 text-sm">
+                    Service 层应该返回原始数据类型或抛出异常，由 Controller 层负责包装成 COLA Response。
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">📈 架构对比</h4>
+                <div class="diagram-container">
+                    <div class="diagram-box">
+                        <h5 class="text-sm font-medium text-red-600 mb-2">❌ 当前架构（违规）</h5>
+                        <div class="mermaid">
+                            flowchart LR
+                                C[Controller] -->|调用| S[AuthService]
+                                S -->|返回 SingleResponse| C
+                                S -->|跳过| A[TranslateAspect]
+                                style S fill:#fecaca
+                                style A fill:#fca5a5
+                        </div>
+                    </div>
+                    <div class="diagram-box">
+                        <h5 class="text-sm font-medium text-green-600 mb-2">✅ 正确架构</h5>
+                        <div class="mermaid">
+                            flowchart LR
+                                C[Controller] -->|调用| S[AuthService]
+                                S -->|返回 UserDTO| A[TranslateAspect]
+                                A -->|处理后| C
+                                C -->|包装 SingleResponse| R[Response]
+                                style S fill:#bbf7d0
+                                style A fill:#86efac
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-red-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-red-700 mb-2">⚠️ 后果</h4>
+                <ul class="text-sm text-red-800 space-y-1">
+                    <li>• AOP 切面（字段翻译）无法正确拦截</li>
+                    <li>• @UserName / @RoleName / @DictName 等注解失效</li>
+                    <li>• 违反架构分层原则，Service 层承担了 Controller 的职责</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 card warning">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">🟡 Executor 层缺失</h3>
+                <span class="px-3 py-1 rounded-full text-sm font-medium badge-worth">Worth Exploring</span>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">📁 当前状态</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <h5 class="text-sm font-medium text-green-700 mb-2">✅ 已有 Executor</h5>
+                        <ul class="text-sm text-green-800 space-y-1">
+                            <li>• WorkflowResolveApproversQryExe</li>
+                            <li>• WorkflowCreateTaskCmdExe</li>
+                            <li>• WorkflowCreateApprovalRecordCmdExe</li>
+                            <li>• WorkflowGetTasksQryExe</li>
+                            <li>• WorkflowCheckApprovalQryExe</li>
+                            <li>• WorkflowTerminateTaskCmdExe</li>
+                        </ul>
+                    </div>
+                    <div class="bg-red-50 rounded-lg p-4">
+                        <h5 class="text-sm font-medium text-red-700 mb-2">❌ 缺失 Executor 的 Service</h5>
+                        <ul class="text-sm text-red-800 space-y-1">
+                            <li>• UserServiceImpl</li>
+                            <li>• TaskServiceImpl</li>
+                            <li>• DictServiceImpl</li>
+                            <li>• RoleServiceImpl</li>
+                            <li>• OrgServiceImpl</li>
+                            <li>• MenuServiceImpl</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">❌ 问题描述</h4>
+                <p class="text-gray-600 text-sm">
+                    只有 WorkflowDomainService 正确使用了 Executor 层，其他所有 Service 都直接操作 Mapper。
+                    这导致架构不一致，违反了 COLA 分层规范。
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">✅ 正确示例：WorkflowDomainServiceImpl</h4>
+                <div class="code-block">
+                    <code><pre>// WorkflowDomainServiceImpl.java - 正确使用 Executor
+@Service
+@RequiredArgsConstructor
+public class WorkflowDomainServiceImpl implements WorkflowDomainService {
+    private final WorkflowResolveApproversQryExe resolveApproversQryExe;
+    private final WorkflowCreateTaskCmdExe createTaskCmdExe;
+    private final WorkflowCreateApprovalRecordCmdExe createApprovalRecordCmdExe;
+    
+    @Override
+    public List&lt;Long&gt; resolveApprovers(Long nodeTemplateId, Long initiatorId) {
+        return resolveApproversQryExe.execute(nodeTemplateId, initiatorId);  // ✅ 调用 Executor
+    }
+    
+    @Override
+    public void createTasksForNode(Long processInstanceId, Long nodeTemplateId) {
+        createTaskCmdExe.execute(processInstanceId, nodeTemplateId);  // ✅ 调用 Executor
+    }
+}</pre></code>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-amber-700 mb-2">📋 建议创建的 Executor</h4>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div><strong>User:</strong> UserAddCmdExe, UserUpdateCmdExe, UserGetQryExe, UserListQryExe</div>
+                    <div><strong>Task:</strong> TaskApproveCmdExe, TaskRejectCmdExe, TaskGetQryExe</div>
+                    <div><strong>Dict:</strong> DictAddCmdExe, DictUpdateCmdExe, DictGetQryExe</div>
+                    <div><strong>Role:</strong> RoleAddCmdExe, RoleUpdateCmdExe, RoleGetQryExe</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 card warning">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">🟡 Convertor 使用不一致</h3>
+                <span class="px-3 py-1 rounded-full text-sm font-medium badge-worth">Worth Exploring</span>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">❌ 问题描述</h4>
+                <p class="text-gray-600 text-sm">
+                    WorkflowServiceImpl 和 TaskServiceImpl 中存在私有的 convertToDTO 方法，
+                    而不是使用 Convertor 接口。这违反了代码复用原则，也增加了维护成本。
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">💻 违规代码示例</h4>
+                <div class="code-block">
+                    <code><pre>// WorkflowServiceImpl.java - 私有转换方法
+private ProcessInstanceDTO convertToDTO(ProcessInstanceDO dO) {
+    ProcessInstanceDTO dto = new ProcessInstanceDTO();
+    dto.setId(dO.getId());
+    dto.setProcessNo(dO.getProcessNo());
+    // ... 大量手动映射代码
+    return dto;
+}
+
+private ApprovalRecordDTO convertRecordToDTO(ApprovalRecordDO dO) {
+    // ... 另一个私有转换方法
+}</pre></code>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">✅ 正确示例：DictServiceImpl</h4>
+                <div class="code-block">
+                    <code><pre>// DictServiceImpl.java - 使用 Convertor
+@Service
+@RequiredArgsConstructor
+public class DictServiceImpl implements DictService {
+    private final DictConvertor dictConvertor;  // ✅ 注入 Convertor
+    
+    @Override
+    public List&lt;DictDTO&gt; listAll() {
+        List&lt;DictDO&gt; dictDOS = dictMapper.selectList(null);
+        return dictConvertor.toDTOList(dictDOS);  // ✅ 使用 Convertor
+    }
+}</pre></code>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-blue-700 mb-2">📋 建议</h4>
+                <ul class="text-sm text-blue-800 space-y-1">
+                    <li>• 创建 ProcessInstanceConvertor 接口</li>
+                    <li>• 创建 ApprovalRecordConvertor 接口</li>
+                    <li>• 使用 MapStruct 自动生成映射代码</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 card warning">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">🟡 Service 类过于庞大</h3>
+                <span class="px-3 py-1 rounded-full text-sm font-medium badge-worth">Worth Exploring</span>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">📊 代码行数统计</h4>
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <span class="w-40 text-sm">WorkflowServiceImpl</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-4">
+                            <div class="bg-red-500 h-4 rounded-full" style="width: 100%"></div>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600">381 行</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-40 text-sm">TaskServiceImpl</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-4">
+                            <div class="bg-red-500 h-4 rounded-full" style="width: 95%"></div>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600">363 行</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-40 text-sm">UserServiceImpl</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-4">
+                            <div class="bg-amber-500 h-4 rounded-full" style="width: 70%"></div>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600">267 行</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-40 text-sm">DictServiceImpl</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-4">
+                            <div class="bg-amber-500 h-4 rounded-full" style="width: 50%"></div>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600">188 行</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">❌ 问题描述</h4>
+                <p class="text-gray-600 text-sm">
+                    大型 Service 类违反了单一职责原则，难以维护和测试。
+                    WorkflowServiceImpl 包含了流程管理的所有逻辑，应该拆分为更小的模块。
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">📈 架构对比</h4>
+                <div class="diagram-container">
+                    <div class="diagram-box">
+                        <h5 class="text-sm font-medium text-red-600 mb-2">❌ 当前：巨型 Service</h5>
+                        <div class="mermaid">
+                            flowchart TB
+                                subgraph BigService["WorkflowServiceImpl (381行)"]
+                                    D1[cancel]
+                                    D2[getDetail]
+                                    D3[pageAllProcess]
+                                    D4[resubmit]
+                                    D5[revoke]
+                                    D6[saveDraft]
+                                    D7[submit]
+                                    D8[convertToDTO]
+                                    D9[convertRecordToDTO]
+                                end
+                                style BigService fill:#fecaca
+                        </div>
+                    </div>
+                    <div class="diagram-box">
+                        <h5 class="text-sm font-medium text-green-600 mb-2">✅ 建议：拆分 Executor</h5>
+                        <div class="mermaid">
+                            flowchart TB
+                                subgraph Service["WorkflowService (编排层)"]
+                                    S[WorkflowServiceImpl]
+                                end
+                                subgraph Executors["Executor 层"]
+                                    E1[WorkflowCancelCmdExe]
+                                    E2[WorkflowGetDetailQryExe]
+                                    E3[WorkflowPageQryExe]
+                                    E4[WorkflowSubmitCmdExe]
+                                end
+                                S --> E1
+                                S --> E2
+                                S --> E3
+                                S --> E4
+                                style Service fill:#bbf7d0
+                                style Executors fill:#86efac
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">⚪ AOP 切面与 COLA Response 冲突</h3>
+                <span class="px-3 py-1 rounded-full text-sm font-medium badge-speculative">Speculative</span>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">❌ 问题描述</h4>
+                <p class="text-gray-600 text-sm">
+                    TranslateAspect 只处理 List、PageInfo 和单个 DTO 对象，不处理 COLA Response 对象。
+                    当 Service 返回 SingleResponse 时，AOP 无法正确执行字段翻译。
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">💻 当前 AOP 实现</h4>
+                <div class="code-block">
+                    <code><pre>// TranslateAspect.java
+@AfterReturning(pointcut = "servicePointCut()", returning = "result")
+public void afterReturn(Object result) {
+    if (result == null) return;
+    
+    // 只处理这三种类型，不处理 COLA Response
+    if (result instanceof PageInfo&lt;?&gt;) {
+        PageInfo&lt;?&gt; pageInfo = (PageInfo&lt;?&gt;) result;
+        pageInfo.getList().forEach(fieldTranslateProcessor::process);
+    } else if (result instanceof List&lt;?&gt;) {
+        List&lt;?&gt; list = (List&lt;?&gt;) result;
+        list.forEach(fieldTranslateProcessor::process);
+    } else {
+        fieldTranslateProcessor.process(result);
+    }
+    // ❌ 如果 result 是 SingleResponse，会尝试对 Response 对象做字段翻译，而不是对内部 data
+}</pre></code>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">💡 根本原因</h4>
+                <p class="text-sm text-gray-600">
+                    这个问题的根本原因是 Service 层返回了 COLA Response 对象。
+                    如果按照规范让 Service 返回原始数据类型，AOP 就能正确工作。
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
+            <h2 class="text-xl font-bold mb-4">🎯 首要推荐</h2>
+            <div class="bg-white/10 rounded-lg p-4 mb-4">
+                <h3 class="font-semibold mb-2">优先修复：AuthServiceImpl 返回 COLA Response</h3>
+                <p class="text-sm text-blue-100">
+                    这是影响范围最小、修复成本最低的问题。只需修改 AuthService 接口和实现，
+                    让 Service 层返回原始数据类型，由 Controller 层负责包装响应。
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div class="bg-white/10 rounded-lg p-3">
+                    <div class="font-semibold">修复难度</div>
+                    <div class="text-blue-200">⭐ 低</div>
+                </div>
+                <div class="bg-white/10 rounded-lg p-3">
+                    <div class="font-semibold">影响范围</div>
+                    <div class="text-blue-200">AuthController, AuthService</div>
+                </div>
+                <div class="bg-white/10 rounded-lg p-3">
+                    <div class="font-semibold">预计时间</div>
+                    <div class="text-blue-200">1-2 小时</div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-8 text-center text-gray-500 text-sm">
+            <p>架构审查报告 - 由 Trae IDE 生成</p>
+            <p class="mt-1">基于 COLA 架构规范和项目编码规范</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e0f2fe',
+                primaryTextColor: '#1e40af',
+                primaryBorderColor: '#3b82f6',
+                lineColor: '#64748b',
+                secondaryColor: '#f0fdf4',
+                tertiaryColor: '#fef3c7'
+            }
+        });
+    </script>
+</body>
+</html>

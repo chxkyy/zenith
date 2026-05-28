@@ -10,6 +10,7 @@ import com.zenith.admin.config.RedisSessionRepository;
 import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.UserDTO;
+import com.zenith.admin.dto.query.LoginQuery;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +43,13 @@ public class AuthController {
             return Response.buildFailure("NOT_LOGIN", "未登录");
         }
         Long userId = getUserIdFromSession(session);
-        return authService.changePassword(userId, changePasswordRequest.getOldPassword(),
-                changePasswordRequest.getNewPassword());
+        try {
+            authService.changePassword(userId, changePasswordRequest.getOldPassword(),
+                    changePasswordRequest.getNewPassword());
+            return Response.buildSuccess();
+        } catch (Exception e) {
+            return Response.buildFailure("CHANGE_PASSWORD_ERROR", e.getMessage());
+        }
     }
 
     @GetMapping("/me")
@@ -54,6 +60,9 @@ public class AuthController {
         }
         Long userId = getUserIdFromSession(session);
         UserDTO user = authService.getCurrentUser(userId);
+        if (user == null) {
+            return SingleResponse.buildFailure("USER_NOT_FOUND", "用户不存在");
+        }
         return SingleResponse.of(user);
     }
 
@@ -92,8 +101,20 @@ public class AuthController {
         String ip = httpRequest.getRemoteAddr();
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        SingleResponse<UserDTO> response = authService.login(
-                request.getLoginId(), request.getPassword(), ip, userAgent);
+        LoginQuery query = new LoginQuery();
+        query.setLoginId(request.getLoginId());
+        query.setPassword(request.getPassword());
+        query.setIp(ip);
+        query.setUserAgent(userAgent);
+
+        UserDTO userDTO = null;
+        String errorMessage = null;
+
+        try {
+            userDTO = authService.login(query);
+        } catch (Exception e) {
+            errorMessage = e.getMessage();
+        }
 
         LoginLogDTO loginLogDTO = new LoginLogDTO();
         loginLogDTO.setUsername(request.getLoginId());
@@ -103,17 +124,17 @@ public class AuthController {
         loginLogDTO.setUpdateTime(LocalDateTime.now());
         loginLogDTO.setUserAgent(userAgent);
 
-        if (response.isSuccess()) {
+        if (userDTO != null) {
             loginLogDTO.setStatus("成功");
             loginLogDTO.setMsg("登录成功");
-            loginLogDTO.setCreateUserId(response.getData().getId());
-            loginLogDTO.setUpdateUserId(response.getData().getId());
+            loginLogDTO.setCreateUserId(userDTO.getId());
+            loginLogDTO.setUpdateUserId(userDTO.getId());
 
             HttpSession session = httpRequest.getSession(true);
-            Long userId = response.getData().getId();
-            String username = response.getData().getUsername();
+            Long userId = userDTO.getId();
+            String username = userDTO.getUsername();
             String loginId = request.getLoginId();
-            
+
             session.setAttribute("userId", userId);
             session.setAttribute("username", username);
             session.setAttribute("loginId", loginId);
@@ -123,7 +144,7 @@ public class AuthController {
 
             String sessionId = session.getId();
             log.info("Login success for user {}, sessionId: {}", username, sessionId);
-            
+
             RedisSessionRepository.RedisSession redisSession = sessionRepository.findById(sessionId);
             if (redisSession != null) {
                 redisSession.setUserId(userId);
@@ -132,18 +153,23 @@ public class AuthController {
                 redisSession.setUserAgent(userAgent);
                 redisSession.setLoginTime(System.currentTimeMillis());
                 sessionRepository.save(redisSession);
-                
+
                 sessionRepository.enforceMaxConcurrentSessions(userId, sessionId);
             } else {
                 log.warn("RedisSession not found for sessionId: {}", sessionId);
             }
         } else {
             loginLogDTO.setStatus("失败");
-            loginLogDTO.setMsg(response.getErrMessage());
+            loginLogDTO.setMsg(errorMessage);
         }
 
         loginLogService.save(loginLogDTO);
-        return response;
+
+        if (userDTO != null) {
+            return SingleResponse.of(userDTO);
+        } else {
+            return SingleResponse.buildFailure("LOGIN_FAILED", errorMessage);
+        }
     }
 
     @PostMapping("/logout")
@@ -152,12 +178,12 @@ public class AuthController {
         if (session != null) {
             String username = (String) session.getAttribute("username");
             String sessionId = session.getId();
-            
+
             sessionRepository.deleteById(sessionId);
-            
+
             session.invalidate();
             SecurityContextHolder.clearContext();
-            
+
             if (username != null) {
                 loginLogService.updateLogoutAt(username);
             }
@@ -172,8 +198,13 @@ public class AuthController {
             return Response.buildFailure("NOT_LOGIN", "未登录");
         }
         Long userId = (Long) session.getAttribute("userId");
-        return authService.updateProfile(userId, updateProfileRequest.getUsername(), updateProfileRequest.getEmail(),
-                updateProfileRequest.getPhone());
+        try {
+            authService.updateProfile(userId, updateProfileRequest.getUsername(), updateProfileRequest.getEmail(),
+                    updateProfileRequest.getPhone());
+            return Response.buildSuccess();
+        } catch (Exception e) {
+            return Response.buildFailure("UPDATE_PROFILE_ERROR", e.getMessage());
+        }
     }
 
     @lombok.Data
