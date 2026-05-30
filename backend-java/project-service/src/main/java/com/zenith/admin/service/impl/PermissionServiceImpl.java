@@ -18,8 +18,7 @@ import com.zenith.admin.mapper.RoleFunctionMapper;
 import com.zenith.admin.mapper.RoleMenuMapper;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.mapper.UserRoleMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson2.JSON;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +40,6 @@ public class PermissionServiceImpl implements PermissionService {
     private static final long CACHE_TTL_MS = 5 * 60 * 1000L;
     private final FunctionMapper functionMapper;
     private final MenuMapper menuMapper;
-    private final ObjectMapper objectMapper;
     private final OperLogService operLogService;
     private final ConcurrentHashMap<Long, CachedPermissions> permissionCache = new ConcurrentHashMap<>();
     private final RoleFunctionMapper roleFunctionMapper;
@@ -339,35 +337,30 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     private String buildLogRemark(Long roleId, String roleName, String beforeJson, String afterJson) {
-        try {
-            SnapshotDTO before = objectMapper.readValue(beforeJson, SnapshotDTO.class);
-            SnapshotDTO after = objectMapper.readValue(afterJson, SnapshotDTO.class);
+        SnapshotDTO before = JSON.parseObject(beforeJson, SnapshotDTO.class);
+        SnapshotDTO after = JSON.parseObject(afterJson, SnapshotDTO.class);
 
-            Set<Long> beforeAllIds = new HashSet<>();
-            before.getMenus().forEach(m -> beforeAllIds.addAll(m.getFunctionIds()));
-            Set<Long> afterAllIds = new HashSet<>();
-            after.getMenus().forEach(m -> afterAllIds.addAll(m.getFunctionIds()));
+        Set<Long> beforeAllIds = new HashSet<>();
+        before.getMenus().forEach(m -> beforeAllIds.addAll(m.getFunctionIds()));
+        Set<Long> afterAllIds = new HashSet<>();
+        after.getMenus().forEach(m -> afterAllIds.addAll(m.getFunctionIds()));
 
-            Set<Long> addedIds = new HashSet<>(afterAllIds);
-            addedIds.removeAll(beforeAllIds);
-            Set<Long> removedIds = new HashSet<>(beforeAllIds);
-            removedIds.removeAll(afterAllIds);
+        Set<Long> addedIds = new HashSet<>(afterAllIds);
+        addedIds.removeAll(beforeAllIds);
+        Set<Long> removedIds = new HashSet<>(beforeAllIds);
+        removedIds.removeAll(afterAllIds);
 
-            LogRemarkDTO remark = new LogRemarkDTO();
-            remark.setRoleId(roleId);
-            remark.setRoleName(roleName);
-            remark.setBefore(before);
-            remark.setAfter(after);
-            remark.setChanges(new ChangesDTO(
-                    buildChangeDetails(addedIds, after),
-                    buildChangeDetails(removedIds, before)
-            ));
+        LogRemarkDTO remark = new LogRemarkDTO();
+        remark.setRoleId(roleId);
+        remark.setRoleName(roleName);
+        remark.setBefore(before);
+        remark.setAfter(after);
+        remark.setChanges(new ChangesDTO(
+                buildChangeDetails(addedIds, after),
+                buildChangeDetails(removedIds, before)
+        ));
 
-            return objectMapper.writeValueAsString(remark);
-        } catch (JsonProcessingException e) {
-            log.warn("Failed to build log remark for roleId: {}", roleId, e);
-            return String.format("{\"before\":%s,\"after\":%s}", beforeJson, afterJson);
-        }
+        return JSON.toJSONString(remark);
     }
 
     private String buildPermissionSnapshot(Long roleId) {
@@ -413,12 +406,7 @@ public class PermissionServiceImpl implements PermissionService {
         snapshot.setMenus(menus);
         snapshot.setRoleId(roleId);
         snapshot.setTotalFunctions(allFunctions.size());
-        try {
-            return objectMapper.writeValueAsString(snapshot);
-        } catch (JsonProcessingException e) {
-            log.warn("Failed to serialize permission snapshot for roleId: {}", roleId, e);
-            return "{\"error\": \"snapshot serialization failed\"}";
-        }
+        return JSON.toJSONString(snapshot);
     }
 
     private void collectParentIds(List<MenuDO> allMenus, Long parentId, Set<Long> collectedIds) {
