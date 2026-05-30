@@ -131,6 +131,14 @@ public class MenuServiceImpl implements MenuService {
             if (isDescendant(id, newParentId)) {
                 throw new BizException("MENU_CYCLE_REFERENCE", "不能将菜单移动到自己的子菜单下");
             }
+
+            int targetDepth = getDepth(newParentId);
+            int maxChildDepth = getMaxChildDepth(id);
+            if (targetDepth + 1 + maxChildDepth > 3) {
+                throw new BizException("MAX_DEPTH_EXCEEDED", 
+                    String.format("移动后菜单层级将超过3层（目标层级：%d，子树最大深度：%d），无法完成此操作", 
+                        targetDepth, maxChildDepth));
+            }
         }
 
         currentMenu.setParentId(newParentId);
@@ -212,6 +220,37 @@ public class MenuServiceImpl implements MenuService {
             }
         }
         return false;
+    }
+
+    private int getDepth(Long menuId) {
+        int depth = 1;
+        Long currentId = menuId;
+        while (currentId != null) {
+            MenuDO menu = menuMapper.selectById(currentId);
+            if (menu == null || menu.getParentId() == null || menu.getParentId() == 0L) {
+                break;
+            }
+            currentId = menu.getParentId();
+            depth++;
+        }
+        return depth;
+    }
+
+    private int getMaxChildDepth(Long menuId) {
+        LambdaQueryWrapper<MenuDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MenuDO::getParentId, menuId);
+        List<MenuDO> children = menuMapper.selectList(queryWrapper);
+
+        if (children.isEmpty()) {
+            return 0;
+        }
+
+        int maxChildDepth = 0;
+        for (MenuDO child : children) {
+            int childDepth = 1 + getMaxChildDepth(child.getId());
+            maxChildDepth = Math.max(maxChildDepth, childDepth);
+        }
+        return maxChildDepth;
     }
 
     private void reorderSiblings(Long parentId, Long currentUserId) {
