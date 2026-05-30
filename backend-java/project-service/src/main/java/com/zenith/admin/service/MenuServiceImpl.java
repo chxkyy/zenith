@@ -8,6 +8,7 @@ import com.zenith.admin.api.MenuService;
 import com.zenith.admin.dto.data.MenuAddCmd;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.MenuPageQuery;
+import com.zenith.admin.dto.data.MenuToggleStatusCmd;
 import com.zenith.admin.dto.data.MenuUpdateCmd;
 import com.zenith.admin.dto.data.MenuUpdateParentCmd;
 import com.zenith.admin.dto.data.MenuReorderCmd;
@@ -179,6 +180,22 @@ public class MenuServiceImpl implements MenuService {
             menuMapper.updateById(menu);
             sortValue += SORT_STEP;
         }
+    }
+
+    @Override
+    public void toggleStatus(MenuToggleStatusCmd cmd, Long currentUserId) {
+        Long id = cmd.getId();
+
+        MenuDO menuDO = menuMapper.selectById(id);
+        if (menuDO == null) {
+            throw new BizException("MENU_NOT_EXIST", "菜单不存在");
+        }
+
+        Integer currentStatus = menuDO.getStatus();
+        Integer newStatus = (currentStatus != null && currentStatus == 1) ? 0 : 1;
+
+        menuDO.setStatus(newStatus);
+        menuMapper.updateById(menuDO);
     }
 
     private boolean isDescendant(Long ancestorId, Long descendantId) {

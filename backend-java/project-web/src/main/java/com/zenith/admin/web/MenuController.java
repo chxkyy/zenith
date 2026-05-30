@@ -10,6 +10,7 @@ import com.zenith.admin.dto.data.IdQuery;
 import com.zenith.admin.dto.data.MenuAddCmd;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.MenuPageQuery;
+import com.zenith.admin.dto.data.MenuToggleStatusCmd;
 import com.zenith.admin.dto.data.MenuUpdateCmd;
 import com.zenith.admin.dto.data.MenuUpdateParentCmd;
 import com.zenith.admin.dto.data.MenuReorderCmd;
@@ -76,6 +77,13 @@ public class MenuController {
     public Response reorder(@RequestBody MenuReorderCmd cmd) {
         Long currentUserId = UserContext.getUserId();
         menuService.reorder(cmd, currentUserId);
+        return Response.buildSuccess();
+    }
+
+    @PostMapping("/toggle-status")
+    public Response toggleStatus(@RequestBody @Valid MenuToggleStatusCmd cmd) {
+        Long currentUserId = UserContext.getUserId();
+        menuService.toggleStatus(cmd, currentUserId);
         return Response.buildSuccess();
     }
 }

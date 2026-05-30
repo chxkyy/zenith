@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Table, Button, Input, Space, Tag, Popconfirm, App, Modal, Form, Select, Card, Tabs, Empty, Spin, Dropdown } from 'antd';
+import { Table, Button, Input, Space, Tag, Popconfirm, App, Modal, Form, Select, Card, Tabs, Empty, Spin, Menu } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   SearchOutlined, PlusOutlined, MenuOutlined, AppstoreOutlined,
@@ -30,14 +30,14 @@ import { CSS } from '@dnd-kit/utilities';
 interface Menu {
   id: number;
   name: string;
-  type: 'DIR' | 'MENU';
+  type: 'dir' | 'menu';
   path: string;
   icon: string;
   parentId: number | null;
   parentName?: string;
-  order: number;
+  sort: number;
   status: number;
-  createTime: string;
+  createdTime: string;
   remark?: string;
   children?: Menu[];
 }
@@ -59,11 +59,11 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
     if (isOpen) {
       form.setFieldsValue({
         name: menu?.name || '',
-        type: menu?.type || 'MENU',
+        type: menu?.type || 'menu',
         parentId: mode === 'add' && hideParentSelect && menu?.id ? menu.id : (menu?.parentId || null),
         path: menu?.path || '',
         icon: menu?.icon || 'LayoutDashboard',
-        order: menu?.order || 1,
+        sort: menu?.sort || 1,
         status: menu?.status || 1,
         remark: menu?.remark || ''
       });
@@ -93,14 +93,17 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
       forceRender
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="菜单名称" name="name" rules={[{ required: true, message: '请输入菜单名称' }]}>
+        <Form.Item label="菜单名称" name="name" rules={[
+          { required: true, message: '请输入菜单名称' },
+          { min: 1, max: 50, message: '菜单名称长度为1-50个字符' }
+        ]}>
           <Input placeholder="请输入菜单名称" />
         </Form.Item>
         <Form.Item label="菜单类型" name="type" rules={[{ required: true }]}>
           <Select
             options={[
-              { value: 'DIR', label: '目录' },
-              { value: 'MENU', label: '菜单' },
+              { value: 'dir', label: '目录' },
+              { value: 'menu', label: '菜单' },
             ]}
           />
         </Form.Item>
@@ -108,19 +111,45 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
           <Form.Item label="父菜单" name="parentId">
             <Select placeholder="顶级菜单" allowClear
               options={allMenus
-                .filter(m => m.type === 'DIR' && (!form.getFieldValue('id') || m.id !== form.getFieldValue('id')))
+                .filter(m => m.type === 'dir' && (!form.getFieldValue('id') || m.id !== form.getFieldValue('id')))
                 .map(parentMenu => ({ value: parentMenu.id, label: parentMenu.name }))}
             />
           </Form.Item>
         )}
-        <Form.Item label="路由路径" name="path" rules={[{ required: true, message: '请输入路由路径' }]}>
+        <Form.Item label="路由路径" name="path" rules={[
+          { required: true, message: '请输入路由路径' },
+          {
+            validator: (_, value) => {
+              if (value && !value.startsWith('/')) {
+                return Promise.reject(new Error('路由路径必须以 / 开头'));
+              }
+              if (value && !/^[a-zA-Z0-9/-]+$/.test(value)) {
+                return Promise.reject(new Error('路由路径只能包含字母、数字、/、-'));
+              }
+              if (value && value.length > 100) {
+                return Promise.reject(new Error('路由路径长度不能超过100个字符'));
+              }
+              return Promise.resolve();
+            }
+          }
+        ]}>
           <Input placeholder="请输入路由路径，如 /dashboard" />
         </Form.Item>
         <Form.Item label="图标" name="icon">
           <Input placeholder="请输入图标名称，如 LayoutDashboard" />
         </Form.Item>
-        <Form.Item label="排序" name="order" rules={[{ required: true }]}>
-          <Input type="number" min={0} placeholder="请输入排序数字" />
+        <Form.Item label="排序" name="sort" rules={[
+          { required: true, message: '请输入排序数字' },
+          {
+            validator: (_, value) => {
+              if (value !== undefined && value !== null && (value < 0 || value > 9999)) {
+                return Promise.reject(new Error('排序值范围为0-9999'));
+              }
+              return Promise.resolve();
+            }
+          }
+        ]}>
+          <Input type="number" min={0} max={9999} placeholder="请输入排序数字" />
         </Form.Item>
         <Form.Item label="状态" name="status">
           <Select
@@ -488,8 +517,8 @@ const SortableMenuItem: React.FC<SortableMenuItemProps> = ({
           {isExpanded ? <DownOutlined style={{ fontSize: 14 }} /> : <RightOutlined style={{ fontSize: 14 }} />}
         </span>
       ) : <span style={{ width: 22 }} />}
-      {menu.type === 'DIR' && <AppstoreOutlined style={{ color: '#2563eb', fontSize: 16 }} />}
-      {menu.type === 'MENU' && <MenuOutlined style={{ color: '#475569', fontSize: 16 }} />}
+      {menu.type === 'dir' && <AppstoreOutlined style={{ color: '#2563eb', fontSize: 16 }} />}
+      {menu.type === 'menu' && <MenuOutlined style={{ color: '#475569', fontSize: 16 }} />}
       <span style={{ fontWeight: level === 0 ? 600 : 400, fontSize: level === 0 ? 14 : 13 }}>{menu.name}</span>
     </div>
   );
@@ -533,10 +562,10 @@ export default function MenuManagement() {
         menuDTOs.forEach(menuDTO => {
           const menu: Menu = {
             id: menuDTO.id, name: menuDTO.name,
-            type: menuDTO.type?.toUpperCase() === 'MENU' ? 'MENU' : 'DIR',
+            type: menuDTO.type === 'menu' ? 'menu' : 'dir',
             path: menuDTO.path || '', icon: menuDTO.icon || 'LayoutDashboard',
-            parentId: menuDTO.parentId, order: menuDTO.sort || 0, status: 1,
-            createTime: formatDateTime(menuDTO.createdAt), remark: menuDTO.remark, children: []
+            parentId: menuDTO.parentId, sort: menuDTO.sort || 0, status: 1,
+            createdTime: formatDateTime(menuDTO.createdTime), remark: menuDTO.remark, children: []
           };
           menuMap.set(menu.id, menu);
           expandedIds.push(menu.id);
@@ -550,7 +579,7 @@ export default function MenuManagement() {
           }
         });
         const sortMenus = (menuList: Menu[]) => {
-          menuList.sort((a, b) => (a.order || 0) - (b.order || 0));
+          menuList.sort((a, b) => (a.sort || 0) - (b.sort || 0));
           menuList.forEach(menu => { if (menu.children && menu.children.length > 0) sortMenus(menu.children); });
         };
         sortMenus(rootMenus);
@@ -606,9 +635,9 @@ export default function MenuManagement() {
     try {
       const menuDTO = {
         id: menuData.id, parentId: menuData.parentId, name: menuData.name,
-        path: menuData.path, component: menuData.type === 'MENU' ? 'Layout' : '',
-        icon: menuData.icon, sort: menuData.order,
-        type: menuData.type === 'DIR' ? 'dir' : 'menu', remark: menuData.remark
+        path: menuData.path, component: menuData.type === 'menu' ? 'Layout' : '',
+        icon: menuData.icon, sort: menuData.sort,
+        type: menuData.type, remark: menuData.remark
       };
       const response = await fetch('/api/menus', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(menuDTO)
@@ -632,6 +661,17 @@ export default function MenuManagement() {
   };
 
   const handleDeleteMenu = async (id: number) => {
+    const menuToDelete = findMenuById(menus, id);
+    if (!menuToDelete) {
+      message.error('菜单不存在');
+      return;
+    }
+
+    if (menuToDelete.children && menuToDelete.children.length > 0) {
+      message.warning(`该菜单下有 ${menuToDelete.children.length} 个子菜单，请先删除所有子菜单`);
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`/api/menus/delete`, {
@@ -655,13 +695,47 @@ export default function MenuManagement() {
     }
   };
 
+  const findMenuById = (menuList: Menu[], id: number): Menu | null => {
+    for (const menu of menuList) {
+      if (menu.id === id) return menu;
+      if (menu.children) { const found = findMenuById(menu.children, id); if (found) return found; }
+    }
+    return null;
+  };
+
+  const getMaxChildDepth = (menu: Menu, allMenus: Menu[]): number => {
+    if (!menu.children || menu.children.length === 0) return 0;
+    let maxChildDepth = 0;
+    for (const child of menu.children) {
+      const childDepth = 1 + getMaxChildDepth(child, allMenus);
+      maxChildDepth = Math.max(maxChildDepth, childDepth);
+    }
+    return maxChildDepth;
+  };
+
   const handleChangeStatus = async (id: number, currentStatus: number) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
     setLoading(true);
-    setTimeout(() => {
-      message.success(`菜单状态已切换为${newStatus === 1 ? '启用' : '禁用'}`);
+    try {
+      const response = await fetch('/api/menus/toggle-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (!response.ok) throw new Error('Failed to toggle status');
+      const data = await response.json();
+      if (data.success) {
+        message.success(`菜单状态已切换为${newStatus === 1 ? '启用' : '禁用'}`);
+        await fetchMenus();
+      } else {
+        throw new Error(data.errMessage || '状态切换失败');
+      }
+    } catch (error: any) {
+      console.error('Error toggling menu status:', error);
+      message.error(error.message || '切换菜单状态失败');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   const handleRightClick = (e: React.MouseEvent, menu: Menu) => {
@@ -710,6 +784,41 @@ export default function MenuManagement() {
     if (!draggedMenu || !targetMenu) return;
     const draggedOriginalParentId = draggedMenu.parentId;
     const targetParentId = findParentId(menus, targetId, draggedId);
+
+    const isDescendantOf = (ancestor: Menu | null, descendant: Menu): boolean => {
+      if (!ancestor) return false;
+      if (ancestor.id === descendant.id) return true;
+      if (ancestor.children) {
+        for (const child of ancestor.children) {
+          if (isDescendantOf(child, descendant)) return true;
+        }
+      }
+      return false;
+    };
+
+    const getDepth = (menu: Menu): number => {
+      let depth = 0;
+      let current: Menu | null = menu;
+      while (current) {
+        depth++;
+        current = current.parentId ? findMenuById(menus, current.parentId) : null;
+      }
+      return depth;
+    };
+
+    if (draggedOriginalParentId !== targetParentId) {
+      if (isDescendantOf(draggedMenu, targetMenu)) {
+        message.error('不能将父菜单移动到其子菜单下');
+        return;
+      }
+
+      const newTargetDepth = getDepth(targetMenu);
+      const draggedChildMaxDepth = getMaxChildDepth(draggedMenu, menus);
+      if (newTargetDepth + 1 + draggedChildMaxDepth > 3) {
+        message.error('菜单层级不能超过3层，无法完成此操作');
+        return;
+      }
+    }
 
     setLoading(true);
     try {
@@ -770,7 +879,7 @@ export default function MenuManagement() {
   };
 
   const rightClickMenuItems = rightClickMenu ? [
-    ...(rightClickMenu.menu.type === 'DIR' && hasPermission('sys:menu:add') ? [{
+    ...(rightClickMenu.menu.type === 'dir' && hasPermission('sys:menu:add') ? [{
       key: 'add-sub', label: '新增子菜单', icon: <PlusOutlined />,
       onClick: () => { setSelectedMenu(rightClickMenu.menu); setModalMode('add'); setIsModalOpen(true); setRightClickMenu(null); }
     }] : []),
@@ -786,7 +895,20 @@ export default function MenuManagement() {
     { type: 'divider' as const },
     ...(hasPermission('sys:menu:delete') ? [{
       key: 'delete', label: '删除', icon: <DeleteOutlined />, danger: true,
-      onClick: () => { handleDeleteMenu(rightClickMenu.menu.id); }
+      label: (
+        <Popconfirm
+          title="确定要删除该菜单吗？"
+          description={rightClickMenu.menu.children && rightClickMenu.menu.children.length > 0 
+            ? `该菜单下有 ${rightClickMenu.menu.children.length} 个子菜单，将一并删除` 
+            : '删除后数据不可恢复'}
+          onConfirm={() => { handleDeleteMenu(rightClickMenu.menu.id); setRightClickMenu(null); }}
+          okText="确定"
+          cancelText="取消"
+          okButtonProps={{ danger: true }}
+        >
+          <span style={{ color: '#ff4d4f' }}>删除</span>
+        </Popconfirm>
+      )
     }] : [])
   ] : [];
 
@@ -806,7 +928,7 @@ export default function MenuManagement() {
         </div>
 
         <div style={{ padding: 16, borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Button type="primary" icon={<PlusOutlined />} disabled={selectedMenu?.type !== 'DIR'} onClick={() => { setModalMode('add'); setIsModalOpen(true); }} style={{ display: hasPermission('sys:menu:add') ? undefined : 'none' }}>
+          <Button type="primary" icon={<PlusOutlined />} disabled={selectedMenu?.type !== 'dir'} onClick={() => { setModalMode('add'); setIsModalOpen(true); }} style={{ display: hasPermission('sys:menu:add') ? undefined : 'none' }}>
             新增菜单
           </Button>
           <Button icon={<VerticalAlignTopOutlined />} onClick={() => { setSearchKeyword(''); setFilteredMenus(null); fetchMenus(); }} title="刷新" />
@@ -832,9 +954,32 @@ export default function MenuManagement() {
 
       {/* 右键菜单 */}
       {rightClickMenu && (
-        <Dropdown menu={{ items: rightClickMenuItems }} open trigger={['contextMenu']}>
-          <div style={{ position: 'fixed', left: rightClickMenu.x, top: rightClickMenu.y, width: 0, height: 0 }} />
-        </Dropdown>
+        <>
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999,
+            }}
+            onClick={() => setRightClickMenu(null)}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              left: rightClickMenu.x,
+              top: rightClickMenu.y,
+              zIndex: 1000,
+            }}
+          >
+            <Menu
+              items={rightClickMenuItems}
+              onClick={() => setRightClickMenu(null)}
+            />
+          </div>
+        </>
       )}
 
       <MenuModal
@@ -844,7 +989,7 @@ export default function MenuManagement() {
         menu={selectedMenu || undefined}
         mode={modalMode}
         allMenus={menus}
-        hideParentSelect={modalMode === 'edit' || (modalMode === 'add' && selectedMenu?.type === 'DIR')}
+        hideParentSelect={modalMode === 'edit' || (modalMode === 'add' && selectedMenu?.type === 'dir')}
       />
     </div>
   );

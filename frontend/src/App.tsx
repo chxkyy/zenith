@@ -80,6 +80,10 @@ function AppContent() {
       });
       const data = await response.json();
       if (data.success) {
+        console.log('=== PERMISSIONS DEBUG ===');
+        console.log('Permissions received:', data.data);
+        console.log('Has * permission:', data.data?.includes('*'));
+        console.log('=========================');
         setPermissions(data.data || []);
       } else {
         setPermissions([]);

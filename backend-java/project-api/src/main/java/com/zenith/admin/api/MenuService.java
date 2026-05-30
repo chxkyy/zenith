@@ -5,6 +5,7 @@ import com.zenith.admin.dto.data.MenuAddCmd;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.MenuPageQuery;
 import com.zenith.admin.dto.data.MenuUpdateCmd;
+import com.zenith.admin.dto.data.MenuToggleStatusCmd;
 import com.zenith.admin.dto.data.MenuUpdateParentCmd;
 import com.zenith.admin.dto.data.MenuReorderCmd;
 
@@ -19,4 +20,5 @@ public interface MenuService {
     MenuDTO getById(Long id);
     void updateParent(MenuUpdateParentCmd cmd, Long currentUserId);
     void reorder(MenuReorderCmd cmd, Long currentUserId);
+    void toggleStatus(MenuToggleStatusCmd cmd, Long currentUserId);
 }
