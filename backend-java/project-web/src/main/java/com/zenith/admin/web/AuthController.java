@@ -145,19 +145,7 @@ public class AuthController {
             String sessionId = session.getId();
             log.info("Login success for user {}, sessionId: {}", username, sessionId);
 
-            RedisSessionRepository.RedisSession redisSession = sessionRepository.findById(sessionId);
-            if (redisSession != null) {
-                redisSession.setUserId(userId);
-                redisSession.setUsername(username);
-                redisSession.setIp(ip);
-                redisSession.setUserAgent(userAgent);
-                redisSession.setLoginTime(System.currentTimeMillis());
-                sessionRepository.save(redisSession);
-
-                sessionRepository.enforceMaxConcurrentSessions(userId, sessionId);
-            } else {
-                log.warn("RedisSession not found for sessionId: {}", sessionId);
-            }
+            sessionRepository.enforceMaxConcurrentSessions(userId, sessionId);
         } else {
             loginLogDTO.setStatus("失败");
             loginLogDTO.setMsg(errorMessage);

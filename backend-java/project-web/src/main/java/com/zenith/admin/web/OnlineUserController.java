@@ -36,11 +36,16 @@ public class OnlineUserController {
         List<RedisSession> sessions = sessionRepository.findAllActiveSessions();
 
         for (RedisSession session : sessions) {
-            if (session.getUserId() == null) {
+            Long userId = null;
+            Object userIdAttr = session.getAttribute("userId");
+            if (userIdAttr instanceof Number) {
+                userId = ((Number) userIdAttr).longValue();
+            }
+            if (userId == null) {
                 continue;
             }
 
-            String sessionUsername = session.getUsername();
+            String sessionUsername = (String) session.getAttribute("username");
 
             if (StringUtils.hasText(username)
                     && sessionUsername != null
@@ -50,11 +55,14 @@ public class OnlineUserController {
 
             OnlineUserDTO dto = new OnlineUserDTO();
             dto.setSessionId(session.getId());
-            dto.setUserId(session.getUserId());
+            dto.setUserId(userId);
             dto.setUsername(sessionUsername);
-            dto.setIp(session.getIp());
-            dto.setUserAgent(session.getUserAgent());
-            dto.setLoginTime(session.getLoginTime());
+            dto.setIp((String) session.getAttribute("ip"));
+            dto.setUserAgent((String) session.getAttribute("userAgent"));
+            Object loginTimeAttr = session.getAttribute("loginTime");
+            if (loginTimeAttr instanceof Number) {
+                dto.setLoginTime(((Number) loginTimeAttr).longValue());
+            }
 
             if (session.getLastAccessedTime() != null) {
                 dto.setLastAccessTime(session.getLastAccessedTime().toEpochMilli());
@@ -99,11 +107,20 @@ public class OnlineUserController {
         for (RedisSession redisSession : userSessions.values()) {
             OnlineUserDTO dto = new OnlineUserDTO();
             dto.setSessionId(redisSession.getId());
-            dto.setUserId(redisSession.getUserId());
-            dto.setUsername(redisSession.getUsername());
-            dto.setIp(redisSession.getIp());
-            dto.setUserAgent(redisSession.getUserAgent());
-            dto.setLoginTime(redisSession.getLoginTime());
+
+            Long sessionUserId = null;
+            Object sessionUserIdAttr = redisSession.getAttribute("userId");
+            if (sessionUserIdAttr instanceof Number) {
+                sessionUserId = ((Number) sessionUserIdAttr).longValue();
+            }
+            dto.setUserId(sessionUserId);
+            dto.setUsername((String) redisSession.getAttribute("username"));
+            dto.setIp((String) redisSession.getAttribute("ip"));
+            dto.setUserAgent((String) redisSession.getAttribute("userAgent"));
+            Object sessionLoginTimeAttr = redisSession.getAttribute("loginTime");
+            if (sessionLoginTimeAttr instanceof Number) {
+                dto.setLoginTime(((Number) sessionLoginTimeAttr).longValue());
+            }
             dto.setCurrent(redisSession.getId().equals(currentSessionId));
             
             if (redisSession.getLastAccessedTime() != null) {
