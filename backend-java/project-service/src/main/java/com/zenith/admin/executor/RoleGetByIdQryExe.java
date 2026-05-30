@@ -10,9 +10,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RoleGetByIdQryExe {
-
-    private final RoleMapper roleMapper;
     private final RoleConvertor roleConvertor;
+    private final RoleMapper roleMapper;
 
     public RoleDTO execute(Long id) {
         RoleDO roleDO = roleMapper.selectById(id);

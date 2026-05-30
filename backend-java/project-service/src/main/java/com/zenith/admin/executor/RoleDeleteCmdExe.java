@@ -11,9 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RoleDeleteCmdExe {
-
     private static final Long SUPER_ADMIN_ROLE_ID = 1L;
-
     private final RoleMapper roleMapper;
     private final UserRoleMapper userRoleMapper;
 

@@ -15,7 +15,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
-
     private final RoleChangeStatusCmdExe roleChangeStatusCmdExe;
     private final RoleDeleteCmdExe roleDeleteCmdExe;
     private final RoleGetByIdQryExe roleGetByIdQryExe;

@@ -9,9 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RoleChangeStatusCmdExe {
-
     private static final Long SUPER_ADMIN_ROLE_ID = 1L;
-
     private final RoleMapper roleMapper;
 
     public void execute(Long id, Integer status, Long currentUserId) {
