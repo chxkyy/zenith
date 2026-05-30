@@ -73,6 +73,14 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public void save(MenuAddCmd cmd, Long currentUserId) {
+        if (cmd.getParentId() != null && cmd.getParentId() > 0) {
+            int parentDepth = getDepth(cmd.getParentId());
+            if (parentDepth >= 3) {
+                throw new BizException("MAX_DEPTH_EXCEEDED", 
+                    String.format("父菜单已处于第%d层，无法在其下创建子菜单（最大允许3层）", parentDepth));
+            }
+        }
+
         MenuDO menuDO = new MenuDO();
         menuDO.setName(cmd.getName());
         menuDO.setPath(cmd.getPath());
@@ -88,6 +96,14 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public void update(MenuUpdateCmd cmd, Long currentUserId) {
+        if (cmd.getParentId() != null && cmd.getParentId() > 0) {
+            int parentDepth = getDepth(cmd.getParentId());
+            if (parentDepth >= 3) {
+                throw new BizException("MAX_DEPTH_EXCEEDED", 
+                    String.format("父菜单已处于第%d层，无法在其下创建子菜单（最大允许3层）", parentDepth));
+            }
+        }
+
         MenuDO menuDO = new MenuDO();
         menuDO.setId(cmd.getId());
         menuDO.setName(cmd.getName());

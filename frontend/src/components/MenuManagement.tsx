@@ -634,6 +634,26 @@ export default function MenuManagement() {
   };
 
   const handleSaveMenu = async (menuData: Partial<Menu>) => {
+    if (menuData.parentId && menuData.parentId > 0) {
+      const parentMenu = findMenuById(menus, menuData.parentId);
+      if (parentMenu) {
+        const calculateDepth = (m: Menu): number => {
+          let depth = 1;
+          let current: Menu | null = m;
+          while (current?.parentId) {
+            depth++;
+            current = findMenuById(menus, current.parentId);
+          }
+          return depth;
+        };
+        const parentDepth = calculateDepth(parentMenu);
+        if (parentDepth >= 3) {
+          message.error(`父菜单"${parentMenu.name}"已处于第${parentDepth}层，无法在其下创建子菜单（最大允许3层）`);
+          return;
+        }
+      }
+    }
+
     setLoading(true);
     try {
       const menuDTO = {
@@ -642,7 +662,9 @@ export default function MenuManagement() {
         icon: menuData.icon, sort: menuData.sort,
         type: menuData.type, remark: menuData.remark
       };
-      const response = await fetch('/api/menus', {
+      
+      const url = modalMode === 'edit' ? '/api/menus/update' : '/api/menus';
+      const response = await fetch(url, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(menuDTO)
       });
       if (!response.ok) throw new Error('Failed to save menu');
