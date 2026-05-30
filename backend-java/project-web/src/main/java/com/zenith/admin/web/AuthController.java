@@ -135,6 +135,12 @@ public class AuthController {
             String username = userDTO.getUsername();
             String loginId = request.getLoginId();
 
+            log.info("=== LOGIN DEBUG START ===");
+            log.info("Session class: {}", session.getClass().getName());
+            log.info("Session ID: {}", session.getId());
+            log.info("Setting userId: {}", userId);
+            log.info("Setting username: {}", username);
+
             session.setAttribute("userId", userId);
             session.setAttribute("username", username);
             session.setAttribute("loginId", loginId);
@@ -142,10 +148,23 @@ public class AuthController {
             session.setAttribute("userAgent", userAgent);
             session.setAttribute("loginTime", System.currentTimeMillis());
 
+            log.info("Session attributes after setAttribute:");
+            log.info("  - userId: {}", session.getAttribute("userId"));
+            log.info("  - username: {}", session.getAttribute("username"));
+            log.info("  - loginId: {}", session.getAttribute("loginId"));
+
             String sessionId = session.getId();
             log.info("Login success for user {}, sessionId: {}", username, sessionId);
 
+            RedisSessionRepository.RedisSession redisSession = sessionRepository.findById(sessionId);
+            log.info("RedisSession found in Redis: {}", redisSession != null);
+            if (redisSession != null) {
+                log.info("RedisSession attributes: {}", redisSession.getAttributes());
+                log.info("RedisSession userId field: {}", redisSession.getUserId());
+            }
+
             sessionRepository.enforceMaxConcurrentSessions(userId, sessionId);
+            log.info("=== LOGIN DEBUG END ===");
         } else {
             loginLogDTO.setStatus("失败");
             loginLogDTO.setMsg(errorMessage);

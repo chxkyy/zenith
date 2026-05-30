@@ -64,7 +64,14 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         json.put("ip", session.getIp());
         json.put("userAgent", session.getUserAgent());
         json.put("loginTime", session.getLoginTime());
-        json.put("attributes", session.getAttributes());
+
+        Map<String, Object> filteredAttributes = new HashMap<>();
+        for (Map.Entry<String, Object> entry : session.getAttributes().entrySet()) {
+            if (!entry.getKey().startsWith("SPRING_SECURITY_")) {
+                filteredAttributes.put(entry.getKey(), entry.getValue());
+            }
+        }
+        json.put("attributes", filteredAttributes);
 
         long ttlSeconds = session.getMaxInactiveInterval().getSeconds();
         redisTemplate.opsForValue().set(sessionKey, json.toJSONString(), ttlSeconds, TimeUnit.SECONDS);
@@ -187,19 +194,28 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
             String sessionJson = redisTemplate.opsForValue().get(key);
             if (sessionJson != null) {
                 try {
-                    JSONObject json = JSON.parseObject(sessionJson);
-                    RedisSession session = new RedisSession();
-                    session.setId(json.getString("id"));
-                    session.setCreationTime(parseInstant(json.get("creationTime")));
-                    session.setLastAccessedTime(parseInstant(json.get("lastAccessedTime")));
-                    session.setMaxInactiveInterval(Duration.ofSeconds(parseLong(json.get("maxInactiveInterval"))));
-                    session.setUserId(json.getLong("userId"));
-                    session.setUsername(json.getString("username"));
-                    session.setIp(json.getString("ip"));
-                    session.setUserAgent(json.getString("userAgent"));
-                    session.setLoginTime(parseLong(json.get("loginTime")));
-                    
-                    if (!isKicked(session.getId())) {
+                JSONObject json = JSON.parseObject(sessionJson);
+                RedisSession session = new RedisSession();
+                session.setId(json.getString("id"));
+                session.setCreationTime(parseInstant(json.get("creationTime")));
+                session.setLastAccessedTime(parseInstant(json.get("lastAccessedTime")));
+                session.setMaxInactiveInterval(Duration.ofSeconds(parseLong(json.get("maxInactiveInterval"))));
+                session.setUserId(json.getLong("userId"));
+                session.setUsername(json.getString("username"));
+                session.setIp(json.getString("ip"));
+                session.setUserAgent(json.getString("userAgent"));
+                session.setLoginTime(parseLong(json.get("loginTime")));
+
+                JSONObject attrs = json.getJSONObject("attributes");
+                if (attrs != null) {
+                    Map<String, Object> attributes = new HashMap<>();
+                    for (String key2 : attrs.keySet()) {
+                        attributes.put(key2, attrs.get(key2));
+                    }
+                    session.setAttributes(attributes);
+                }
+
+                if (!isKicked(session.getId())) {
                         sessions.add(session);
                     }
                 } catch (Exception e) {
