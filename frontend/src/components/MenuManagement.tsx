@@ -75,8 +75,9 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
   const handleOk = () => {
     form.validateFields().then(values => {
       const menuData: Partial<Menu> = {
-        id: menu?.id,
-        ...values
+        ...(mode === 'edit' ? { id: menu?.id } : {}),
+        ...values,
+        ...(mode === 'add' && hideParentSelect && menu?.id ? { parentId: menu.id } : {})
       };
       onSave(menuData);
     });
@@ -538,6 +539,8 @@ export default function MenuManagement() {
   const [loading, setLoading] = useState(true);
   const hasFetchedMenus = useRef(false);
   const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [menuToDelete, setMenuToDelete] = useState<Menu | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -895,20 +898,7 @@ export default function MenuManagement() {
     { type: 'divider' as const },
     ...(hasPermission('sys:menu:delete') ? [{
       key: 'delete', label: '删除', icon: <DeleteOutlined />, danger: true,
-      label: (
-        <Popconfirm
-          title="确定要删除该菜单吗？"
-          description={rightClickMenu.menu.children && rightClickMenu.menu.children.length > 0 
-            ? `该菜单下有 ${rightClickMenu.menu.children.length} 个子菜单，将一并删除` 
-            : '删除后数据不可恢复'}
-          onConfirm={() => { handleDeleteMenu(rightClickMenu.menu.id); setRightClickMenu(null); }}
-          okText="确定"
-          cancelText="取消"
-          okButtonProps={{ danger: true }}
-        >
-          <span style={{ color: '#ff4d4f' }}>删除</span>
-        </Popconfirm>
-      )
+      onClick: () => { setMenuToDelete(rightClickMenu.menu); setDeleteConfirmVisible(true); setRightClickMenu(null); }
     }] : [])
   ] : [];
 
@@ -991,6 +981,24 @@ export default function MenuManagement() {
         allMenus={menus}
         hideParentSelect={modalMode === 'edit' || (modalMode === 'add' && selectedMenu?.type === 'dir')}
       />
+
+      <Modal
+        title="确认删除"
+        open={deleteConfirmVisible}
+        onOk={() => { if (menuToDelete) handleDeleteMenu(menuToDelete.id); setDeleteConfirmVisible(false); }}
+        onCancel={() => setDeleteConfirmVisible(false)}
+        okText="确定"
+        cancelText="取消"
+        okButtonProps={{ danger: true }}
+        destroyOnHidden
+      >
+        <p>
+          {menuToDelete?.children && menuToDelete.children.length > 0
+            ? `该菜单下有 ${menuToDelete.children.length} 个子菜单，将一并删除`
+            : '删除后数据不可恢复'}
+        </p>
+        <p style={{ color: '#ff4d4f', fontWeight: 500 }}>确定要删除菜单「{menuToDelete?.name}」吗？</p>
+      </Modal>
     </div>
   );
 }
