@@ -16,9 +16,8 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class RoleListByPageQryExe {
-
-    private final RoleMapper roleMapper;
     private final RoleConvertor roleConvertor;
+    private final RoleMapper roleMapper;
 
     public PageInfo<RoleDTO> execute(RolePageQuery query) {
         PageHelper.startPage(query.getPageIndex(), query.getPageSize());
