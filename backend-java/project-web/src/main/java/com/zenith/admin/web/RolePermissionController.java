@@ -12,8 +12,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/role-permissions")
 @RequiredArgsConstructor
 public class RolePermissionController {
-
     private final PermissionService permissionService;
+
+    @PostMapping("/assign")
+    public Response assign(@RequestBody @Valid RolePermissionAssignCmd cmd) {
+        permissionService.assignRolePermissions(cmd.getRoleId(), cmd.getFunctionIds(), cmd.getMenuIds());
+        return Response.buildSuccess();
+    }
 
     @GetMapping("/functions")
     public MultiResponse<Long> listFunctions(@RequestParam Long roleId) {
@@ -23,11 +28,5 @@ public class RolePermissionController {
     @GetMapping("/menus")
     public MultiResponse<Long> listMenus(@RequestParam Long roleId) {
         return MultiResponse.of(permissionService.getRoleMenus(roleId));
-    }
-
-    @PostMapping("/assign")
-    public Response assign(@RequestBody @Valid RolePermissionAssignCmd cmd) {
-        permissionService.assignRolePermissions(cmd.getRoleId(), cmd.getFunctionIds(), cmd.getMenuIds());
-        return Response.buildSuccess();
     }
 }

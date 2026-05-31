@@ -43,7 +43,7 @@ export default function PermissionAssignModal({ isOpen, onClose, roleId, roleNam
       const [menusRes, funcsRes, rolePermsRes] = await Promise.all([
         fetch('/api/menus'),
         fetch('/api/functions/list-all'),
-        fetch(`/api/role-permissions?roleId=${roleId}`)
+        fetch(`/api/role-permissions/functions?roleId=${roleId}`)
       ]);
 
       const menusData = await menusRes.json();
@@ -79,7 +79,7 @@ export default function PermissionAssignModal({ isOpen, onClose, roleId, roleNam
       }
 
       if (rolePermsData.success) {
-        const ids = new Set((rolePermsData.data || []).map((p: any) => p.functionId || p.id));
+        const ids = new Set(rolePermsData.data || []);
         setOriginalCheckedIds(ids);
         initCheckedStateFromIds(ids, funcsData.data || [], menusData.data || []);
       }
