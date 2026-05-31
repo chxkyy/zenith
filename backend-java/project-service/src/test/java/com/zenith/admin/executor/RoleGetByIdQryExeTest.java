@@ -1,9 +1,10 @@
 package com.zenith.admin.executor;
 
-import com.zenith.admin.RoleConvertor;
+import com.zenith.admin.service.system.executor.converter.RoleConvertor;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dto.data.RoleDTO;
 import com.zenith.admin.mapper.RoleMapper;
+import com.zenith.admin.service.system.executor.qry.RoleGetByIdQryExe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)

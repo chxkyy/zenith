@@ -1,0 +1,79 @@
+package com.zenith.admin.service.system.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.zenith.admin.api.OperLogService;
+import com.zenith.admin.dto.data.OperLogDTO;
+import com.zenith.admin.service.system.executor.converter.OperLogConvertor;
+import com.zenith.admin.dataobject.OperLogDO;
+import com.zenith.admin.mapper.OperLogMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class OperLogServiceImpl implements OperLogService {
+
+    private final OperLogMapper operLogMapper;
+    private final OperLogConvertor operLogConvertor;
+
+    @Override
+    public PageInfo<OperLogDTO> listByPage(int pageIndex, int pageSize, String operator, String module, String result) {
+        LambdaQueryWrapper<OperLogDO> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(operator)) {
+            queryWrapper.like(OperLogDO::getOperator, operator);
+        }
+        if (StringUtils.hasText(module)) {
+            queryWrapper.eq(OperLogDO::getModule, module);
+        }
+        if (StringUtils.hasText(result)) {
+            queryWrapper.eq(OperLogDO::getResult, result);
+        }
+        queryWrapper.orderByDesc(OperLogDO::getCreatedTime);
+
+        PageInfo<OperLogDO> pageInfo = PageHelper.startPage(pageIndex, pageSize)
+                .doSelectPageInfo(() -> operLogMapper.selectList(queryWrapper));
+
+        List<OperLogDTO> dtos = operLogConvertor.toDTOList(pageInfo.getList());
+
+        PageInfo<OperLogDTO> pageResult = new PageInfo<>();
+        pageResult.setTotal(pageInfo.getTotal());
+        pageResult.setPageNum(pageInfo.getPageNum());
+        pageResult.setPageSize(pageInfo.getPageSize());
+        pageResult.setPages(pageInfo.getPages());
+        pageResult.setList(dtos);
+        return pageResult;
+    }
+
+    @Override
+    public List<OperLogDTO> listAll(String operator, String module, String result) {
+        LambdaQueryWrapper<OperLogDO> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(operator)) {
+            queryWrapper.like(OperLogDO::getOperator, operator);
+        }
+        if (StringUtils.hasText(module)) {
+            queryWrapper.eq(OperLogDO::getModule, module);
+        }
+        if (StringUtils.hasText(result)) {
+            queryWrapper.eq(OperLogDO::getResult, result);
+        }
+        queryWrapper.orderByDesc(OperLogDO::getCreatedTime);
+        List<OperLogDO> operLogDOS = operLogMapper.selectList(queryWrapper);
+        return operLogConvertor.toDTOList(operLogDOS);
+    }
+
+    @Override
+    public void delete(Long id) {
+        operLogMapper.deleteById(id);
+    }
+
+    @Override
+    public void save(OperLogDTO operLogDTO) {
+        OperLogDO operLogDO = operLogConvertor.toDataObject(operLogDTO);
+        operLogMapper.insert(operLogDO);
+    }
+}

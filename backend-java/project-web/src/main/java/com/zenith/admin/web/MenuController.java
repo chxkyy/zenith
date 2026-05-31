@@ -4,7 +4,7 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.api.MenuService;
-import com.zenith.admin.PageResponseUtils;
+import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.IdQuery;
 import com.zenith.admin.dto.data.MenuAddCmd;

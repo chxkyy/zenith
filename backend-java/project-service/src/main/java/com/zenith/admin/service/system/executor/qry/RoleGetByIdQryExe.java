@@ -1,0 +1,20 @@
+package com.zenith.admin.service.system.executor.qry;
+
+import com.zenith.admin.service.system.executor.converter.RoleConvertor;
+import com.zenith.admin.dataobject.RoleDO;
+import com.zenith.admin.dto.data.RoleDTO;
+import com.zenith.admin.mapper.RoleMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class RoleGetByIdQryExe {
+    private final RoleConvertor roleConvertor;
+    private final RoleMapper roleMapper;
+
+    public RoleDTO execute(Long id) {
+        RoleDO roleDO = roleMapper.selectById(id);
+        return roleConvertor.toDTO(roleDO);
+    }
+}

@@ -3,8 +3,8 @@ package com.zenith.admin.web;
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
-import com.zenith.admin.api.DictService;
-import com.zenith.admin.PageResponseUtils;
+import com.zenith.admin.api.system.DictService;
+import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.DictItemAddCmd;
 import com.zenith.admin.dto.data.DictItemDTO;
@@ -22,8 +22,18 @@ import java.util.List;
 @RequestMapping("/api/dict/items")
 @RequiredArgsConstructor
 public class DictItemController {
-
     private final DictService dictService;
+
+    @PostMapping("/delete")
+    public Response delete(@RequestBody IdQuery query) {
+        dictService.deleteItem(query.getId());
+        return Response.buildSuccess();
+    }
+
+    @GetMapping("/get")
+    public SingleResponse<DictItemDTO> get(@RequestParam Long id) {
+        return SingleResponse.of(dictService.getItemById(id));
+    }
 
     @GetMapping("/list")
     public MultiResponse<DictItemDTO> list(@RequestParam String type) {
@@ -49,16 +59,5 @@ public class DictItemController {
         Long currentUserId = UserContext.getUserId();
         dictService.updateItem(cmd, currentUserId);
         return Response.buildSuccess();
-    }
-
-    @PostMapping("/delete")
-    public Response delete(@RequestBody IdQuery query) {
-        dictService.deleteItem(query.getId());
-        return Response.buildSuccess();
-    }
-
-    @GetMapping("/get")
-    public SingleResponse<DictItemDTO> get(@RequestParam Long id) {
-        return SingleResponse.of(dictService.getItemById(id));
     }
 }

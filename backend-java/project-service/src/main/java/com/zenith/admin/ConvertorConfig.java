@@ -1,14 +1,14 @@
 package com.zenith.admin;
 
-import com.zenith.admin.DictConvertor;
-import com.zenith.admin.ErrorLogConvertor;
-import com.zenith.admin.LoginLogConvertor;
-import com.zenith.admin.MenuConvertor;
-import com.zenith.admin.NoticeConvertor;
-import com.zenith.admin.OperLogConvertor;
-import com.zenith.admin.OrgConvertor;
-import com.zenith.admin.RoleConvertor;
-import com.zenith.admin.UserConvertor;
+import com.zenith.admin.service.system.executor.converter.DictConvertor;
+import com.zenith.admin.service.system.executor.converter.ErrorLogConvertor;
+import com.zenith.admin.service.system.executor.converter.LoginLogConvertor;
+import com.zenith.admin.service.system.executor.converter.MenuConvertor;
+import com.zenith.admin.service.system.executor.converter.NoticeConvertor;
+import com.zenith.admin.service.system.executor.converter.OperLogConvertor;
+import com.zenith.admin.service.system.executor.converter.OrgConvertor;
+import com.zenith.admin.service.system.executor.converter.RoleConvertor;
+import com.zenith.admin.service.system.executor.converter.UserConvertor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

@@ -6,6 +6,7 @@ import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.dto.query.LoginQuery;
 import com.zenith.admin.mapper.UserMapper;
+import com.zenith.admin.service.system.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

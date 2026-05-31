@@ -3,6 +3,7 @@ package com.zenith.admin.executor;
 import com.alibaba.cola.exception.BizException;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.mapper.RoleMapper;
+import com.zenith.admin.service.system.executor.cmd.RoleChangeStatusCmdExe;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

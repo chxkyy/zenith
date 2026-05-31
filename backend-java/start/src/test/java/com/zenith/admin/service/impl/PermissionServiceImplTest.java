@@ -2,8 +2,6 @@ package com.zenith.admin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.dataobject.FunctionDO;
-import com.zenith.admin.dataobject.MenuDO;
-import com.zenith.admin.dataobject.RoleFunctionDO;
 import com.zenith.admin.dataobject.RoleMenuDO;
 import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.MenuDTO;
@@ -12,6 +10,7 @@ import com.zenith.admin.mapper.MenuMapper;
 import com.zenith.admin.mapper.RoleFunctionMapper;
 import com.zenith.admin.mapper.RoleMenuMapper;
 import com.zenith.admin.mapper.UserRoleMapper;
+import com.zenith.admin.service.system.impl.PermissionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
