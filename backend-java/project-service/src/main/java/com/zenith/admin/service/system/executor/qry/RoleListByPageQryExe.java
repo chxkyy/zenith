@@ -34,6 +34,8 @@ public class RoleListByPageQryExe {
         if (query.getSortField() != null && !query.getSortField().isEmpty()) {
             String order = query.getSortOrder() != null && "desc".equals(query.getSortOrder()) ? "desc" : "asc";
             wrapper.orderBy(true, "asc".equals(order), query.getSortField());
+        } else {
+            wrapper.orderByAsc("id");
         }
 
         List<RoleDO> roleDOS = roleMapper.selectList(wrapper);

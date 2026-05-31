@@ -8,17 +8,19 @@ import java.time.LocalDateTime;
 
 @Data
 public class RoleDTO extends DTO {
-    private Long id;
-    private String name;
-    private String description;
-    private Integer status;
-    private Integer memberCount;
-    private LocalDateTime createdTime;
-    private LocalDateTime updateTime;
     private Long createUserId;
+
     @UserName(userId = "createUserId")
     private String createUserName;
+    private LocalDateTime createdTime;
+    private String description;
+    private Long id;
+    private Integer memberCount;
+    private String name;
+    private Integer status;
+    private LocalDateTime updateTime;
     private Long updateUserId;
+
     @UserName(userId = "updateUserId")
     private String updateUserName;
 }
