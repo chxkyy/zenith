@@ -57,16 +57,29 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
 
   React.useEffect(() => {
     if (isOpen) {
-      form.setFieldsValue({
-        name: menu?.name || '',
-        type: menu?.type || 'menu',
-        parentId: mode === 'add' && hideParentSelect && menu?.id ? menu.id : (menu?.parentId || null),
-        path: menu?.path || '',
-        icon: menu?.icon || 'LayoutDashboard',
-        sort: menu?.sort || 1,
-        status: menu?.status || 1,
-        remark: menu?.remark || ''
-      });
+      if (mode === 'add') {
+        form.setFieldsValue({
+          name: '',
+          type: 'menu',
+          parentId: hideParentSelect && menu?.id ? menu.id : (menu?.parentId || null),
+          path: '',
+          icon: 'LayoutDashboard',
+          sort: 1,
+          status: 1,
+          remark: ''
+        });
+      } else {
+        form.setFieldsValue({
+          name: menu?.name || '',
+          type: menu?.type || 'menu',
+          parentId: menu?.parentId || null,
+          path: menu?.path || '',
+          icon: menu?.icon || 'LayoutDashboard',
+          sort: menu?.sort || 1,
+          status: menu?.status || 1,
+          remark: menu?.remark || ''
+        });
+      }
     } else {
       form.resetFields();
     }
