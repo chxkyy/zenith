@@ -26,36 +26,15 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MenuServiceImpl implements MenuService {
-
+    private final MenuDeleteCmdExe menuDeleteCmdExe;
+    private final MenuGetByIdQryExe menuGetByIdQryExe;
     private final MenuListAllQryExe menuListAllQryExe;
     private final MenuPageQryExe menuPageQryExe;
-    private final MenuGetByIdQryExe menuGetByIdQryExe;
-    private final MenuSaveCmdExe menuSaveCmdExe;
-    private final MenuUpdateCmdExe menuUpdateCmdExe;
-    private final MenuDeleteCmdExe menuDeleteCmdExe;
-    private final MenuUpdateParentCmdExe menuUpdateParentCmdExe;
     private final MenuReorderCmdExe menuReorderCmdExe;
+    private final MenuSaveCmdExe menuSaveCmdExe;
     private final MenuToggleStatusCmdExe menuToggleStatusCmdExe;
-
-    @Override
-    public List<MenuDTO> listAll() {
-        return menuListAllQryExe.execute();
-    }
-
-    @Override
-    public PageInfo<MenuDTO> page(MenuPageQuery query) {
-        return menuPageQryExe.execute(query);
-    }
-
-    @Override
-    public void save(MenuAddCmd cmd, Long currentUserId) {
-        menuSaveCmdExe.execute(cmd);
-    }
-
-    @Override
-    public void update(MenuUpdateCmd cmd, Long currentUserId) {
-        menuUpdateCmdExe.execute(cmd);
-    }
+    private final MenuUpdateCmdExe menuUpdateCmdExe;
+    private final MenuUpdateParentCmdExe menuUpdateParentCmdExe;
 
     @Override
     public void delete(Long id, Long currentUserId) {
@@ -68,8 +47,13 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public void updateParent(MenuUpdateParentCmd cmd, Long currentUserId) {
-        menuUpdateParentCmdExe.execute(cmd);
+    public List<MenuDTO> listAll() {
+        return menuListAllQryExe.execute();
+    }
+
+    @Override
+    public PageInfo<MenuDTO> page(MenuPageQuery query) {
+        return menuPageQryExe.execute(query);
     }
 
     @Override
@@ -78,7 +62,22 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    public void save(MenuAddCmd cmd, Long currentUserId) {
+        menuSaveCmdExe.execute(cmd);
+    }
+
+    @Override
     public void toggleStatus(MenuToggleStatusCmd cmd, Long currentUserId) {
         menuToggleStatusCmdExe.execute(cmd);
+    }
+
+    @Override
+    public void update(MenuUpdateCmd cmd, Long currentUserId) {
+        menuUpdateCmdExe.execute(cmd);
+    }
+
+    @Override
+    public void updateParent(MenuUpdateParentCmd cmd, Long currentUserId) {
+        menuUpdateParentCmdExe.execute(cmd);
     }
 }
