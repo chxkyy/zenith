@@ -9,7 +9,7 @@ import {
   BookOutlined,
 } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
-import { usePaginatedQuery, useCrudModal } from '../lib/useCrudTable';
+import { usePaginatedQuery, useCrudModal, useCrudOperations, createAuditColumns } from '../lib/useCrudTable';
 import { post, del, get } from '../lib/apiClient';
 
 interface DictType {
@@ -180,24 +180,46 @@ export default function DictTable() {
     // itemQuery.refetchWithQuery will fire via the useEffect above
   };
 
+  // ─── CRUD operations via hooks ─────────────────────────────
+
+  const { save: saveType } = useCrudOperations<DictType>(
+    {
+      createUrl: '/api/dicts',
+      updateUrl: '/api/dicts/update',
+      beforeCreate: (values) => ({ ...values }),
+      beforeUpdate: (values) => ({
+        ...values,
+        id: typeModal.editingRecord?.id,
+      }),
+      successMessages: { create: '字典类型新增成功', update: '字典类型编辑成功' },
+    },
+    { refresh: typeQuery.refresh },
+  );
+
+  const { save: saveItem, remove: handleDictItemDelete } = useCrudOperations<DictItem>(
+    {
+      createUrl: '/api/dict/items',
+      updateUrl: '/api/dict/items/update',
+      deleteUrl: '/api/dict/items/delete',
+      beforeCreate: (values) => ({ ...values }),
+      beforeUpdate: (values) => ({
+        ...values,
+        id: itemModal.editingRecord?.id,
+      }),
+      successMessages: { create: '字典项新增成功', update: '字典项编辑成功', delete: '字典项删除成功' },
+    },
+    { refresh: itemQuery.refresh },
+  );
+
   // ─── DictType CRUD ────────────────────────────────────────
 
   const handleDictTypeSave = async () => {
     try {
       const values = await dictTypeForm.validateFields();
-      const url = typeModal.modalMode === 'add' ? '/api/dicts' : '/api/dicts/update';
-      await post(url, {
-        ...values,
-        id: typeModal.modalMode === 'edit' && typeModal.editingRecord ? typeModal.editingRecord.id : null,
-      });
+      await saveType(values, typeModal.modalMode, typeModal.editingRecord);
       typeModal.closeModal();
-      typeQuery.refresh();
-      message.success(typeModal.modalMode === 'add' ? '字典类型新增成功' : '字典类型编辑成功');
-    } catch (error) {
-      if (error instanceof Error && error.message !== '验证失败') {
-        console.error('保存字典类型失败:', error);
-        message.error('保存失败，请重试');
-      }
+    } catch {
+      // useCrudOperations already handles message.error
     }
   };
 
@@ -243,30 +265,10 @@ export default function DictTable() {
   const handleDictItemSave = async () => {
     try {
       const values = await dictItemForm.validateFields();
-      const url = itemModal.modalMode === 'add' ? '/api/dict/items' : '/api/dict/items/update';
-      await post(url, {
-        ...values,
-        id: itemModal.modalMode === 'edit' && itemModal.editingRecord ? itemModal.editingRecord.id : null,
-      });
+      await saveItem(values, itemModal.modalMode, itemModal.editingRecord);
       itemModal.closeModal();
-      itemQuery.refresh();
-      message.success(itemModal.modalMode === 'add' ? '字典项新增成功' : '字典项编辑成功');
-    } catch (error) {
-      if (error instanceof Error && error.message !== '验证失败') {
-        console.error('保存字典项失败:', error);
-        message.error('保存失败，请重试');
-      }
-    }
-  };
-
-  const handleDictItemDelete = async (record: DictItem) => {
-    try {
-      await del('/api/dict/items/delete', { id: record.id });
-      itemQuery.refresh();
-      message.success('字典项删除成功');
-    } catch (error) {
-      console.error('删除字典项失败:', error);
-      message.error('删除失败，请重试');
+    } catch {
+      // useCrudOperations already handles message.error
     }
   };
 
@@ -326,34 +328,7 @@ export default function DictTable() {
       key: 'remark',
       ellipsis: true,
     },
-    {
-      title: '创建人',
-      dataIndex: 'createUserName',
-      key: 'createUserName',
-      width: 70,
-      render: (val: string) => val || '-',
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdTime',
-      key: 'createdTime',
-      width: 140,
-      render: (val: string) => formatDateTime(val),
-    },
-    {
-      title: '修改人',
-      dataIndex: 'updateUserName',
-      key: 'updateUserName',
-      width: 70,
-      render: (val: string) => val || '-',
-    },
-    {
-      title: '修改时间',
-      dataIndex: 'updateTime',
-      key: 'updateTime',
-      width: 140,
-      render: (val: string) => formatDateTime(val),
-    },
+    ...createAuditColumns<DictType>(),
     {
       title: '操作',
       key: 'action',
@@ -415,34 +390,7 @@ export default function DictTable() {
       key: 'remark',
       ellipsis: true,
     },
-    {
-      title: '创建人',
-      dataIndex: 'createUserName',
-      key: 'createUserName',
-      width: 70,
-      render: (val: string) => val || '-',
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdTime',
-      key: 'createdTime',
-      width: 140,
-      render: (val: string) => formatDateTime(val),
-    },
-    {
-      title: '修改人',
-      dataIndex: 'updateUserName',
-      key: 'updateUserName',
-      width: 70,
-      render: (val: string) => val || '-',
-    },
-    {
-      title: '修改时间',
-      dataIndex: 'updateTime',
-      key: 'updateTime',
-      width: 140,
-      render: (val: string) => formatDateTime(val),
-    },
+    ...createAuditColumns<DictItem>(),
     {
       title: '操作',
       key: 'action',

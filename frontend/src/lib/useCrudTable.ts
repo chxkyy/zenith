@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { App } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import { pageQuery, post, del } from './apiClient';
 import type { PaginatedResponse } from './types';
+import { formatDateTime } from './utils';
 
 // ─── 类型定义 ──────────────────────────────────────────────
 
@@ -76,6 +78,8 @@ export interface UseCrudOperationsReturn<T> {
   create: (values: Record<string, unknown>) => Promise<void>;
   /** 更新记录 */
   update: (values: Record<string, unknown>, record: T) => Promise<void>;
+  /** 根据模式自动选择创建或更新 */
+  save: (values: Record<string, unknown>, mode: 'add' | 'edit', record: T | null) => Promise<void>;
   /** 删除记录 */
   remove: (id: number) => Promise<void>;
   /** 操作中（用于按钮 loading） */
@@ -262,6 +266,14 @@ export function useCrudOperations<T>(
     }
   };
 
+  const save = async (values: Record<string, unknown>, mode: 'add' | 'edit', record: T | null) => {
+    if (mode === 'add') {
+      await create(values);
+    } else {
+      await update(values, record!);
+    }
+  };
+
   const remove = async (id: number) => {
     if (!deleteUrl) return;
     setSubmitting(true);
@@ -278,7 +290,7 @@ export function useCrudOperations<T>(
     }
   };
 
-  return { create, update, remove, submitting };
+  return { create, update, save, remove, submitting };
 }
 
 // ─── Hook 3: 弹窗状态管理 ──────────────────────────────────
@@ -318,4 +330,53 @@ export function useCrudModal<T>(_config?: UseCrudModalConfig<T>): UseCrudModalRe
     openEditModal,
     closeModal,
   };
+}
+
+// ─── 审计列工厂 ────────────────────────────────────────────
+
+export interface AuditColumnOptions {
+  /** 创建时间字段名，默认 "createdTime" */
+  createdTimeKey?: string;
+}
+
+/**
+ * 生成标准的审计列定义（创建人、创建时间、修改人、修改时间）。
+ *
+ * 大多数 CRUD 表格都包含这四列，且 render 逻辑完全一致。
+ * 使用此工厂可避免在 8+ 个组件中重复定义相同的列配置。
+ *
+ * @param options - 可选字段名覆盖
+ */
+export function createAuditColumns<T>(options?: AuditColumnOptions): ColumnsType<T> {
+  const { createdTimeKey = 'createdTime' } = options || {};
+  return [
+    {
+      title: '创建人',
+      dataIndex: ('createUserName' as string) as unknown as keyof T,
+      key: 'createUserName',
+      width: 90,
+      render: (v: unknown) => (v ? String(v) : '-'),
+    },
+    {
+      title: '创建时间',
+      dataIndex: (createdTimeKey as string) as unknown as keyof T,
+      key: createdTimeKey,
+      width: 160,
+      render: (v: unknown) => formatDateTime(v as string | number | Date),
+    },
+    {
+      title: '修改人',
+      dataIndex: ('updateUserName' as string) as unknown as keyof T,
+      key: 'updateUserName',
+      width: 90,
+      render: (v: unknown) => (v ? String(v) : '-'),
+    },
+    {
+      title: '修改时间',
+      dataIndex: ('updateTime' as string) as unknown as keyof T,
+      key: 'updateTime',
+      width: 160,
+      render: (v: unknown) => formatDateTime(v as string | number | Date),
+    },
+  ];
 }

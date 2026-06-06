@@ -6,6 +6,12 @@
       "sourceType": "github",
       "computedHash": "90c3aed7e0c576ad5cd0ea462490d892e3d3c4c7a23130fe2d2ec8a01acc56aa"
     },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "computedHash": "5d9444ffe5c240f2d20081c42c547112e1b8c372375a14e4c98df4d94bde11e1"
+    },
     "java": {
       "source": "D:\\tools\\skills-cache\\claude-dev-suite",
       "sourceType": "local",

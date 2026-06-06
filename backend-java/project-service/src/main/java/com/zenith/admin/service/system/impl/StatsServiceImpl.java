@@ -2,34 +2,22 @@ package com.zenith.admin.service.system.impl;
 
 import com.zenith.admin.api.StatsService;
 import com.zenith.admin.dto.data.StatsOverviewDTO;
-import com.zenith.admin.mapper.ErrorLogMapper;
-import com.zenith.admin.mapper.OperLogMapper;
-import com.zenith.admin.mapper.RoleMapper;
-import com.zenith.admin.mapper.UserMapper;
+import com.zenith.admin.service.system.executor.qry.StatsOverviewQryExe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-
+/**
+ * 统计服务实现
+ * 纯编排层，委托给 StatsOverviewQryExe 执行具体逻辑
+ */
 @Service
 @RequiredArgsConstructor
 public class StatsServiceImpl implements StatsService {
 
-    private final UserMapper userMapper;
-    private final RoleMapper roleMapper;
-    private final OperLogMapper operLogMapper;
-    private final ErrorLogMapper errorLogMapper;
+    private final StatsOverviewQryExe statsOverviewQryExe;
 
     @Override
     public StatsOverviewDTO getOverview() {
-        StatsOverviewDTO dto = new StatsOverviewDTO();
-        
-        dto.setTotalUsers(userMapper.selectCount(null));
-        dto.setTotalRoles(roleMapper.selectCount(null));
-        dto.setOperLogs(operLogMapper.selectCount(null));
-        dto.setErrorLogs(errorLogMapper.selectCount(null));
-        dto.setChartData(Collections.emptyList());
-        
-        return dto;
+        return statsOverviewQryExe.execute();
     }
 }

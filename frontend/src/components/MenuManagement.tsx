@@ -9,6 +9,8 @@ import {
 } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
 import { usePermission } from '../lib/PermissionContext';
+import { get, post, del } from '../lib/apiClient';
+import { createAuditColumns } from '../lib/useCrudTable';
 import {
   DndContext,
   closestCenter,
@@ -277,15 +279,12 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
   const fetchPermissions = async (menuId: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/functions/list?menuId=${menuId}`);
-      if (!response.ok) throw new Error('Failed to fetch permissions');
-      const data = await response.json();
-      if (data.success && data.data) {
-        const permissionList = (data.data || []).map((item: any) => ({
+      const rawData = await get<any[]>('/api/functions/list', { menuId: String(menuId) });
+      const permissionList = ((rawData || []) as any[]).map((item: any): Permission => ({
           id: item.id,
           name: item.name,
-          permission: item.permission || '',
-          type: item.type === 'field' ? 'FIELD' : 'FUNCTION',
+          permission: item.permission,
+          type: (item.type === 'field' || item.type === 'FIELD') ? 'FIELD' : 'FUNCTION',
           menuId: item.menuId || menuId,
           sort: item.sort || 0,
           status: item.status ?? 1,
@@ -297,10 +296,8 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
           updateUserName: item.updateUserName
         }));
         setPermissions(permissionList);
-      } else {
-        setPermissions([]);
-      }
-    } catch (error) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '获取权限列表失败';
       console.error('Error fetching permissions:', error);
       setPermissions([]);
     } finally {
@@ -327,23 +324,14 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
         sort: 0,
         status: permissionData.status
       };
-      const response = await fetch('/api/functions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(functionDTO)
-      });
-      if (!response.ok) throw new Error('Failed to save permission');
-      const data = await response.json();
-      if (data.success) {
-        message.success(modalMode === 'add' ? '权限新增成功' : '权限编辑成功');
-        setIsModalOpen(false);
-        if (selectedMenu) fetchPermissions(selectedMenu.id);
-      } else {
-        throw new Error(data.errMessage || '保存失败');
-      }
-    } catch (error: any) {
+      await post('/api/functions', functionDTO);
+      message.success(modalMode === 'add' ? '权限新增成功' : '权限编辑成功');
+      setIsModalOpen(false);
+      if (selectedMenu) fetchPermissions(selectedMenu.id);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '保存权限失败';
       console.error('Error saving permission:', error);
-      message.error(error.message || '保存权限失败');
+      message.error(msg);
     } finally {
       setLoading(false);
     }
@@ -352,22 +340,13 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
   const handleDeletePermission = async (id: number) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/functions/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
-      if (!response.ok) throw new Error('Failed to delete permission');
-      const data = await response.json();
-      if (data.success) {
-        message.success('权限删除成功');
-        if (selectedMenu) fetchPermissions(selectedMenu.id);
-      } else {
-        throw new Error(data.errMessage || '删除失败');
-      }
-    } catch (error: any) {
+      await del('/api/functions/delete', { id });
+      message.success('权限删除成功');
+      if (selectedMenu) fetchPermissions(selectedMenu.id);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '删除权限失败';
       console.error('Error deleting permission:', error);
-      message.error(error.message || '删除权限失败');
+      message.error(msg);
     } finally {
       setLoading(false);
     }
@@ -377,20 +356,11 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
     const newStatus = currentStatus === 1 ? 0 : 1;
     setLoading(true);
     try {
-      const response = await fetch('/api/functions/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status: newStatus })
-      });
-      if (!response.ok) throw new Error('Failed to update permission status');
-      const data = await response.json();
-      if (data.success) {
-        message.success(`权限状态已切换为${newStatus === 1 ? '启用' : '禁用'}`);
-        if (selectedMenu) fetchPermissions(selectedMenu.id);
-      } else {
-        throw new Error(data.errMessage || '状态更新失败');
-      }
-    } catch (error: any) {
+      await post('/api/functions/update', { id, status: newStatus });
+      message.success(`权限状态已切换为${newStatus === 1 ? '启用' : '禁用'}`);
+      if (selectedMenu) fetchPermissions(selectedMenu.id);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '切换权限状态失败';
       console.error('Error changing permission status:', error);
       message.error(error.message || '切换权限状态失败');
     } finally {
@@ -415,10 +385,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
         </Tag>
       )
     },
-    { title: '创建人', dataIndex: 'createUserName', key: 'createUserName', width: 90, render: (v) => v || '-' },
-    { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 160, render: (v) => v || '-' },
-    { title: '修改人', dataIndex: 'updateUserName', key: 'updateUserName', width: 90, render: (v) => v || '-' },
-    { title: '修改时间', dataIndex: 'updateTime', key: 'updateTime', width: 160, render: (v) => v || '-' },
+    ...createAuditColumns<Permission>({ createdTimeKey: 'createTime' }),
     {
       title: '操作', key: 'action', width: 120,
       render: (_, record) => (
@@ -567,10 +534,7 @@ export default function MenuManagement() {
   const fetchMenus = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/menus');
-      if (!response.ok) throw new Error('Failed to fetch menus');
-      const data = await response.json();
-      const menuData = data.success && data.data ? data.data : [];
+      const menuData = await get<any[]>('/api/menus');
 
       const convertToMenus = (menuDTOs: any[]): { menus: Menu[]; expandedIds: number[] } => {
         const menuMap = new Map<number, Menu>();
@@ -677,22 +641,14 @@ export default function MenuManagement() {
       };
       
       const url = modalMode === 'edit' ? '/api/menus/update' : '/api/menus';
-      const response = await fetch(url, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(menuDTO)
-      });
-      if (!response.ok) throw new Error('Failed to save menu');
-      const data = await response.json();
-      if (data.success) {
-        setIsModalOpen(false);
-        setRightClickMenu(null);
-        message.success(modalMode === 'add' ? '菜单新增成功' : '菜单编辑成功');
-        await fetchMenus();
-      } else {
-        throw new Error(data.errMessage || '保存失败');
-      }
-    } catch (error: any) {
+      await post(url, menuDTO);
+      setIsModalOpen(false);
+      setRightClickMenu(null);
+      message.success(modalMode === 'add' ? '菜单新增成功' : '菜单编辑成功');
+      await fetchMenus();
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '保存菜单失败';
       console.error('Error saving menu:', error);
-      message.error(error.message || '保存菜单失败');
     } finally {
       setLoading(false);
     }
@@ -712,22 +668,14 @@ export default function MenuManagement() {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/menus/delete`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id })
-      });
-      if (!response.ok) throw new Error('Failed to delete menu');
-      const data = await response.json();
-      if (data.success) {
-        setRightClickMenu(null);
-        setSelectedMenu(null);
-        message.success('菜单删除成功');
-        await fetchMenus();
-      } else {
-        throw new Error(data.errMessage || '删除失败');
-      }
-    } catch (error: any) {
+      await del('/api/menus/delete', { id });
+      setRightClickMenu(null);
+      setSelectedMenu(null);
+      message.success('菜单删除成功');
+      await fetchMenus();
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '删除菜单失败';
       console.error('Error deleting menu:', error);
-      message.error(error.message || '删除菜单失败');
     } finally {
       setLoading(false);
     }
@@ -755,20 +703,11 @@ export default function MenuManagement() {
     const newStatus = currentStatus === 1 ? 0 : 1;
     setLoading(true);
     try {
-      const response = await fetch('/api/menus/toggle-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
-      if (!response.ok) throw new Error('Failed to toggle status');
-      const data = await response.json();
-      if (data.success) {
-        message.success(`菜单状态已切换为${newStatus === 1 ? '启用' : '禁用'}`);
-        await fetchMenus();
-      } else {
-        throw new Error(data.errMessage || '状态切换失败');
-      }
-    } catch (error: any) {
+      await post('/api/menus/toggle-status', { id });
+      message.success(`菜单状态已切换为${newStatus === 1 ? '启用' : '禁用'}`);
+      await fetchMenus();
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '切换菜单状态失败';
       console.error('Error toggling menu status:', error);
       message.error(error.message || '切换菜单状态失败');
     } finally {
@@ -861,24 +800,15 @@ export default function MenuManagement() {
     setLoading(true);
     try {
       if (draggedOriginalParentId !== targetParentId) {
-        const response = await fetch('/api/menus/update-parent', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: draggedId, newParentId: targetParentId })
-        });
-        const data = await response.json();
-        if (!data.success) throw new Error(data.errMessage || '移动菜单失败');
+        await post('/api/menus/update-parent', { id: draggedId, newParentId: targetParentId });
       } else {
         const siblingIndex = getSiblingIndex(menus, targetParentId, targetId);
-        const response = await fetch('/api/menus/reorder', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: draggedId, targetIndex: siblingIndex })
-        });
-        const data = await response.json();
-        if (!data.success) throw new Error(data.errMessage || '调整顺序失败');
+        await post('/api/menus/reorder', { id: draggedId, targetIndex: siblingIndex });
       }
       message.success('菜单排序已更新');
       await fetchMenus();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : '操作失败';
       console.error('Error during drag:', error);
       message.error(error.message || '操作失败');
     } finally {

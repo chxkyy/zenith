@@ -1,49 +1,32 @@
 package com.zenith.admin.service.system.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.api.AuthService;
-import com.zenith.admin.dataobject.UserDO;
+import com.zenith.admin.api.UserService;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.dto.query.LoginQuery;
-import com.zenith.admin.mapper.UserMapper;
-import com.zenith.admin.api.UserService;
-import com.alibaba.cola.exception.BizException;
 import com.zenith.admin.service.system.executor.cmd.UserChangePasswordCmdExe;
 import com.zenith.admin.service.system.executor.cmd.UserUpdateProfileCmdExe;
+import com.zenith.admin.service.system.executor.qry.LoginAuthQryExe;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/**
+ * 认证服务实现
+ * 纯编排层，登录认证委托给 LoginAuthQryExe 执行，
+ * 其他方法委托给对应的 Executor 或 Service
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final UserMapper userMapper;
+    private final LoginAuthQryExe loginAuthQryExe;
     private final UserService userService;
     private final UserChangePasswordCmdExe userChangePasswordCmdExe;
     private final UserUpdateProfileCmdExe userUpdateProfileCmdExe;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
     @Override
     public UserDTO login(LoginQuery query) {
-        UserDO user = userMapper.selectOne(
-                new LambdaQueryWrapper<UserDO>().eq(UserDO::getLoginId, query.getLoginId())
-        );
-
-        if (user == null) {
-            throw new BizException("USER_NOT_FOUND", "登录账号不存在");
-        }
-
-        if (!passwordEncoder.matches(query.getPassword(), user.getPassword())) {
-            throw new BizException("PASSWORD_ERROR", "密码错误");
-        }
-
-        if (user.getStatus() != 1) {
-            throw new BizException("USER_DISABLED", "用户已禁用");
-        }
-
-        return userService.getById(user.getId());
+        return loginAuthQryExe.execute(query.getLoginId(), query.getPassword());
     }
 
     @Override

@@ -9,12 +9,14 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { UserOutlined, ShoppingOutlined, MonitorOutlined, WarningOutlined, ExportOutlined } from '@ant-design/icons';
-import { Card, Button, Select, Spin, Result, Row, Col, Avatar, Typography } from 'antd';
+import { Card, Button, Select, Spin, Result, Row, Col, Avatar, Typography, App } from 'antd';
 import StatsCard from './StatsCard';
+import { get } from '../lib/apiClient';
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function Dashboard() {
+  const { message } = App.useApp();
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const hasFetchedStats = useRef(false);
@@ -22,36 +24,9 @@ export default function Dashboard() {
   useEffect(() => {
     if (hasFetchedStats.current) return;
     hasFetchedStats.current = true;
-    fetch('/api/stats/overview')
-      .then(async res => {
-        const text = await res.text();
-        if (res.status === 503) {
-          throw new Error('Java 后端正在启动，请稍候...');
-        }
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}. ${text}`);
-        }
-        if (!text) {
-          throw new Error('服务器返回了空响应');
-        }
-        try {
-          return JSON.parse(text);
-        } catch (e) {
-          console.error('Failed to parse JSON:', text);
-          throw new Error('服务器返回了非 JSON 格式的数据');
-        }
-      })
-      .then(data => {
-        if (data.success) {
-          setStats(data);
-        } else {
-          setError(data.errMessage || '获取统计数据失败');
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching stats:', err);
-        setError(err.message || '网络错误');
-      });
+    get<any>('/api/stats/overview')
+      .then((data) => setStats({ success: true, data }))
+      .catch((err: Error) => setError(err.message || '获取统计数据失败'));
   }, []);
 
   if (error) return (

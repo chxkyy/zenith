@@ -4,7 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UndoOutlined, SafetyOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
 import { usePermission } from '../lib/PermissionContext';
-import { usePaginatedQuery, useCrudModal, useCrudOperations } from '../lib/useCrudTable';
+import { usePaginatedQuery, useCrudModal, useCrudOperations, createAuditColumns } from '../lib/useCrudTable';
 import { post, del } from '../lib/apiClient';
 import PermissionAssignModal from './PermissionAssignModal';
 
@@ -54,11 +54,24 @@ export default function RoleManagement() {
   const { modalOpen, modalMode, editingRecord, openAddModal, openEditModal, closeModal } =
     useCrudModal<Role>();
 
-  // CRUD 操作（不包含 create/update，因为需要通过 form.validateFields 触发）
-  const { remove: handleDeleteRole, submitting } = useCrudOperations<Role>(
+  // CRUD 操作
+  const { save: crudSave, remove: handleDeleteRole, submitting } = useCrudOperations<Role>(
     {
+      createUrl: '/api/roles',
+      updateUrl: '/api/roles/update',
       deleteUrl: '/api/roles/delete',
-      successMessages: { delete: '角色删除成功' },
+      beforeCreate: (values) => ({
+        name: values.name,
+        status: values.status,
+        description: values.description,
+      }),
+      beforeUpdate: (values) => ({
+        id: (editingRecord as Role | null)?.id,
+        name: values.name,
+        status: values.status,
+        description: values.description,
+      }),
+      successMessages: { create: '角色新增成功', update: '角色编辑成功', delete: '角色删除成功' },
     },
     { refresh },
   );
@@ -66,19 +79,10 @@ export default function RoleManagement() {
   const handleSaveRole = async () => {
     try {
       const values = await form.validateFields();
-      const roleDTO = {
-        id: (editingRecord as Role | null)?.id,
-        name: values.name,
-        status: values.status,
-        description: values.description,
-      };
-      const url = modalMode === 'add' ? '/api/roles' : '/api/roles/update';
-      await post(url, roleDTO);
-      message.success(modalMode === 'add' ? '角色新增成功' : '角色编辑成功');
+      await crudSave(values, modalMode, editingRecord);
       closeModal();
-      refresh();
-    } catch (err: unknown) {
-      if (err instanceof Error) message.error(err.message || '保存角色失败');
+    } catch {
+      // useCrudOperations already handles message.error
     }
   };
 
@@ -117,10 +121,7 @@ export default function RoleManagement() {
       ),
     },
     { title: '备注', dataIndex: 'description', key: 'description', width: 160, ellipsis: true, render: (v) => v || '-' },
-    { title: '创建人', dataIndex: 'createUserName', key: 'createUserName', width: 90, render: (v) => v || '-' },
-    { title: '创建时间', dataIndex: 'createdTime', key: 'createdTime', width: 160, render: (v) => formatDateTime(v) },
-    { title: '修改人', dataIndex: 'updateUserName', key: 'updateUserName', width: 90, render: (v) => v || '-' },
-    { title: '修改时间', dataIndex: 'updateTime', key: 'updateTime', width: 160, render: (v) => formatDateTime(v) },
+    ...createAuditColumns<Role>(),
     {
       title: '操作', key: 'action', width: 200, fixed: 'right',
       render: (_, record) => (
