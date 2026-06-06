@@ -362,7 +362,7 @@ const PermissionManagement: React.FC<{ selectedMenu: Menu | null }> = ({ selecte
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : '切换权限状态失败';
       console.error('Error changing permission status:', error);
-      message.error(error.message || '切换权限状态失败');
+      message.error(msg);
     } finally {
       setLoading(false);
     }
@@ -709,7 +709,7 @@ export default function MenuManagement() {
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : '切换菜单状态失败';
       console.error('Error toggling menu status:', error);
-      message.error(error.message || '切换菜单状态失败');
+      message.error(msg);
     } finally {
       setLoading(false);
     }
@@ -810,7 +810,7 @@ export default function MenuManagement() {
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : '操作失败';
       console.error('Error during drag:', error);
-      message.error(error.message || '操作失败');
+      message.error(msg);
     } finally {
       setLoading(false);
     }

@@ -352,28 +352,28 @@ export function createAuditColumns<T>(options?: AuditColumnOptions): ColumnsType
   return [
     {
       title: '创建人',
-      dataIndex: ('createUserName' as string) as unknown as keyof T,
+      dataIndex: 'createUserName' as any,
       key: 'createUserName',
       width: 90,
       render: (v: unknown) => (v ? String(v) : '-'),
     },
     {
       title: '创建时间',
-      dataIndex: (createdTimeKey as string) as unknown as keyof T,
+      dataIndex: createdTimeKey as any,
       key: createdTimeKey,
       width: 160,
       render: (v: unknown) => formatDateTime(v as string | number | Date),
     },
     {
       title: '修改人',
-      dataIndex: ('updateUserName' as string) as unknown as keyof T,
+      dataIndex: 'updateUserName' as any,
       key: 'updateUserName',
       width: 90,
       render: (v: unknown) => (v ? String(v) : '-'),
     },
     {
       title: '修改时间',
-      dataIndex: ('updateTime' as string) as unknown as keyof T,
+      dataIndex: 'updateTime' as any,
       key: 'updateTime',
       width: 160,
       render: (v: unknown) => formatDateTime(v as string | number | Date),

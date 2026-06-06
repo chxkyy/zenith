@@ -279,7 +279,7 @@ export default function DictTable() {
       okText: '确认删除',
       okType: 'danger',
       cancelText: '取消',
-      onOk: () => handleDictItemDelete(record),
+      onOk: () => handleDictItemDelete(record.id),
     });
   };
 
@@ -401,7 +401,7 @@ export default function DictTable() {
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => itemModal.openEditModal(record)} />
           <Popconfirm
             title={`确定要删除字典项「${record.label}」吗？`}
-            onConfirm={() => handleDictItemDelete(record)}
+            onConfirm={() => handleDictItemDelete(record.id)}
             okText="确定"
             cancelText="取消"
             okButtonProps={{ danger: true }}
