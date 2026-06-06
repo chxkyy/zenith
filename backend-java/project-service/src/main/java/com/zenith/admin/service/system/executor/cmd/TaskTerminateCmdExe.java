@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.executor.cmd;
 
 import com.alibaba.cola.exception.BizException;
-import com.zenith.admin.api.WorkflowDomainService;
+import com.zenith.admin.api.system.WorkflowDomainService;
 import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dataobject.TaskDO;
 import com.zenith.admin.enums.ActionTypeEnum;

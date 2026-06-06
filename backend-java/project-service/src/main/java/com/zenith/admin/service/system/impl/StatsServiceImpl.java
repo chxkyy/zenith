@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.impl;
 
-import com.zenith.admin.api.StatsService;
+import com.zenith.admin.api.system.StatsService;
 import com.zenith.admin.dto.data.StatsOverviewDTO;
 import com.zenith.admin.service.system.executor.qry.StatsOverviewQryExe;
 import lombok.RequiredArgsConstructor;

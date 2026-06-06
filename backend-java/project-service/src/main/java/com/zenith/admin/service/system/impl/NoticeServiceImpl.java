@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.NoticeService;
+import com.zenith.admin.api.system.NoticeService;
 import com.zenith.admin.dto.data.NoticeAddCmd;
 import com.zenith.admin.dto.data.NoticeDTO;
 import com.zenith.admin.dto.data.NoticePageQuery;

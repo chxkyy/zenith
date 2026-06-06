@@ -4,7 +4,7 @@ import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.util.PageResponseUtils;
-import com.zenith.admin.api.ProcessTemplateService;
+import com.zenith.admin.api.system.ProcessTemplateService;
 import com.zenith.admin.dto.data.*;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;

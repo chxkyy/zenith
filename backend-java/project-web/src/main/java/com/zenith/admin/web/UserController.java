@@ -2,7 +2,7 @@ package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.SingleResponse;
 import com.alibaba.cola.dto.Response;
-import com.zenith.admin.api.UserService;
+import com.zenith.admin.api.system.UserService;
 import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.IdQuery;

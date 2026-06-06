@@ -2,7 +2,7 @@ package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.Response;
-import com.zenith.admin.api.PermissionService;
+import com.zenith.admin.api.system.PermissionService;
 import com.zenith.admin.dto.data.UserRoleUpdateCmd;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

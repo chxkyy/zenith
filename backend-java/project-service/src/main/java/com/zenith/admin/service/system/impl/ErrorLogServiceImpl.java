@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.ErrorLogService;
+import com.zenith.admin.api.system.ErrorLogService;
 import com.zenith.admin.dto.data.ErrorLogDTO;
 import com.zenith.admin.service.system.executor.cmd.ErrorLogClearCmdExe;
 import com.zenith.admin.service.system.executor.cmd.ErrorLogDeleteCmdExe;

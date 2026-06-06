@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.executor.qry;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zenith.admin.api.DataPermissionService;
+import com.zenith.admin.api.system.DataPermissionService;
 import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.RoleOrgDO;

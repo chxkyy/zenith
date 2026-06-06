@@ -1,7 +1,7 @@
 package com.zenith.admin.security;
 
-import com.zenith.admin.api.PermissionService;
-import com.zenith.admin.api.UserService;
+import com.zenith.admin.api.system.PermissionService;
+import com.zenith.admin.api.system.UserService;
 import com.zenith.admin.dto.data.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

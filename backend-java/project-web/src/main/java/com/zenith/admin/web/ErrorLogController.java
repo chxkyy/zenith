@@ -1,6 +1,6 @@
 package com.zenith.admin.web;
 
-import com.zenith.admin.api.ErrorLogService;
+import com.zenith.admin.api.system.ErrorLogService;
 import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dto.data.IdQuery;
 import com.zenith.admin.dto.data.ErrorLogDTO;

@@ -1,6 +1,6 @@
 package com.zenith.admin.service.impl;
 
-import com.zenith.admin.api.UserService;
+import com.zenith.admin.api.system.UserService;
 import com.zenith.admin.dto.data.UserDTO;
 import com.zenith.admin.dto.query.LoginQuery;
 import com.zenith.admin.service.system.executor.qry.LoginAuthQryExe;

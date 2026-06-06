@@ -3,7 +3,7 @@ package com.zenith.admin.web;
 import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.util.PageResponseUtils;
-import com.zenith.admin.api.WorkflowService;
+import com.zenith.admin.api.system.WorkflowService;
 import com.zenith.admin.context.UserContext;
 import com.zenith.admin.dto.data.*;
 import com.github.pagehelper.PageInfo;

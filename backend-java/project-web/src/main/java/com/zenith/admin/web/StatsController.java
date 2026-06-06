@@ -1,7 +1,7 @@
 package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.SingleResponse;
-import com.zenith.admin.api.StatsService;
+import com.zenith.admin.api.system.StatsService;
 import com.zenith.admin.dto.data.StatsOverviewDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

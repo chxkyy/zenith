@@ -1,4 +1,4 @@
-package com.zenith.admin.api;
+package com.zenith.admin.api.system;
 
 import java.util.List;
 

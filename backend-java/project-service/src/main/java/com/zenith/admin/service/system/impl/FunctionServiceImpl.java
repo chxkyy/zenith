@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.FunctionService;
+import com.zenith.admin.api.system.FunctionService;
 import com.zenith.admin.dto.data.FunctionAddCmd;
 import com.zenith.admin.dto.data.FunctionDTO;
 import com.zenith.admin.dto.data.FunctionPageQuery;

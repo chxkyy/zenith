@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.impl;
 
-import com.zenith.admin.api.DataPermissionService;
+import com.zenith.admin.api.system.DataPermissionService;
 import com.zenith.admin.service.system.executor.qry.DataScopeQryExe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

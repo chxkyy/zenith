@@ -2,7 +2,7 @@ package com.zenith.admin.service.system.executor.cmd;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.alibaba.fastjson2.JSON;
-import com.zenith.admin.api.OperLogService;
+import com.zenith.admin.api.system.OperLogService;
 import com.zenith.admin.dataobject.FunctionDO;
 import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.dataobject.RoleDO;

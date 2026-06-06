@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.OrgService;
+import com.zenith.admin.api.system.OrgService;
 import com.zenith.admin.dto.data.OrgAddCmd;
 import com.zenith.admin.dto.data.OrgDTO;
 import com.zenith.admin.dto.data.OrgPageQuery;

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.api.DataPermissionService;
+import com.zenith.admin.api.system.DataPermissionService;
 import com.zenith.admin.service.system.executor.converter.UserConvertor;
 import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.dataobject.RoleDO;

@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.cmd;
 
-import com.zenith.admin.api.WorkflowDomainService;
+import com.zenith.admin.api.system.WorkflowDomainService;
 import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.enums.ActionTypeEnum;
 import com.zenith.admin.enums.ProcessStatusEnum;
