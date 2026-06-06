@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zenith 系统架构审视报告</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+  .card { background: linear-gradient(135deg, #1e293b 0%, #1a2332 100%); border: 1px solid #334155; border-radius: 12px; }
+  .badge-strong { background: linear-gradient(135deg, #059669, #10b981); }
+  .badge-worth { background: linear-gradient(135deg, #d97706, #f59e0b); }
+  .badge-spec { background: linear-gradient(135deg, #6366f1, #818cf8); }
+  .code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 12px; background: #0f172a; padding: 2px 6px; border-radius: 4px; }
+  pre { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; overflow-x: auto; font-size: 12px; line-height: 1.6; }
+  pre code { color: #e2e8f0; }
+  .keyword { color: #c084fc; } .string { color: #34d399; } .comment { color: #64748b; } .func { color: #60a5fa; } .type { color: #f472b6; } .num { color: #f97316; }
+  .metric-num { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #94a3b8; margin-bottom: 8px; }
+  .before-box { border-left: 3px solid #ef4444; background: rgba(239,68,68,0.05); }
+  .after-box { border-left: 3px solid #22c55e; background: rgba(34,197,94,0.05); }
+  .diagram-bg { background: #0f172a; border: 1px solid #334155; border-radius: 12px; }
+  h1 { background: linear-gradient(135deg, #60a5fa, #a78bva, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+</style>
+</head>
+<body class="min-h-screen p-8">
+
+<div class="max-w-7xl mx-auto space-y-10">
+
+<!-- Header -->
+<header class="text-center py-8">
+  <h1 class="text-4xl font-extrabold mb-3">Zenith 架构审视报告</h1>
+  <p class="text-slate-400 text-lg">COLA 全栈管理系统 · 深度分析 · <span id="timestamp"></span></p>
+</header>
+
+<!-- Executive Summary -->
+<section class="card p-8">
+  <div class="section-title">执行摘要</div>
+  <div class="grid grid-cols-4 gap-6 mt-4">
+    <div class="text-center">
+      <div class="metric-num">64</div>
+      <div class="text-sm text-slate-400 mt-1">前端 fetch 调用<br/>分布在 19 个组件中</div>
+    </div>
+    <div class="text-center">
+      <div class="metric-num">135</div>
+      <div class="text-sm text-slate-400 mt-1">后端 API 端点<br/>跨 21 个 Controller</div>
+    </div>
+    <div class="text-center">
+      <div class="metric-num">553</div>
+      <div class="text-sm text-slate-400 mt-1">PermissionServiceImpl 行数<br/>(God Class)</div>
+    </div>
+    <div class="text-center">
+      <div class="metric-num">5</div>
+      <div class="text-sm text-slate-400 mt-1">架构改进候选<br/>(见下方详情)</div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture Overview Diagram -->
+<section class="card p-8">
+  <div class="section-title">当前架构全景</div>
+  <div class="diagram-bg p-6 mt-4">
+    <pre><code class="language-mermaid">
+graph TB
+    subgraph Frontend["前端 React + TypeScript"]
+        A[App.tsx 路由+认证] --> B[20+ 页面组件]
+        B --> C[PermissionContext]
+        B --> D[每个组件独立 fetch]
+        B --> E[Notification 组件]
+    end
+
+    subgraph Backend["后端 Java Spring Boot - COLA"]
+        F[21 Controllers / 135 endpoints] --> G[19 ServiceImpls]
+        G --> H[70+ Executors - CmdExe/QryExe]
+        H --> I[Mappers + DOs]
+        G --> J[PermissionServiceImpl **553行**]
+    end
+
+    D -.->|"Vite Proxy :5173 → :8080"| F
+    style Frontend fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
+    style Backend fill:#1a2e1a,stroke:#22c55e,color:#e2e8f0
+    style J fill:#4a1a1a,stroke:#ef4444,color:#e2e8f0
+    </code></pre>
+  </div>
+</section>
+
+<!-- Candidate 1: No Unified API Client -->
+<section class="card p-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="section-title">候选 #1</div>
+      <h2 class="text-xl font-bold text-white">前端缺少统一 API 客户端层</h2>
+    </div>
+    <span class="badge-strong text-white text-xs px-3 py-1 rounded-full font-bold">Strong</span>
+  </div>
+
+  <div class="grid grid-cols-2 gap-6 mt-6">
+    <div>
+      <div class="text-sm font-semibold text-red-400 mb-2">涉及文件</div>
+      <div class="text-sm text-slate-300 space-y-1">
+        <div>· <span class="code">src/components/*</span> — 19 个组件，64 处 fetch</div>
+        <div>· <span class="code">src/App.tsx</span> — 3 处独立 fetch（auth/permissions/menus）</div>
+        <div>· <span class="code">vite.config.ts</span> — 仅代理配置，无请求拦截器</div>
+      </div>
+
+      <div class="text-sm font-semibold text-red-400 mt-4 mb-2">问题诊断</div>
+      <ul class="text-sm text-slate-300 space-y-2 list-disc pl-5">
+        <li><strong>零复用：</strong>每个组件独立编写 <span class="code">fetch → response.json() → data.success 判断</span> 的完整流程</li>
+        <li><strong>错误处理不一致：</strong>有的用 <span class="code">message.error()</span>，有的静默失败，有的 console.error</li>
+        <li><strong>无类型安全：</strong>所有响应都是 <span class="code">any</span> 类型，无接口契约</li>
+        <li><strong>无统一凭证管理：</strong><span class="code">credentials: 'include'</span> 在每次调用中重复书写</li>
+        <li><strong>变更成本高：</strong>如需添加 token 刷新、请求重试、全局 loading，需修改全部 19 个组件</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="text-sm font-semibold text-green-400 mb-2">解决方案</div>
+      <div class="text-sm text-slate-300 space-y-3">
+        <p>引入统一的 API 客户端模块 <span class="code">src/lib/api.ts</span>，封装通用请求模式：</p>
+        <pre><code><span class="comment">// src/lib/api.ts — 统一 API 客户端</span>
+<span class="keyword">class</span> <span class="type">ApiClient</span> {
+  <span class="keyword">private</span> baseUrl = <span class="string">'/api'</span>;
+
+  <span class="keyword">async</span> <span class="func">get</span>&lt;<span class="type">T</span>&gt;(path: string): <span class="type">Promise</span>&lt;<span class="type">T</span>&gt; { ... }
+  <span class="keyword">async</span> <span class="func">post</span>&lt;<span class="type">T</span>&gt;(path: string, body?: <span class="keyword">any</span>): <span class="type">Promise</span>&lt;<span class="type">T</span>&gt; { ... }
+  <span class="keyword">async</span> <span class="func">del</span>&lt;<span class="type">T</span>&gt;(path: string): <span class="type">Promise</span>&lt;<span class="type">T</span>&gt; { ... }
+
+  <span class="comment">// 统一错误处理、credentials、超时、类型转换</span>
+}
+
+<span class="keyword">export const</span> api = <span class="keyword">new</span> <span class="type">ApiClient</span>();</code></pre>
+
+        <p class="mt-3"><strong>收益：</strong></p>
+        <ul class="list-disc pl-5 space-y-1 text-xs text-slate-400">
+          <li>64 处 fetch → 统一为 <span class="code">api.get()</span>/<span class="code">api.post()</span> 调用</li>
+          <li>错误处理集中在一处，行为一致</li>
+          <li>添加 TypeScript 泛型响应类型，编译期捕获接口不匹配</li>
+          <li>未来可扩展：token 刷新、请求取消、重试策略</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Before/After Visual -->
+  <div class="grid grid-cols-2 gap-6 mt-6">
+    <div class="before-box rounded-lg p-4">
+      <div class="text-xs font-bold text-red-400 uppercase tracking-wider mb-2">Before — 每个组件重复样板代码</div>
+      <pre><code><span class="comment">// OrgUserManagement.tsx (同样模式在19个组件中重复)</span>
+<span class="keyword">const</span> fetchData = <span class="keyword">async</span> () => {
+  <span class="func">setLoading</span>(<span class="keyword">true</span>);
+  <span class="keyword">try</span> {
+    <span class="keyword">const</span> res = <span class="keyword">await</span> <span class="func">fetch</span>(<span class="string">'/api/orgs/page'</span>, {
+      method: <span class="string">'POST'</span>,
+      headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+      body: <span class="func">JSON.stringify</span>({ pageIndex, pageSize })
+    });
+    <span class="keyword">const</span> data = <span class="keyword">await</span> res.<span class="func">json</span>();
+    <span class="keyword">if</span> (data.success) { ... }
+  } <span class="keyword">catch</span> (e) { ... }
+  <span class="keyword">finally</span> { <span class="func">setLoading</span>(<span class="keyword">false</span>); }
+};</code></pre>
+    </div>
+    <div class="after-box rounded-lg p-4">
+      <div class="text-xs font-bold text-green-400 uppercase tracking-wider mb-2">After — 声明式调用</div>
+      <pre><code><span class="comment">// OrgUserManagement.tsx — 使用统一客户端</span>
+<span class="keyword">const</span> { data, loading, error } = <span class="func">useQuery</span>({
+  queryKey: [<span class="string">'orgUsers'</span>, orgId, page, size],
+  queryFn: () => api.<span class="func">post</span>&lt;<span class="type">PageResult</span>&lt;<span class="type">OrgUser</span>&gt;&gt;(
+    <span class="string">'/orgs/page'</span>, { pageIndex: page, pageSize: size }
+  )
+});</code></pre>
+    </div>
+  </div>
+
+  <div class="mt-4 p-4 rounded-lg bg-slate-800/50 text-sm">
+    <strong class="text-blue-400">深度与杠杆率（Depth &amp; Leverage）：</strong>
+    <br/>这是一个<strong>高杠杆率</strong>的改进。API 客户端的 interface 很小（get/post/del），但背后承载了错误处理、认证、类型安全、缓存等大量行为。
+    <strong>局部性极佳</strong>——所有 HTTP 相关的变更只需改一个模块。<em>删除测试通过：如果删除 api.ts，复杂性会扩散到所有 19 个调用者中。</em>
+  </div>
+</section>
+
+<!-- Candidate 2: PermissionServiceImpl God Class -->
+<section class="card p-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="section-title">候选 #2</div>
+      <h2 class="text-xl font-bold text-white">PermissionServiceImpl — 上帝类（God Class）</h2>
+    </div>
+    <span class="badge-strong text-white text-xs px-3 py-1 rounded-full font-bold">Strong</span>
+  </div>
+
+  <div class="grid grid-cols-2 gap-6 mt-6">
+    <div>
+      <div class="text-sm font-semibold text-red-400 mb-2">涉及文件</div>
+      <div class="text-sm text-slate-300 space-y-1">
+        <div>· <span class="code">PermissionServiceImpl.java</span> — 553 行，承担 6 种职责</div>
+        <div>· <span class="code">RolePermissionController.java</span> — 权限分配入口</div>
+        <div>· <span class="code">AuthController.java</span> — 认证入口（依赖权限查询）</div>
+      </div>
+
+      <div class="text-sm font-semibold text-red-400 mt-4 mb-2">问题诊断：6 种职责混在一个类中</div>
+      <div class="grid grid-cols-2 gap-2 mt-2">
+        <div class="bg-red-900/20 border border-red-800/30 rounded p-2 text-xs">
+          <div class="text-red-400 font-bold">① 权限分配</div>
+          <div class="text-slate-400">assignRolePermissions()<br/>事务性写入 + resolveMenuIds</div>
+        </div>
+        <div class="bg-orange-900/20 border border-orange-800/30 rounded p-2 text-xs">
+          <div class="text-orange-400 font-bold">② 菜单查询</div>
+          <div class="text-slate-400">getAccessibleMenus()<br/>getRoleMenus()</div>
+        </div>
+        <div class="bg-yellow-900/20 border border-yellow-800/30 rounded p-2 text-xs">
+          <div class="text-yellow-400 font-bold">③ 权限校验</div>
+          <div class="text-slate-400">getUserPermissions()<br/>hasPermission() × 2</div>
+        </div>
+        <div class="bg-green-900/20 border border-green-800/30 rounded p-2 text-xs">
+          <div class="text-green-400 font-bold">④ 缓存管理</div>
+          <div class="text-slate-400">ConcurrentHashMap<br/>TTL 5分钟 + invalidateCache</div>
+        </div>
+        <div class="bg-blue-900/20 border border-blue-800/30 rounded p-2 text-xs">
+          <div class="text-blue-400 font-bold">⑤ 快照构建</div>
+          <div class="text-slate-400">buildPermissionSnapshot()<br/>buildLogRemark() + diff</div>
+        </div>
+        <div class="bg-purple-900/20 border border-purple-800/30 rounded p-2 text-xs">
+          <div class="text-purple-400 font-bold">⑥ 操作日志</div>
+          <div class="text-slate-400">savePermissionLog()<br/>JSON 序列化变更对比</div>
+        </div>
+      </div>
+
+      <ul class="text-sm text-slate-300 space-y-2 mt-3 list-disc pl-5">
+        <li><strong>违反单一职责原则：</strong>修改缓存策略需要理解日志格式，修改日志需要理解权限模型</li>
+        <li><strong>内部 DTO 泛滥：</strong>定义了 7 个私有内部类/记录（CachedPermissions, FunctionDTO, MenuPermissionDTO, SnapshotDTO, ChangesDTO, ChangeDetailDTO, LogRemarkDTO），全部是权限快照相关的</li>
+        <li><strong>难以测试：</strong>无法单独测试"权限校验"逻辑而不触发缓存和数据库操作</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="text-sm font-semibold text-green-400 mb-2">解决方案：按职责拆分为深模块</div>
+      <div class="space-y-2 mt-2">
+        <div class="bg-green-900/10 border border-green-800/30 rounded p-3">
+          <div class="text-green-400 font-mono text-xs font-bold">PermissionAssignService</div>
+          <div class="text-xs text-slate-400 mt-1">assignRolePermissions() + resolveMenuIds() + savePermissionLog()</div>
+          <div class="text-xs text-slate-500">→ 分配、快照、日志归为一组（写操作聚合）</div>
+        </div>
+        <div class="bg-blue-900/10 border border-blue-800/30 rounded p-3">
+          <div class="text-blue-400 font-mono text-xs font-bold">PermissionQueryService</div>
+          <div class="text-xs text-slate-400 mt-1">getUserPermissions() + getRolePermissions() + getRolesByUserId() + hasPermission() + cache</div>
+          <div class="text-xs text-slate-500">→ 读操作 + 缓存（读操作聚合）</div>
+        </div>
+        <div class="bg-orange-900/10 border border-orange-800/30 rounded p-3">
+          <div class="text-orange-400 font-mono text-xs font-bold">MenuAccessService</div>
+          <div class="text-xs text-slate-400 mt-1">getAccessibleMenus() + getRoleMenus() + addParentMenuIds() + collectParentIds()</div>
+          <div class="text-xs text-slate-500">→ 菜单可见性判断（领域概念独立）</div>
+        </div>
+        <div class="bg-purple-900/10 border border-purple-800/30 rounded p-3">
+          <div class="text-purple-400 font-mono text-xs font-bold">PermissionSnapshotBuilder</div>
+          <div class="text-xs text-slate-400 mt-1">buildPermissionSnapshot() + buildLogRemark() + buildChangeDetails() + 所有内部 DTO</div>
+          <div class="text-xs text-slate-500">→ 快照构建是纯函数逻辑，可脱离 Spring 容器独立单元测试</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Before/After SVG Diagram -->
+  <div class="grid grid-cols-2 gap-6 mt-6">
+    <div class="before-box rounded-lg p-4">
+      <div class="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">Before — 单一 God Class</div>
+      <div class="flex justify-center">
+        <svg width="320" height="200" viewBox="0 0 320 200">
+          <rect x="60" y="20" width="200" height="160" rx="10" fill="#7f1d1d" stroke="#dc2626" stroke-width="2"/>
+          <text x="160" y="45" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="bold">PermissionServiceImpl</text>
+          <text x="160" y="63" text-anchor="middle" fill="#f87171" font-size="9">(553 lines)</text>
+          <line x1="80" y1="75" x2="240" y2="75" stroke="#991b1b" stroke-width="1"/>
+          <text x="85" y="90" fill="#fca5a5" font-size="9">+ assignRolePermissions()</text>
+          <text x="85" y="105" fill="#fca5a5" font-size="9">+ getAccessibleMenus()</text>
+          <text x="85" y="120" fill="#fca5a5" font-size="9">+ getUserPermissions()</text>
+          <text x="85" y="135" fill="#fca5a5" font-size="9">+ buildPermissionSnapshot()</text>
+          <text x="85" y="150" fill="#fca5a5" font-size="9">+ savePermissionLog()</text>
+          <text x="85" y="165" fill="#fca5a5" font-size="9">+ invalidateCache()</text>
+          <line x1="80" y1="173" x2="240" y2="173" stroke="#991b1b" stroke-width="1"/>
+          <text x="85" y="185" fill="#f87171" font-size="8">- 7 个内部类 / 5 个私有方法</text>
+        </svg>
+      </div>
+    </div>
+    <div class="after-box rounded-lg p-4">
+      <div class="text-xs font-bold text-green-400 uppercase tracking-wider mb-3">After — 职责分离的深模块</div>
+      <div class="flex justify-center">
+        <svg width="340" height="220" viewBox="0 0 340 220">
+          <rect x="175" y="10" width="150" height="65" rx="8" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="250" y="28" text-anchor="middle" fill="#86efac" font-size="9" font-weight="bold">PermissionQueryService</text>
+          <text x="180" y="43" fill="#bbf7d0" font-size="7.5">getUserPermissions() / hasPermission()</text>
+          <text x="180" y="55" fill="#bbf7d0" font-size="7.5">getRolePermissions() / cache</text>
+          <text x="180" y="67" fill="#bbf7d0" font-size="7.5">getRolesByUserId()</text>
+
+          <rect x="15" y="10" width="140" height="65" rx="8" fill="#7c2d12" stroke="#f97316" stroke-width="1.5"/>
+          <text x="85" y="28" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">PermissionAssignService</text>
+          <text x="22" y="43" fill="#fed7aa" font-size="7.5">assignRolePermissions()</text>
+          <text x="22" y="55" fill="#fed7aa" font-size="7.5">savePermissionLog() / resolveMenuIds</text>
+          <text x="22" y="67" fill="#fed7aa" font-size="7.5">→ uses SnapshotBuilder</text>
+
+          <rect x="15" y="90" width="140" height="50" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="85" y="108" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">MenuAccessService</text>
+          <text x="22" y="123" fill="#bfdbfe" font-size="7.5">getAccessibleMenus()</text>
+          <text x="22" y="133" fill="#bfdbfe" font-size="7.5">getRoleMenus() / parent chain</text>
+
+          <rect x="175" y="90" width="150" height="50" rx="8" fill="#4c1d95" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="250" y="108" text-anchor="middle" fill="#d8b4fe" font-size="9" font-weight="bold">SnapshotBuilder</text>
+          <text x="182" y="123" fill="#e9d5ff" font-size="7.5">buildSnapshot() / diff logic</text>
+          <text x="182" y="133" fill="#e9d5ff" font-size="7.5">(pure function, fully testable)</text>
+
+          <rect x="80" y="155" width="180" height="40" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4"/>
+          <text x="170" y="177" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="bold">PermissionService (Facade Interface)</text>
+
+          <line x1="85" y1="75" x2="150" y2="153" stroke="#475569" stroke-width="1" marker-end="url(#arrowhead)"/>
+          <line x1="250" y1="75" x2="190" y2="153" stroke="#475569" stroke-width="1" marker-end="url(#arrowhead)"/>
+          <line x1="85" y1="140" x2="150" y2="153" stroke="#475569" stroke-width="1" marker-end="url(#arrowhead)"/>
+          <line x1="250" y1="140" x2="190" y2="153" stroke="#475569" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+          <defs><marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 0" fill="#475569"/></marker></defs>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 p-4 rounded-lg bg-slate-800/50 text-sm">
+    <strong class="text-blue-400">深度与杠杆率（Depth &amp; Leverage）：</strong>
+    <br/>拆分后每个新模块都有清晰的 interface（seam）。<strong>SnapshotBuilder</strong> 是纯逻辑，可以脱离 Spring 容器进行单元测试。<strong>PermissionQueryService</strong> 可以独立替换缓存实现（从 ConcurrentHashMap 切换到 Redis）。
+    <br/><br/>
+    <em>删除测试通过：如果删除 SnapshotBuilder，快照构建逻辑不会消失——它会回到 AssignService 中变得更难测试。如果删除 QueryService，缓存和权限查询逻辑会分散到各调用者。两者都在 earn their keep。</em>
+  </div>
+</section>
+
+<!-- Candidate 3: Table Component Duplication -->
+<section class="card p-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="section-title">候选 #3</div>
+      <h2 class="text-xl font-bold text-white">Table 组件大量样板代码重复</h2>
+    </div>
+    <span class="badge-worth text-white text-xs px-3 py-1 rounded-full font-bold">Worth exploring</span>
+  </div>
+
+  <div class="grid grid-cols-2 gap-6 mt-6">
+    <div>
+      <div class="text-sm font-semibold text-red-400 mb-2">涉及文件</div>
+      <div class="text-sm text-slate-300 space-y-1">
+        <div>· <span class="code">LogOper.tsx</span> / <span class="code">LogLogin.tsx</span> / <span class="code">LogError.tsx</span> — 结构几乎相同</div>
+        <div>· <span class="code">NoticeTable.tsx</span> / <span class="code">FileTable.tsx</span> / <span class="code">DictTable.tsx</span> — CRUD 模式一致</div>
+        <div>· <span class="code">OnlineUsersTable.tsx</span> / <span class="code">OrgUserManagement.tsx</span> — 分页+搜索相同</div>
+      </div>
+
+      <div class="text-sm font-semibold text-red-400 mt-4 mb-2">问题诊断</div>
+      <ul class="text-sm text-slate-300 space-y-2 list-disc pl-5">
+        <li><strong>每个 Table 组件都重复定义：</strong>currentPage/pageSize/totalCount 三个状态 + fetchData 函数 + 标准分页配置 + try/catch/finally 模式</li>
+        <li><strong>工作区规范已识别此问题：</strong><span class="code">frontend-pagination-spec.md</span> 定义了完整的分页模板，说明团队意识到一致性需求，但靠文档约束而非代码约束</li>
+        <li><strong>30 处 setLoading(true) 分布在 19 个文件中</strong>——同样的加载状态管理模式被复制了 30 次</li>
+        <li><strong>变更风险：</strong>修改分页行为需同步修改 11+ 个组件</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="text-sm font-semibold text-green-400 mb-2">解决方案</div>
+      <div class="text-sm text-slate-300 space-y-3">
+        <p>抽取通用的 <span class="code">usePaginatedQuery</span> Hook 或 <span class="code">PaginatedTable</span> 容器组件：</p>
+        <pre><code><span class="comment">// 方案 A: 自定义 Hook（推荐，侵入性最小）</span>
+<span class="keyword">function</span> <span class="func">usePaginatedQuery</span>&lt;<span class="type">T</span>&gt;(
+  fetchFn: (page: number, size: number) =&gt; <span class="type">Promise</span>&lt;<span class="type">PageResult</span>&lt;<span class="type">T</span>&gt;&gt;
+) {
+  <span class="keyword">const</span> [page, setPage] = <span class="func">useState</span>(<span class="num">1</span>);
+  <span class="keyword">const</span> [size, setSize] = <span class="func">useState</span>(<span class="num">20</span>);
+  <span class="keyword">const</span> { data, loading, error, refetch } = <span class="func">useQuery</span>(...);
+  <span class="keyword">const</span> pagination = { <span class="comment">/* 标准分页配置 */</span> };
+  <span class="keyword">return</span> { data, loading, pagination, page, refetch };
+}</code></pre>
+
+        <p class="mt-2"><strong>使用效果：</strong></p>
+        <pre><code><span class="comment">// LogOper.tsx — 从 ~200行 减少到 ~80行</span>
+<span class="keyword">const</span> { data, loading, pagination } = <span class="func">usePaginatedQuery</span>(
+  (p, s) =&gt; api.<span class="func">get</span>(<span class="string">`/api/oper-logs?page=${p}&size=${s}`</span>)
+);</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 p-4 rounded-lg bg-slate-800/50 text-sm">
+    <strong class="text-blue-400">深度与杠杆率：</strong>
+    <br/>这个改进的 interface 非常小（一个 fetchFn 参数），但消除了每个 Table 组件中约 40-60 行的重复代码。<strong>局部性好：</strong>分页逻辑变更只改一处。
+    <br/><em>注意：这属于"浅层重构"——它减少的是机械性重复，不改变业务逻辑结构。但如果配合候选 #1（统一 API 客户端）一起做，效果会叠加。</em>
+  </div>
+</section>
+
+<!-- Candidate 4: Inconsistent COLA Patterns -->
+<section class="card p-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="section-title">候选 #4</div>
+      <h2 class="text-xl font-bold text-white">COLA 执行器模式使用不一致</h2>
+    </div>
+    <span class="badge-worth text-white text-xs px-3 py-1 rounded-full font-bold">Worth exploring</span>
+  </div>
+
+  <div class="grid grid-cols-2 gap-6 mt-6">
+    <div>
+      <div class="text-sm font-semibold text-red-400 mb-2">涉及文件</div>
+      <div class="text-sm text-slate-300 space-y-1">
+        <div>· <span class="code">RoleServiceImpl.java</span> — ✅ 使用完整 COLA 执行器模式（8 个 Executor）</div>
+        <div>· <span class="code">PermissionServiceImpl.java</span> — ❌ 直接在 Service 中实现全部逻辑</div>
+        <div>· <span class="code">AuthServiceImpl.java</span> — ❌ 直接在 Service 中实现</div>
+        <div>· <span class="code">WorkflowServiceImpl.java</span> — ⚠️ 部分使用执行器</div>
+        <div>· <span class="code">StatsServiceImpl.java</span> — ❌ 直接在 Service 中实现</div>
+      </div>
+
+      <div class="text-sm font-semibold text-red-400 mt-4 mb-2">问题诊断</div>
+      <ul class="text-sm text-slate-300 space-y-2 list-disc pl-5">
+        <li><strong>两种风格并存：</strong>Role 模块严格遵循 COLA 四层链（Controller→Service→CmdExe/QryExe→Converter→Mapper），但 Permission/Auth/Stats 模块跳过了 Executor 层</li>
+        <li><strong>已有 70+ 个 Executor 文件</span>证明团队认可该模式价值，但未全面推行</li>
+        <li><strong>认知负担：</strong>开发者定位代码前需先判断"这个模块用的是哪种模式"</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="text-sm font-semibold text-green-400 mb-2">现状对比</div>
+      <div class="space-y-3">
+        <div class="bg-green-900/10 border border-green-800/30 rounded p-3">
+          <div class="text-green-400 font-mono text-xs font-bold mb-2">✅ Role 模块 — 标准 COLA 四层调用链</div>
+          <div class="flex items-center gap-1 text-xs text-slate-300 flex-wrap">
+            <span class="bg-green-800/40 px-2 py-0.5 rounded">Controller</span>
+            <span class="text-green-600">→</span>
+            <span class="bg-green-800/40 px-2 py-0.5 rounded">RoleService(I)</span>
+            <span class="text-green-600">→</span>
+            <span class="bg-green-800/40 px-2 py-0.5 rounded">RoleSaveCmdExe</span>
+            <span class="text-green-600">→</span>
+            <span class="bg-green-800/40 px-2 py-0.5 rounded">RoleConvertor</span>
+            <span class="text-green-600">→</span>
+            <span class="bg-green-800/40 px-2 py-0.5 rounded">Mapper</span>
+          </div>
+        </div>
+        <div class="bg-red-900/10 border border-red-800/30 rounded p-3">
+          <div class="text-red-400 font-mono text-xs font-bold mb-2">❌ Permission 模块 — 跳过 Executor 层</div>
+          <div class="flex items-center gap-1 text-xs text-slate-300 flex-wrap">
+            <span class="bg-red-800/40 px-2 py-0.5 rounded">Controller</span>
+            <span class="text-red-600">→</span>
+            <span class="bg-red-800/40 px-2 py-0.5 rounded">PermissionService(I)</span>
+            <span class="text-red-600">→</span>
+            <span class="bg-red-800/40 px-2 py-0.5 rounded font-bold">??? 直接操作 6 个 Mapper ???</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-sm font-semibold text-green-400 mt-4 mb-2">建议</div>
+      <ul class="text-sm text-slate-300 space-y-1 list-disc pl-5">
+        <li><strong>新模块</strong>强制使用 COLA 执行器模式</li>
+        <li><strong>Permission 模块</strong>结合候选 #2 一起重构（拆分时自然形成 Executor）</li>
+        <li><strong>简单查询模块</strong>（如 Stats）保持现状——不需要为 2 行查询创建 Executor</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-4 p-4 rounded-lg bg-slate-800/50 text-sm">
+    <strong class="text-blue-400">深度与杠杆率：</strong>
+    <br/>这是<strong>架构一致性</strong>问题而非功能性 bug。不一致的模式增加了新人上手成本和维护时的上下文切换成本。但在 Permission 这种复杂度高的模块上补齐 Executor 层，同时解决候选 #2 的 God Class 问题，是一石二鸟的做法。
+  </div>
+</section>
+
+<!-- Candidate 5: No Shared Type Contract -->
+<section class="card p-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="section-title">候选 #5</div>
+      <h2 class="text-xl font-bold text-white">前后端无共享类型契约</h2>
+    </div>
+    <span class="badge-spec text-white text-xs px-3 py-1 rounded-full font-bold">Speculative</span>
+  </div>
+
+  <div class="grid grid-cols-2 gap-6 mt-6">
+    <div>
+      <div class="text-sm font-semibold text-red-400 mb-2">涉及范围</div>
+      <div class="text-sm text-slate-300 space-y-1">
+        <div>· 前端 19 个组件中的 <span class="code">interface</span> 定义（各自手写）</div>
+        <div>· 后端 <span class="code">project-api</span> 中的 DTO 类</div>
+        <div>· <span class="code">RolePermissionController</span> 接口不匹配问题（本次实际 bug）</div>
+      </div>
+
+      <div class="text-sm font-semibold text-red-400 mt-4 mb-2">问题诊断</div>
+      <ul class="text-sm text-slate-300 space-y-2 list-disc pl-5">
+        <li><strong>前端接口类型手写且分散：</strong>每个组件自行定义 <span class="code">interface User { id: number; username: string; ... }</span>，与后端 DTO 字段逐步偏离</li>
+        <li><strong>接口变更无编译期保护：</strong>后端重命名字段或新增必填项，前端无法感知，直到运行时报错</li>
+        <li><strong>本次 bug 的根因：</strong>前端假设返回 <span class="code">{functionId}[]</span> 对象数组，后端实际返回 <span class="code">Long[]</span> 数字数组——如果有共享类型，编译期就能发现</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="text-sm font-semibold text-green-400 mb-2">解决方案选项</div>
+      <div class="space-y-3">
+        <div class="bg-slate-800/50 border border-slate-700 rounded p-3">
+          <div class="text-blue-400 font-mono text-xs font-bold">方案 A: 共享 types 包（轻量）</div>
+          <div class="text-xs text-slate-400 mt-1">在 <span class="code">shared/types/</span> 中定义接口，前后端各复制一份或用符号链接。成本低，但需人工同步。</div>
+        </div>
+        <div class="bg-slate-800/50 border border-slate-700 rounded p-3">
+          <div class="text-blue-400 font-mono text-xs font-bold">方案 B: OpenAPI/Swagger 自动生成（推荐）</div>
+          <div class="text-xs text-slate-400 mt-1">后端加 Swagger 注解，前端用 openapi-typescript 自动生成 API 类型和请求函数。一次配置，自动同步。</div>
+        </div>
+        <div class="bg-slate-800/50 border border-slate-700 rounded p-3">
+          <div class="text-blue-400 font-mono text-xs font-bold">方案 C: Monorepo 共享包</div>
+          <div class="text-xs text-slate-400 mt-1">用 Turborepo/Nx 将 types 抽取为共享 package。最规范，但对当前项目规模可能过重。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 p-4 rounded-lg bg-slate-800/50 text-sm">
+    <strong class="text-blue-400">深度与杠杆率：</strong>
+    <br/>这是一个<strong>长期投资</strong>类型的改进。短期内看不到明显收益，但随着项目增长（更多 API、更多人协作），类型契约的价值呈非线性增长。标记为 Speculative 是因为当前项目规模下，手动同步的类型定义尚可维持。
+  </div>
+</section>
+
+<!-- Top Recommendation -->
+<section class="card p-8 border-2 border-blue-500/30">
+  <div class="section-title text-blue-400">首要推荐</div>
+  <h2 class="text-2xl font-bold text-white mt-2 mb-4">优先实施：Candidate #1 + #2 组合拳</h2>
+
+  <div class="bg-blue-900/10 border border-blue-800/30 rounded-lg p-6">
+    <div class="flex items-start gap-4">
+      <div class="text-3xl">🎯</div>
+      <div>
+        <p class="text-slate-300 leading-relaxed">
+          <strong class="text-blue-400">理由：</strong>Candidate #1（统一 API 客户端）和 Candidate #2（拆分 PermissionServiceImpl）有最强的协同效应：
+        </p>
+        <ol class="mt-3 space-y-2 text-sm text-slate-300 list-decimal pl-5">
+          <li>API 客户端建立后，<strong>前端调错接口的问题会在类型层面被拦截</strong>（类似本次 /api/role-permissions 的 bug）</li>
+          <li>PermissionServiceImpl 拆分后，<strong>后端接口边界更清晰</strong>，前端可以更准确地对应到每个服务的能力</li>
+          <li>两项改进分别作用于前后端，可以<strong>并行开发，互不阻塞</strong></li>
+          <li>两者完成后，Candidate #3（Table 去重）和 #5（类型契约）的实施难度大幅降低</li>
+        </ol>
+
+        <div class="mt-4 p-3 bg-slate-800/50 rounded text-xs text-slate-400">
+          <strong>预估影响范围：</strong>前端 19 个组件 + 后端 1 个 Service 类 | <strong>风险评估：</strong>低（渐进式重构，不影响现有功能）| <strong>测试策略：</strong>API 客户端可并行编写；Permission 拆分需先补充测试覆盖
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Metrics Summary -->
+<section class="card p-8">
+  <div class="section-title">量化指标总览</div>
+  <div class="overflow-x-auto mt-4">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-slate-700">
+          <th class="text-left py-3 px-4 text-slate-400 font-medium">指标</th>
+          <th class="text-right py-3 px-4 text-slate-400 font-medium">当前值</th>
+          <th class="text-right py-3 px-4 text-slate-400 font-medium">目标值</th>
+          <th class="text-left py-3 px-4 text-slate-400 font-medium">关联候选</th>
+        </tr>
+      </thead>
+      <tbody class="text-slate-300">
+        <tr class="border-b border-slate-800">
+          <td class="py-2 px-4">前端 fetch 散布点数</td>
+          <td class="text-right px-4 font-mono text-red-400">64 (19 files)</td>
+          <td class="text-right px-4 font-mono text-green-400">1 (api.ts)</td>
+          <td class="px-4">#1</td>
+        </tr>
+        <tr class="border-b border-slate-800">
+          <td class="py-2 px-4">最大 Service 实现类行数</td>
+          <td class="text-right px-4 font-mono text-red-400">553</td>
+          <td class="text-right px-4 font-mono text-green-400">&lt; 200</td>
+          <td class="px-4">#2</td>
+        </tr>
+        <tr class="border-b border-slate-800">
+          <td class="py-2 px-4">每 Table 组件平均样板行数</td>
+          <td class="text-right px-4 font-mono text-red-400">~50</td>
+          <td class="text-right px-4 font-mono text-green-400">&lt; 10</td>
+          <td class="px-4">#3</td>
+        </tr>
+        <tr class="border-b border-slate-800">
+          <td class="py-2 px-4">遵循 COLA Executor 模块的占比</td>
+          <td class="text-right px-4 font-mono text-yellow-400">~42%</td>
+          <td class="text-right px-4 font-mono text-green-400">&gt; 80%</td>
+          <td class="px-4">#4</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">前后端类型同步方式</td>
+          <td class="text-right px-4 font-mono text-red-400">手动复制</td>
+          <td class="text-right px-4 font-mono text-green-400">自动生成</td>
+          <td class="px-4">#5</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="text-center text-slate-500 text-sm py-8">
+  Zenith Architecture Review &middot; Generated by improve-codebase-architecture skill
+</footer>
+
+</div>
+
+<script>
+  document.getElementById('timestamp').textContent = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+  mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { darkMode: true, primaryColor: '#3b82f6', primaryTextColor: '#e2e8f0', lineColor: '#475569', fontSize: '12px' }});
+</script>
+</body>
+</html>
