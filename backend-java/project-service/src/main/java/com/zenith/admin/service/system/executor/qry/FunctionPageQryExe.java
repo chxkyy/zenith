@@ -6,6 +6,7 @@ import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.FunctionDTO;
 import com.zenith.admin.dto.data.FunctionPageQuery;
 import com.zenith.admin.service.system.executor.converter.FunctionConvertor;
+import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.FunctionDO;
 import com.zenith.admin.mapper.FunctionMapper;
 import lombok.RequiredArgsConstructor;
@@ -39,14 +40,6 @@ public class FunctionPageQryExe {
 
         PageInfo<FunctionDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
                 .doSelectPageInfo(() -> functionMapper.selectList(queryWrapper));
-        List<FunctionDTO> dtos = functionConvertor.toDTOList(pageInfo.getList());
-
-        PageInfo<FunctionDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(dtos);
-        return result;
+        return PageResponseUtils.convert(pageInfo, functionConvertor::toDTOList);
     }
 }

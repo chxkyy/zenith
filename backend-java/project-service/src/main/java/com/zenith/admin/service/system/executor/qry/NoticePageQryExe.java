@@ -6,6 +6,7 @@ import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.NoticeDTO;
 import com.zenith.admin.dto.data.NoticePageQuery;
 import com.zenith.admin.service.system.executor.converter.NoticeConvertor;
+import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.NoticeDO;
 import com.zenith.admin.mapper.NoticeMapper;
 import lombok.RequiredArgsConstructor;
@@ -39,14 +40,6 @@ public class NoticePageQryExe {
 
         PageInfo<NoticeDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
                 .doSelectPageInfo(() -> noticeMapper.selectList(queryWrapper));
-        List<NoticeDTO> noticeDTOS = noticeConvertor.toDTOList(pageInfo.getList());
-
-        PageInfo<NoticeDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(noticeDTOS);
-        return result;
+        return PageResponseUtils.convert(pageInfo, noticeConvertor::toDTOList);
     }
 }

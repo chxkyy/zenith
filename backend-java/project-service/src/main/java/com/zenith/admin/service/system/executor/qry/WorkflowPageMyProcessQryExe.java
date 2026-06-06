@@ -7,10 +7,10 @@ import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dto.data.ProcessInstanceDTO;
 import com.zenith.admin.dto.data.ProcessInstancePageQuery;
 import com.zenith.admin.mapper.ProcessInstanceMapper;
+import com.zenith.admin.util.PageResponseUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,17 +31,9 @@ public class WorkflowPageMyProcessQryExe {
         PageInfo<ProcessInstanceDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
                 .doSelectPageInfo(() -> processInstanceMapper.selectList(queryWrapper));
 
-        List<ProcessInstanceDTO> dtos = pageInfo.getList().stream()
+        return PageResponseUtils.convert(pageInfo, list -> list.stream()
                 .map(this::convertToDTO)
-                .collect(Collectors.toList());
-
-        PageInfo<ProcessInstanceDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(dtos);
-        return result;
+                .collect(Collectors.toList()));
     }
 
     private ProcessInstanceDTO convertToDTO(ProcessInstanceDO dO) {

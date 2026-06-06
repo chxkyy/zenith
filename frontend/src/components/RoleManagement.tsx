@@ -186,7 +186,7 @@ export default function RoleManagement() {
             showTotal: (total) => `共 ${total} 条`,
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
-            size: 'default',
+            size: 'middle' as const,
             onChange: goToPage,
           }}
         />

@@ -9,6 +9,8 @@ import {
   BookOutlined,
 } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { usePaginatedQuery, useCrudModal } from '../lib/useCrudTable';
+import { post, del, get } from '../lib/apiClient';
 
 interface DictType {
   id: number;
@@ -45,30 +47,62 @@ export default function DictTable() {
   const [dictTypeForm] = Form.useForm();
   const [dictItemForm] = Form.useForm();
 
-  const [dictTypes, setDictTypes] = useState<DictType[]>([]);
   const [selectedDictType, setSelectedDictType] = useState<DictType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const [dictItems, setDictItems] = useState<DictItem[]>([]);
-  const [itemsLoading, setItemsLoading] = useState(false);
-  const [itemsCurrentPage, setItemsCurrentPage] = useState(1);
-  const [itemsPageSize, setItemsPageSize] = useState(10);
-  const [itemsTotalCount, setItemsTotalCount] = useState(0);
-
   const [searchText, setSearchText] = useState('');
 
-  const [dictTypeModalOpen, setDictTypeModalOpen] = useState(false);
-  const [dictTypeModalMode, setDictTypeModalMode] = useState<'add' | 'edit'>('add');
-  const [editingDictType, setEditingDictType] = useState<DictType | null>(null);
+  // ─── Dual paginated queries ────────────────────────────────
 
-  const [dictItemModalOpen, setDictItemModalOpen] = useState(false);
-  const [dictItemModalMode, setDictItemModalMode] = useState<'add' | 'edit'>('add');
-  const [editingDictItem, setEditingDictItem] = useState<DictItem | null>(null);
+  /** Left table: DictType list — auto-fetches on mount */
+  const typeQuery = usePaginatedQuery<DictType>({
+    apiUrl: '/api/dicts/page',
+    autoFetch: true,
+  });
 
-  const hasFetchedRef = useRef(false);
+  /** Right table: DictItem list — fetched manually when a type is selected */
+  const itemQuery = usePaginatedQuery<DictItem>({
+    apiUrl: '/api/dict/items/page',
+    autoFetch: false,
+  });
+
+  // ─── Modal state via useCrudModal ──────────────────────────
+
+  const typeModal = useCrudModal<DictType>({
+    onOpenAdd: () => {
+      dictTypeForm.resetFields();
+      dictTypeForm.setFieldsValue({ status: 1 });
+    },
+    onOpenEdit: (record) => {
+      dictTypeForm.setFieldsValue({
+        name: record.name,
+        type: record.type,
+        status: record.status,
+        remark: record.remark,
+      });
+    },
+  });
+
+  const itemModal = useCrudModal<DictItem>({
+    onOpenAdd: () => {
+      dictItemForm.resetFields();
+      dictItemForm.setFieldsValue({
+        type: selectedDictType?.type,
+        sort: 1,
+        status: 1,
+      });
+    },
+    onOpenEdit: (record) => {
+      dictItemForm.setFieldsValue({
+        type: record.type,
+        label: record.label,
+        dictValue: record.dictValue,
+        sort: record.sort,
+        status: record.status,
+        remark: record.remark,
+      });
+    },
+  });
+
+  // ─── ResizeObserver scrollY calculation ───────────────────
 
   const dictTypeTableRef = useRef<HTMLDivElement>(null);
   const dictItemTableRef = useRef<HTMLDivElement>(null);
@@ -104,142 +138,63 @@ export default function DictTable() {
   }, [calcScrollY]);
 
   useEffect(() => {
-    if (!dictTypes.length) return;
+    if (!typeQuery.data.length) return;
     requestAnimationFrame(() => calcScrollY(dictTypeTableRef, setDictTypeScrollY));
-  }, [dictTypes, calcScrollY]);
+  }, [typeQuery.data, calcScrollY]);
 
   useEffect(() => {
     if (!selectedDictType) return;
     requestAnimationFrame(() => calcScrollY(dictItemTableRef, setDictItemScrollY));
   }, [selectedDictType, calcScrollY]);
 
-  const fetchDictTypes = async (page?: number, size?: number, keyword?: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/dicts/page', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pageIndex: page ?? currentPage,
-          pageSize: size ?? pageSize,
-          keyword: keyword ?? searchText,
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to fetch dict types');
-      const data = await response.json();
-      if (data.success && data.data) {
-        setDictTypes(data.data);
-        setTotalCount(data.totalCount || 0);
-        if (data.data.length > 0 && !selectedDictType) {
-          setSelectedDictType(data.data[0]);
-        }
-      }
-    } catch (error) {
-      console.error('获取字典类型列表失败:', error);
-      message.error('获取字典类型列表失败');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ─── Master-detail selection logic ─────────────────────────
 
-  const fetchDictItems = async (type: string, page?: number, size?: number, keyword?: string) => {
-    setItemsLoading(true);
-    try {
-      const response = await fetch('/api/dict/items/page', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type,
-          pageIndex: page ?? itemsCurrentPage,
-          pageSize: size ?? itemsPageSize,
-          keyword: keyword ?? searchText,
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to fetch dict items');
-      const data = await response.json();
-      if (data.success && data.data) {
-        setDictItems(data.data);
-        setItemsTotalCount(data.totalCount || 0);
-      }
-    } catch (error) {
-      console.error('获取字典项列表失败:', error);
-      message.error('获取字典项列表失败');
-    } finally {
-      setItemsLoading(false);
-    }
-  };
-
+  /** Auto-select the first dict type when data loads */
   useEffect(() => {
-    if (hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
-    fetchDictTypes();
-  }, []);
+    if (typeQuery.data.length > 0 && !selectedDictType) {
+      setSelectedDictType(typeQuery.data[0]);
+    }
+  }, [typeQuery.data, selectedDictType]);
 
+  /** Fetch items when a different dict type is selected */
   useEffect(() => {
     if (selectedDictType) {
-      fetchDictItems(selectedDictType.type);
-    } else {
-      setDictItems([]);
-      setItemsTotalCount(0);
+      itemQuery.refetchWithQuery({ type: selectedDictType.type });
     }
-  }, [selectedDictType, itemsCurrentPage, itemsPageSize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDictType]);
+
+  // ─── Search ───────────────────────────────────────────────
 
   const handleSearch = () => {
-    setCurrentPage(1);
-    fetchDictTypes(1, pageSize, searchText);
+    typeQuery.setKeyword(searchText);
+    typeQuery.search();
     if (selectedDictType) {
-      setItemsCurrentPage(1);
-      fetchDictItems(selectedDictType.type, 1, itemsPageSize, searchText);
+      itemQuery.setKeyword(searchText);
+      itemQuery.search();
     }
   };
 
   const handleDictTypeSelect = (record: DictType) => {
     setSelectedDictType(record);
-    setItemsCurrentPage(1);
-    fetchDictItems(record.type, 1, itemsPageSize);
+    // itemQuery.refetchWithQuery will fire via the useEffect above
   };
 
-  const openDictTypeModal = (mode: 'add' | 'edit', record?: DictType) => {
-    setDictTypeModalMode(mode);
-    setEditingDictType(record ?? null);
-    if (mode === 'edit' && record) {
-      dictTypeForm.setFieldsValue({
-        name: record.name,
-        type: record.type,
-        status: record.status,
-        remark: record.remark,
-      });
-    } else {
-      dictTypeForm.resetFields();
-      dictTypeForm.setFieldsValue({ status: 1 });
-    }
-    setDictTypeModalOpen(true);
-  };
+  // ─── DictType CRUD ────────────────────────────────────────
 
   const handleDictTypeSave = async () => {
     try {
       const values = await dictTypeForm.validateFields();
-      const url = dictTypeModalMode === 'add' ? '/api/dicts' : '/api/dicts/update';
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...values,
-          id: dictTypeModalMode === 'edit' && editingDictType ? editingDictType.id : null,
-        }),
+      const url = typeModal.modalMode === 'add' ? '/api/dicts' : '/api/dicts/update';
+      await post(url, {
+        ...values,
+        id: typeModal.modalMode === 'edit' && typeModal.editingRecord ? typeModal.editingRecord.id : null,
       });
-      if (!response.ok) throw new Error('Failed to save dict type');
-      const data = await response.json();
-      if (data.success) {
-        setDictTypeModalOpen(false);
-        setCurrentPage(1);
-        fetchDictTypes(1, pageSize, searchText);
-        message.success(dictTypeModalMode === 'add' ? '字典类型新增成功' : '字典类型编辑成功');
-      } else {
-        message.error(data.errMessage || '保存失败');
-      }
+      typeModal.closeModal();
+      typeQuery.refresh();
+      message.success(typeModal.modalMode === 'add' ? '字典类型新增成功' : '字典类型编辑成功');
     } catch (error) {
-      if (error instanceof Error) {
+      if (error instanceof Error && error.message !== '验证失败') {
         console.error('保存字典类型失败:', error);
         message.error('保存失败，请重试');
       }
@@ -248,12 +203,8 @@ export default function DictTable() {
 
   const handleDictTypeDelete = async (record: DictType) => {
     try {
-      const checkResponse = await fetch(
-        `/api/dict/items/list?` + new URLSearchParams({ type: record.type })
-      );
-      if (!checkResponse.ok) throw new Error('Failed to check dict items');
-      const checkData = await checkResponse.json();
-      if (checkData.success && checkData.data && checkData.data.length > 0) {
+      const checkData = await get<{ data: DictItem[] }>('/api/dict/items/list', { type: record.type });
+      if (checkData.data && checkData.data.length > 0) {
         message.error('该字典类型下存在字典项，请先删除所有字典项后再删除类型');
         return;
       }
@@ -264,26 +215,12 @@ export default function DictTable() {
     }
 
     try {
-      const response = await fetch(
-        `/api/dicts?` + new URLSearchParams({ id: record.id.toString() }),
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: record.id }),
-        }
-      );
-      if (!response.ok) throw new Error('Failed to delete dict type');
-      const data = await response.json();
-      if (data.success) {
-        setCurrentPage(1);
-        fetchDictTypes(1, pageSize, searchText);
-        if (selectedDictType && selectedDictType.id === record.id) {
-          setSelectedDictType(null);
-        }
-        message.success('字典类型删除成功');
-      } else {
-        message.error(data.errMessage || '删除失败');
+      await del('/api/dicts', { id: record.id });
+      typeQuery.refresh();
+      if (selectedDictType && selectedDictType.id === record.id) {
+        setSelectedDictType(null);
       }
+      message.success('字典类型删除成功');
     } catch (error) {
       console.error('删除字典类型失败:', error);
       message.error('删除失败，请重试');
@@ -301,54 +238,21 @@ export default function DictTable() {
     });
   };
 
-  const openDictItemModal = (mode: 'add' | 'edit', record?: DictItem) => {
-    setDictItemModalMode(mode);
-    setEditingDictItem(record ?? null);
-    if (mode === 'edit' && record) {
-      dictItemForm.setFieldsValue({
-        type: record.type,
-        label: record.label,
-        dictValue: record.dictValue,
-        sort: record.sort,
-        status: record.status,
-        remark: record.remark,
-      });
-    } else {
-      dictItemForm.resetFields();
-      dictItemForm.setFieldsValue({
-        type: selectedDictType?.type,
-        sort: 1,
-        status: 1,
-      });
-    }
-    setDictItemModalOpen(true);
-  };
+  // ─── DictItem CRUD ─────────────────────────────────────────
 
   const handleDictItemSave = async () => {
     try {
       const values = await dictItemForm.validateFields();
-      const url = dictItemModalMode === 'add' ? '/api/dict/items' : '/api/dict/items/update';
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...values,
-          id: dictItemModalMode === 'edit' && editingDictItem ? editingDictItem.id : null,
-        }),
+      const url = itemModal.modalMode === 'add' ? '/api/dict/items' : '/api/dict/items/update';
+      await post(url, {
+        ...values,
+        id: itemModal.modalMode === 'edit' && itemModal.editingRecord ? itemModal.editingRecord.id : null,
       });
-      if (!response.ok) throw new Error('Failed to save dict item');
-      const data = await response.json();
-      if (data.success) {
-        setDictItemModalOpen(false);
-        if (selectedDictType) {
-          fetchDictItems(selectedDictType.type, itemsCurrentPage, itemsPageSize);
-        }
-        message.success(dictItemModalMode === 'add' ? '字典项新增成功' : '字典项编辑成功');
-      } else {
-        message.error(data.errMessage || '保存失败');
-      }
+      itemModal.closeModal();
+      itemQuery.refresh();
+      message.success(itemModal.modalMode === 'add' ? '字典项新增成功' : '字典项编辑成功');
     } catch (error) {
-      if (error instanceof Error) {
+      if (error instanceof Error && error.message !== '验证失败') {
         console.error('保存字典项失败:', error);
         message.error('保存失败，请重试');
       }
@@ -357,21 +261,9 @@ export default function DictTable() {
 
   const handleDictItemDelete = async (record: DictItem) => {
     try {
-      const response = await fetch('/api/dict/items/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: record.id }),
-      });
-      if (!response.ok) throw new Error('Failed to delete dict item');
-      const data = await response.json();
-      if (data.success) {
-        if (selectedDictType) {
-          fetchDictItems(selectedDictType.type, itemsCurrentPage, itemsPageSize);
-        }
-        message.success('字典项删除成功');
-      } else {
-        message.error(data.errMessage || '删除失败');
-      }
+      await del('/api/dict/items/delete', { id: record.id });
+      itemQuery.refresh();
+      message.success('字典项删除成功');
     } catch (error) {
       console.error('删除字典项失败:', error);
       message.error('删除失败，请重试');
@@ -388,6 +280,8 @@ export default function DictTable() {
       onOk: () => handleDictItemDelete(record),
     });
   };
+
+  // ─── Column definitions ────────────────────────────────────
 
   const dictTypeColumns: ColumnsType<DictType> = [
     {
@@ -467,7 +361,7 @@ export default function DictTable() {
       align: 'center' as const,
       render: (_: unknown, record: DictType) => (
         <Space size={4}>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openDictTypeModal('edit', record)} />
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => typeModal.openEditModal(record)} />
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => confirmDictTypeDelete(record)} />
         </Space>
       ),
@@ -556,7 +450,7 @@ export default function DictTable() {
       align: 'center' as const,
       render: (_: unknown, record: DictItem) => (
         <Space size={4}>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openDictItemModal('edit', record)} />
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => itemModal.openEditModal(record)} />
           <Popconfirm
             title={`确定要删除字典项「${record.label}」吗？`}
             onConfirm={() => handleDictItemDelete(record)}
@@ -570,6 +464,8 @@ export default function DictTable() {
       ),
     },
   ];
+
+  // ─── Render ───────────────────────────────────────────────
 
   return (
     <div style={{
@@ -596,24 +492,20 @@ export default function DictTable() {
         <Table<DictType>
           className="dict-table"
           columns={dictTypeColumns}
-          dataSource={dictTypes}
+          dataSource={typeQuery.data}
           rowKey="id"
-          loading={loading}
+          loading={typeQuery.loading}
           size="small"
           tableLayout="fixed"
           scroll={{ y: dictTypeScrollY }}
           pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: totalCount,
+            current: typeQuery.currentPage,
+            pageSize: typeQuery.pageSize,
+            total: typeQuery.totalCount,
             showTotal: (total) => `共 ${total} 条`,
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
-            onChange: (page, size) => {
-              setCurrentPage(page);
-              setPageSize(size);
-              fetchDictTypes(page, size, searchText);
-            },
+            onChange: (page, size) => typeQuery.goToPage(page, size),
           }}
           onRow={(record) => ({
             onClick: () => handleDictTypeSelect(record),
@@ -628,7 +520,7 @@ export default function DictTable() {
                 <BookOutlined style={{ color: '#4f46e5' }} />
                 <span style={{ fontWeight: 600 }}>字典类型管理</span>
               </div>
-              <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => openDictTypeModal('add')}>
+              <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => typeModal.openAddModal()}>
                 新增字典类型
               </Button>
             </div>
@@ -641,24 +533,20 @@ export default function DictTable() {
           <Table<DictItem>
             className="dict-table"
             columns={dictItemColumns}
-            dataSource={dictItems}
+            dataSource={itemQuery.data}
             rowKey="id"
-            loading={itemsLoading}
+            loading={itemQuery.loading}
             size="small"
             tableLayout="fixed"
             scroll={{ y: dictItemScrollY }}
             pagination={{
-              current: itemsCurrentPage,
-              pageSize: itemsPageSize,
-              total: itemsTotalCount,
+              current: itemQuery.currentPage,
+              pageSize: itemQuery.pageSize,
+              total: itemQuery.totalCount,
               showTotal: (total) => `共 ${total} 条`,
               showSizeChanger: true,
               pageSizeOptions: ['10', '20', '50', '100'],
-              onChange: (page, size) => {
-                setItemsCurrentPage(page);
-                setItemsPageSize(size);
-                if (selectedDictType) fetchDictItems(selectedDictType.type, page, size);
-              },
+              onChange: (page, size) => itemQuery.goToPage(page, size),
             }}
             title={() => (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -666,7 +554,7 @@ export default function DictTable() {
                   <BookOutlined style={{ color: '#4f46e5' }} />
                   <span style={{ fontWeight: 600 }}>{selectedDictType.name} - 字典项管理</span>
                 </div>
-                <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => openDictItemModal('add')}>
+                <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => itemModal.openAddModal()}>
                   新增字典项
                 </Button>
               </div>
@@ -680,10 +568,10 @@ export default function DictTable() {
       </div>
 
       <Modal
-        title={dictTypeModalMode === 'add' ? '新增字典类型' : '编辑字典类型'}
-        open={dictTypeModalOpen}
+        title={typeModal.modalMode === 'add' ? '新增字典类型' : '编辑字典类型'}
+        open={typeModal.modalOpen}
         onOk={handleDictTypeSave}
-        onCancel={() => setDictTypeModalOpen(false)}
+        onCancel={() => typeModal.closeModal()}
         okText="保存"
         cancelText="取消"
         destroyOnHidden
@@ -705,9 +593,9 @@ export default function DictTable() {
             name="type"
             rules={[{ required: true, message: '请输入编码' }]}
           >
-            <Input placeholder="请输入编码" disabled={dictTypeModalMode === 'edit'} />
+            <Input placeholder="请输入编码" disabled={typeModal.modalMode === 'edit'} />
           </Form.Item>
-          {dictTypeModalMode === 'edit' && (
+          {typeModal.modalMode === 'edit' && (
             <p style={{ color: '#8c8c8c', fontSize: 12, marginTop: -12, marginBottom: 16 }}>编码创建后不可编辑</p>
           )}
           <Form.Item label="状态" name="status">
@@ -725,10 +613,10 @@ export default function DictTable() {
       </Modal>
 
       <Modal
-        title={dictItemModalMode === 'add' ? '新增字典项' : '编辑字典项'}
-        open={dictItemModalOpen}
+        title={itemModal.modalMode === 'add' ? '新增字典项' : '编辑字典项'}
+        open={itemModal.modalOpen}
         onOk={handleDictItemSave}
-        onCancel={() => setDictItemModalOpen(false)}
+        onCancel={() => itemModal.closeModal()}
         okText="保存"
         cancelText="取消"
         destroyOnHidden

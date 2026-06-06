@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.LoginLogDTO;
 import com.zenith.admin.service.system.executor.converter.LoginLogConvertor;
+import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.LoginLogDO;
 import com.zenith.admin.mapper.LoginLogMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,14 +37,6 @@ public class LoginLogPageQryExe {
         PageInfo<LoginLogDO> pageInfo = PageHelper.startPage(pageIndex, pageSize)
                 .doSelectPageInfo(() -> loginLogMapper.selectList(queryWrapper));
 
-        List<LoginLogDTO> dtos = loginLogConvertor.toDTOList(pageInfo.getList());
-
-        PageInfo<LoginLogDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(dtos);
-        return result;
+        return PageResponseUtils.convert(pageInfo, loginLogConvertor::toDTOList);
     }
 }

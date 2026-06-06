@@ -8,6 +8,7 @@ import com.zenith.admin.dto.data.ProcessTemplateDTO;
 import com.zenith.admin.dto.data.ProcessTemplatePageQuery;
 import com.zenith.admin.mapper.ProcessTemplateMapper;
 import com.zenith.admin.service.system.executor.converter.ProcessTemplateConvertor;
+import com.zenith.admin.util.PageResponseUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,14 +34,6 @@ public class ProcessTemplatePageQryExe {
         PageInfo<ProcessTemplateDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
                 .doSelectPageInfo(() -> processTemplateMapper.selectList(queryWrapper));
 
-        List<ProcessTemplateDTO> dtos = processTemplateConvertor.toDTOList(pageInfo.getList());
-
-        PageInfo<ProcessTemplateDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(dtos);
-        return result;
+        return PageResponseUtils.convert(pageInfo, processTemplateConvertor::toDTOList);
     }
 }

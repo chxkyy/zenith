@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, Button, Tag, Modal, Form, Select, Input, Space, App, Popconfirm } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -140,10 +140,10 @@ export default function NoticeTable() {
   const handleSaveNotice = async () => {
     try {
       const values = await form.validateFields();
-      const formData: NoticeForm = {
+      const formData = {
         id: formModalType === 'edit' ? values.id : null,
         ...values,
-      };
+      } as Record<string, unknown>;
       await post('/api/notices', formData);
       closeFormModal();
       message.success(formModalType === 'edit' ? '公告编辑成功' : '公告新增成功');
@@ -317,7 +317,7 @@ export default function NoticeTable() {
           showTotal: (total) => `共 ${total} 条`,
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50', '100'],
-          size: 'default',
+          size: 'middle' as const,
           onChange: goToPage,
         }}
       />

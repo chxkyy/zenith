@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './Login';
 import { PermissionProvider } from './lib/PermissionContext';
+import { get, post } from './lib/apiClient';
 
 const { Content } = Layout;
 
@@ -48,21 +49,11 @@ function AppContent() {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.success) {
-        setIsAuthenticated(true);
-        setCurrentUser({ username: data.data.username, email: data.data.email });
-        fetchPermissions();
-        fetchMenus();
-      } else {
-        setIsAuthenticated(false);
-        setCurrentUser(null);
-        setPermissions([]);
-        setMenus([]);
-      }
+      const user = await get<{ username: string; email: string }>('/api/auth/me');
+      setIsAuthenticated(true);
+      setCurrentUser({ username: user.username, email: user.email });
+      fetchPermissions();
+      fetchMenus();
     } catch (error) {
       setIsAuthenticated(false);
       setCurrentUser(null);
@@ -75,19 +66,8 @@ function AppContent() {
 
   const fetchPermissions = async () => {
     try {
-      const response = await fetch('/api/auth/permissions', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.success) {
-        console.log('=== PERMISSIONS DEBUG ===');
-        console.log('Permissions received:', data.data);
-        console.log('Has * permission:', data.data?.includes('*'));
-        console.log('=========================');
-        setPermissions(data.data || []);
-      } else {
-        setPermissions([]);
-      }
+      const data = await get<string[]>('/api/auth/permissions');
+      setPermissions(data);
     } catch (error) {
       setPermissions([]);
     }
@@ -95,15 +75,8 @@ function AppContent() {
 
   const fetchMenus = async () => {
     try {
-      const response = await fetch('/api/auth/menus', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.success) {
-        setMenus(data.data || []);
-      } else {
-        setMenus([]);
-      }
+      const data = await get<any[]>('/api/auth/menus');
+      setMenus(data);
     } catch (error) {
       setMenus([]);
     }
@@ -116,10 +89,7 @@ function AppContent() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      await post('/api/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.service.system.executor.converter.MenuConvertor;
+import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.dto.data.MenuDTO;
 import com.zenith.admin.dto.data.MenuPageQuery;
@@ -42,14 +43,6 @@ public class MenuPageQryExe {
 
         PageInfo<MenuDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
                 .doSelectPageInfo(() -> menuMapper.selectList(queryWrapper));
-        List<MenuDTO> dtos = menuConvertor.toDTOList(pageInfo.getList());
-
-        PageInfo<MenuDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(dtos);
-        return result;
+        return PageResponseUtils.convert(pageInfo, menuConvertor::toDTOList);
     }
 }

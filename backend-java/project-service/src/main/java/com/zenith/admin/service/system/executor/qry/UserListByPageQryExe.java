@@ -16,6 +16,7 @@ import com.zenith.admin.mapper.OrgMapper;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.mapper.UserMapper;
 import com.zenith.admin.mapper.UserRoleMapper;
+import com.zenith.admin.util.PageResponseUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -70,15 +71,7 @@ public class UserListByPageQryExe {
         PageInfo<UserDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
                 .doSelectPageInfo(() -> userMapper.selectList(wrapper));
 
-        List<UserDTO> dtos = convertToDTOsWithRoles(pageInfo.getList());
-
-        PageInfo<UserDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(dtos);
-        return result;
+        return PageResponseUtils.convert(pageInfo, this::convertToDTOsWithRoles);
     }
 
     private List<UserDTO> convertToDTOsWithRoles(List<UserDO> userDOS) {

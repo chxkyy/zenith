@@ -8,6 +8,7 @@ import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dto.data.RoleDTO;
 import com.zenith.admin.dto.data.RolePageQuery;
 import com.zenith.admin.mapper.RoleMapper;
+import com.zenith.admin.util.PageResponseUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -41,14 +42,6 @@ public class RoleListByPageQryExe {
         List<RoleDO> roleDOS = roleMapper.selectList(wrapper);
         PageInfo<RoleDO> pageInfo = new PageInfo<>(roleDOS);
 
-        List<RoleDTO> dtos = roleConvertor.toDTOList(roleDOS);
-
-        PageInfo<RoleDTO> result = new PageInfo<>();
-        result.setTotal(pageInfo.getTotal());
-        result.setPageNum(pageInfo.getPageNum());
-        result.setPageSize(pageInfo.getPageSize());
-        result.setPages(pageInfo.getPages());
-        result.setList(dtos);
-        return result;
+        return PageResponseUtils.convert(pageInfo, roleConvertor::toDTOList);
     }
 }

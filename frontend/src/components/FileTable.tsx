@@ -276,7 +276,7 @@ export default function FileTable() {
           showTotal: (total) => `共 ${total} 条`,
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50', '100'],
-          size: 'default',
+          size: 'middle' as const,
           onChange: (page, size) => goToPage(page, size),
         }}
       />

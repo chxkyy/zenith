@@ -1,5 +1,6 @@
 package com.zenith.admin.service.system.executor.qry;
 
+import com.zenith.admin.util.PageResponseUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dataobject.*;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,11 +26,10 @@ public class TaskTodoPageQryExe {
     private final UserMapper userMapper;
 
     public PageInfo<TaskDTO> execute(TaskPageQuery query, Long currentUserId) {
-        PageHelper.startPage(query.getPageIndex(), query.getPageSize());
+        PageInfo<TaskDO> pageInfo = PageHelper.startPage(query.getPageIndex(), query.getPageSize())
+                .doSelectPageInfo(() -> taskMapper.selectPendingByAssignee(currentUserId));
 
-        List<TaskDO> tasks = taskMapper.selectPendingByAssignee(currentUserId);
-
-        List<TaskDTO> dtos = tasks.stream()
+        return PageResponseUtils.convert(pageInfo, list -> list.stream()
                 .filter(t -> {
                     if (query.getProcessTemplateName() != null && !query.getProcessTemplateName().isEmpty()) {
                         ProcessInstanceDO instance = processInstanceMapper.selectById(t.getProcessInstanceId());
@@ -42,14 +43,7 @@ public class TaskTodoPageQryExe {
                     return true;
                 })
                 .map(this::convertToDTO)
-                .collect(Collectors.toList());
-
-        PageInfo<TaskDTO> result = new PageInfo<>();
-        result.setTotal(dtos.size());
-        result.setPageNum(query.getPageIndex());
-        result.setPageSize(query.getPageSize());
-        result.setList(dtos);
-        return result;
+                .collect(Collectors.toList()));
     }
 
     private TaskDTO convertToDTO(TaskDO dO) {
