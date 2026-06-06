@@ -41,6 +41,12 @@
       "source": "D:\\tools\\skills-cache\\claude-dev-suite",
       "sourceType": "local",
       "computedHash": "d04ac832baa3c7d11f808bb0f7c084664d2e2bc1c993ed412808ccd67d8e56ca"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "6b526d013e28073246a36f99b529bc43745d30832ecfa8217b359c34f260ca6b"
     }
   }
 }
