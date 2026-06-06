@@ -521,6 +521,8 @@ export default function MenuManagement() {
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [menuToDelete, setMenuToDelete] = useState<Menu | null>(null);
+  // 扁平化菜单索引：O(1) 按 id 查找，替代递归 O(n) 遍历
+  const menuFlatMapRef = useRef<Map<number, Menu>>(new Map());
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -569,6 +571,13 @@ export default function MenuManagement() {
       const result = convertToMenus(menuData);
       setMenus(result.menus);
       setExpanded(result.expandedIds);
+      // 构建扁平化 O(1) 索引
+      const flatMap = new Map<number, Menu>();
+      const flatten = (list: Menu[]) => {
+        for (const m of list) { flatMap.set(m.id, m); if (m.children?.length) flatten(m.children); }
+      };
+      flatten(result.menus);
+      menuFlatMapRef.current = flatMap;
     } catch (error) {
       console.error('Error fetching menus:', error);
       message.error('获取菜单列表失败');
@@ -612,14 +621,14 @@ export default function MenuManagement() {
 
   const handleSaveMenu = async (menuData: Partial<Menu>) => {
     if (menuData.parentId && menuData.parentId > 0) {
-      const parentMenu = findMenuById(menus, menuData.parentId);
+      const parentMenu = findMenuById(menuData.parentId);
       if (parentMenu) {
         const calculateDepth = (m: Menu): number => {
           let depth = 1;
           let current: Menu | null = m;
           while (current?.parentId) {
             depth++;
-            current = findMenuById(menus, current.parentId);
+            current = findMenuById(current.parentId);
           }
           return depth;
         };
@@ -655,7 +664,7 @@ export default function MenuManagement() {
   };
 
   const handleDeleteMenu = async (id: number) => {
-    const menuToDelete = findMenuById(menus, id);
+    const menuToDelete = findMenuById(id);
     if (!menuToDelete) {
       message.error('菜单不存在');
       return;
@@ -681,12 +690,9 @@ export default function MenuManagement() {
     }
   };
 
-  const findMenuById = (menuList: Menu[], id: number): Menu | null => {
-    for (const menu of menuList) {
-      if (menu.id === id) return menu;
-      if (menu.children) { const found = findMenuById(menu.children, id); if (found) return found; }
-    }
-    return null;
+  // 统一的菜单查找函数：优先使用扁平索引 O(1)，兜底递归查找
+  const findMenuById = (id: number): Menu | null => {
+    return menuFlatMapRef.current.get(id) ?? null;
   };
 
   const getMaxChildDepth = (menu: Menu, allMenus: Menu[]): number => {
@@ -729,13 +735,7 @@ export default function MenuManagement() {
     const draggedId = active.id as number;
     const targetId = over.id as number;
 
-    const findMenuById = (menuList: Menu[], id: number): Menu | null => {
-      for (const menu of menuList) {
-        if (menu.id === id) return menu;
-        if (menu.children) { const found = findMenuById(menu.children, id); if (found) return found; }
-      }
-      return null;
-    };
+    // 复用组件级 findMenuById（O(1) Map 查找），无需重复定义
     const findParentId = (menuList: Menu[], targetId: number, excludeId: number): number | null => {
       for (const menu of menuList) {
         if (menu.id === excludeId) continue;
@@ -756,8 +756,8 @@ export default function MenuManagement() {
       return siblings.findIndex(m => m.id === targetId);
     };
 
-    const draggedMenu = findMenuById(menus, draggedId);
-    const targetMenu = findMenuById(menus, targetId);
+    const draggedMenu = findMenuById(draggedId);
+    const targetMenu = findMenuById(targetId);
     if (!draggedMenu || !targetMenu) return;
     const draggedOriginalParentId = draggedMenu.parentId;
     const targetParentId = findParentId(menus, targetId, draggedId);
@@ -778,7 +778,7 @@ export default function MenuManagement() {
       let current: Menu | null = menu;
       while (current) {
         depth++;
-        current = current.parentId ? findMenuById(menus, current.parentId) : null;
+        current = current.parentId ? findMenuById(current.parentId) : null;
       }
       return depth;
     };

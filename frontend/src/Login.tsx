@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, Input, Button, Card, App } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { post } from './lib/apiClient';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -19,22 +20,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const handleSubmit = async (values: LoginForm) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
-      });
+      const data = await post<{ success: boolean; errMessage?: string }>('/api/auth/login', values as unknown as Record<string, unknown>);
 
-      const data = await response.json();
-
-      if (data.success) {
-        message.success('登录成功');
-        setTimeout(() => onLoginSuccess(), 500);
-      } else {
-        message.error(data.errMessage || '登录失败');
-      }
+      message.success('登录成功');
+      setTimeout(() => onLoginSuccess(), 500);
     } catch (error) {
-      message.error('网络错误，请重试');
+      message.error(error instanceof Error ? error.message : '网络错误，请重试');
     } finally {
       setLoading(false);
     }

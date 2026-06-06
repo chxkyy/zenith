@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, Descriptions, Avatar, Tag, Button, Modal, Form, Input, App, Spin, Row, Col } from 'antd';
 import { UserOutlined, EditOutlined, MailOutlined, PhoneOutlined, LockOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
+import { get, post } from '../lib/apiClient';
 
 interface UserProfile {
   id: number;
@@ -38,19 +39,10 @@ export default function Profile() {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch profile');
-      const data = await response.json();
-      if (data.success) {
-        setProfile(data.data);
-      } else {
-        message.error(data.errMessage || '获取个人信息失败');
-      }
-    } catch (error: any) {
-      console.error('Error fetching profile:', error);
-      message.error(error.message || '获取个人信息失败');
+      const data = await get<UserProfile>('/api/auth/me');
+      setProfile(data);
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : '获取个人信息失败');
     } finally {
       setLoading(false);
     }
@@ -59,22 +51,12 @@ export default function Profile() {
   const handleEditProfile = async () => {
     try {
       const values = await editForm.validateFields();
-      const response = await fetch('/api/auth/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
-      });
-      const data = await response.json();
-      if (data.success) {
-        message.success('个人信息更新成功');
-        setIsEditModalOpen(false);
-        fetchProfile();
-      } else {
-        throw new Error(data.errMessage || '更新失败');
-      }
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      message.error(error.message || '更新失败');
+      await post('/api/auth/profile', values);
+      message.success('个人信息更新成功');
+      setIsEditModalOpen(false);
+      fetchProfile();
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : '更新失败');
     }
   };
 
@@ -85,22 +67,12 @@ export default function Profile() {
         message.error('两次输入的密码不一致');
         return;
       }
-      const response = await fetch('/api/auth/password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ oldPassword: values.oldPassword, newPassword: values.newPassword })
-      });
-      const data = await response.json();
-      if (data.success) {
-        message.success('密码修改成功');
-        setIsPasswordModalOpen(false);
-        passwordForm.resetFields();
-      } else {
-        throw new Error(data.errMessage || '修改密码失败');
-      }
-    } catch (error: any) {
-      console.error('Error changing password:', error);
-      message.error(error.message || '修改密码失败');
+      await post('/api/auth/password', { oldPassword: values.oldPassword, newPassword: values.newPassword });
+      message.success('密码修改成功');
+      setIsPasswordModalOpen(false);
+      passwordForm.resetFields();
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : '修改密码失败');
     }
   };
 

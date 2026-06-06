@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { SearchOutlined, UndoOutlined, DownloadOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
 import { usePermission } from '../lib/PermissionContext';
+import { get, post, del } from '../lib/apiClient';
 
 interface OperLog {
   id: number;
@@ -36,37 +37,15 @@ const LogOper: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (searchParams.operator) params.append('operator', searchParams.operator);
-      if (searchParams.module) params.append('module', searchParams.module);
-      if (searchParams.result) params.append('result', searchParams.result);
+      const params: Record<string, string> = {};
+      if (searchParams.operator) params.operator = searchParams.operator;
+      if (searchParams.module) params.module = searchParams.module;
+      if (searchParams.result) params.result = searchParams.result;
 
-      const response = await fetch(`/api/oper-logs?${params.toString()}`);
-      const text = await response.text();
-      if (response.status === 503) {
-        throw new Error('Java 后端正在启动，请稍候...');
-      }
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}. ${text}`);
-      }
-      if (!text) {
-        setLogs([]);
-        return;
-      }
-      try {
-        const data = JSON.parse(text);
-        if (data.success) {
-          setLogs(data.data);
-        } else {
-          setError(data.errMessage || '获取日志失败');
-        }
-      } catch (e) {
-        console.error('Failed to parse JSON:', text);
-        throw new Error('服务器返回了非 JSON 格式的数据');
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch oper logs:', error);
-      setError(error.message || '网络错误');
+      const data = await get<OperLog[]>('/api/oper-logs', params);
+      setLogs(data);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : '网络错误');
     } finally {
       setLoading(false);
     }
@@ -85,19 +64,11 @@ const LogOper: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`/api/oper-logs/delete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
-      const data = await response.json();
-      if (data.success) {
-        message.success('删除成功');
-        fetchLogs();
-      }
-    } catch (error) {
-      console.error('Failed to delete log:', error);
-      message.error('删除失败');
+      await del('/api/oper-logs/delete', { id });
+      message.success('删除成功');
+      fetchLogs();
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : '删除失败');
     }
   };
 

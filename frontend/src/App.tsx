@@ -52,8 +52,13 @@ function AppContent() {
       const user = await get<{ username: string; email: string }>('/api/auth/me');
       setIsAuthenticated(true);
       setCurrentUser({ username: user.username, email: user.email });
-      fetchPermissions();
-      fetchMenus();
+      // permissions 和 menus 无依赖关系，并行请求
+      const [permData, menuData] = await Promise.all([
+        get<string[]>('/api/auth/permissions').catch(() => []),
+        get<any[]>('/api/auth/menus').catch(() => []),
+      ]);
+      setPermissions(permData);
+      setMenus(menuData);
     } catch (error) {
       setIsAuthenticated(false);
       setCurrentUser(null);
@@ -61,24 +66,6 @@ function AppContent() {
       setMenus([]);
     } finally {
       setCheckingAuth(false);
-    }
-  };
-
-  const fetchPermissions = async () => {
-    try {
-      const data = await get<string[]>('/api/auth/permissions');
-      setPermissions(data);
-    } catch (error) {
-      setPermissions([]);
-    }
-  };
-
-  const fetchMenus = async () => {
-    try {
-      const data = await get<any[]>('/api/auth/menus');
-      setMenus(data);
-    } catch (error) {
-      setMenus([]);
     }
   };
 
