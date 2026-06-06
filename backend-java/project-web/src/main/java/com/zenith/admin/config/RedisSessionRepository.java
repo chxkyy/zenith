@@ -27,7 +27,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
 
     private Duration defaultMaxInactiveInterval = Duration.ofMinutes(120);
 
-    public RedisSessionRepository(StringRedisTemplate redisTemplate, 
+    public RedisSessionRepository(StringRedisTemplate redisTemplate,
                                    SessionIdGenerator sessionIdGenerator,
                                    SessionProperties sessionProperties) {
         this.redisTemplate = redisTemplate;
@@ -41,7 +41,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         String sessionId = sessionIdGenerator.generate();
         Instant now = Instant.now();
         RedisSession session = new RedisSession(sessionId, now, now, defaultMaxInactiveInterval);
-        log.info("[SESSION] Created new session: {} at {}", sessionId, now);
+        log.debug("[SESSION] Created new session: {} at {}", sessionId, now);
         return session;
     }
 
@@ -49,11 +49,20 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
     public void save(RedisSession session) {
         if (session.isDeleted()) {
             deleteById(session.getId());
+            // 如果 session 被标记删除且之前有原始 ID（changeSessionId 场景），也清理旧 key
+            if (session.getOriginalId() != null && !session.getOriginalId().equals(session.getId())) {
+                String oldKey = SESSION_KEY_PREFIX + session.getOriginalId();
+                redisTemplate.delete(oldKey);
+                log.debug("[SESSION] Cleaned up old session key after changeSessionId: {}", session.getOriginalId());
+            }
             return;
         }
 
+        // 【修复 Bug 1】从 attributes 同步用户字段到顶层字段
+        syncFieldsFromAttributes(session);
+
         String sessionKey = SESSION_KEY_PREFIX + session.getId();
-        
+
         JSONObject json = new JSONObject();
         json.put("id", session.getId());
         json.put("creationTime", session.getCreationTime().toEpochMilli());
@@ -76,14 +85,57 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         long ttlSeconds = session.getMaxInactiveInterval().getSeconds();
         redisTemplate.opsForValue().set(sessionKey, json.toJSONString(), ttlSeconds, TimeUnit.SECONDS);
 
+        // 【修复 Bug 1 续】现在 userId 能正确获取了，user:sessions Set 可以正常工作
         if (session.getUserId() != null) {
             String userSessionsKey = USER_SESSIONS_KEY_PREFIX + session.getUserId();
             redisTemplate.opsForSet().add(userSessionsKey, session.getId());
             redisTemplate.expire(userSessionsKey, ttlSeconds, TimeUnit.SECONDS);
         }
 
+        // 【修复 Bug 2】如果 session ID 变更过（changeSessionId），删除旧的 Redis key
+        if (session.getOriginalId() != null && !session.getOriginalId().equals(session.getId())) {
+            String oldKey = SESSION_KEY_PREFIX + session.getOriginalId();
+            redisTemplate.delete(oldKey);
+            log.info("[SESSION] Cleaned up old session key after changeSessionId: {} -> {}",
+                    session.getOriginalId(), session.getId());
+            session.setOriginalId(null);
+        }
+
         session.setChanged(false);
         log.debug("[SESSION] Saved session: {} userId:{}", session.getId(), session.getUserId());
+    }
+
+    /**
+     * 从 attributes map 同步 userId/username/ip/userAgent/loginTime 到顶层字段
+     * 解决 AuthController 通过 setAttribute() 存储数据但 save() 读取顶层字段导致的 null 问题
+     */
+    private void syncFieldsFromAttributes(RedisSession session) {
+        Map<String, Object> attrs = session.getAttributes();
+
+        Object userIdAttr = attrs.get("userId");
+        if (userIdAttr instanceof Number) {
+            session.setUserId(((Number) userIdAttr).longValue());
+        }
+
+        Object usernameAttr = attrs.get("username");
+        if (usernameAttr instanceof String) {
+            session.setUsername((String) usernameAttr);
+        }
+
+        Object ipAttr = attrs.get("ip");
+        if (ipAttr instanceof String) {
+            session.setIp((String) ipAttr);
+        }
+
+        Object userAgentAttr = attrs.get("userAgent");
+        if (userAgentAttr instanceof String) {
+            session.setUserAgent((String) userAgentAttr);
+        }
+
+        Object loginTimeAttr = attrs.get("loginTime");
+        if (loginTimeAttr instanceof Number) {
+            session.setLoginTime(((Number) loginTimeAttr).longValue());
+        }
     }
 
     @Override
@@ -96,8 +148,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         String sessionJson = redisTemplate.opsForValue().get(sessionKey);
 
         if (sessionJson == null) {
-            log.warn("[SESSION] Session not found in Redis (may be expired or invalid): {}", sessionId);
-            log.debug("Session not found: {}", sessionId);
+            log.debug("[SESSION] Session not found: {}", sessionId);
             return null;
         }
 
@@ -113,7 +164,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
             session.setIp(json.getString("ip"));
             session.setUserAgent(json.getString("userAgent"));
             session.setLoginTime(parseLong(json.get("loginTime")));
-            
+
             JSONObject attrs = json.getJSONObject("attributes");
             if (attrs != null) {
                 Map<String, Object> attributes = new HashMap<>();
@@ -122,7 +173,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
                 }
                 session.setAttributes(attributes);
             }
-            
+
             if (session.isExpired()) {
                 deleteById(sessionId);
                 return null;
@@ -139,7 +190,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
     public void deleteById(String sessionId) {
         String sessionKey = SESSION_KEY_PREFIX + sessionId;
         String sessionJson = redisTemplate.opsForValue().get(sessionKey);
-        
+
         if (sessionJson != null) {
             try {
                 JSONObject json = JSON.parseObject(sessionJson);
@@ -152,7 +203,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
                 log.warn("Failed to parse session for deletion: {}", sessionId, e);
             }
         }
-        
+
         redisTemplate.delete(sessionKey);
         log.debug("Deleted session: {}", sessionId);
     }
@@ -203,6 +254,8 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
                         session.setCreationTime(parseInstant(json.get("creationTime")));
                         session.setLastAccessedTime(parseInstant(json.get("lastAccessedTime")));
                         session.setMaxInactiveInterval(Duration.ofSeconds(parseLong(json.get("maxInactiveInterval"))));
+
+                        // 从 attributes 读取 userId（因为旧数据的顶层字段可能为 null）
                         session.setUserId(json.getLong("userId"));
                         session.setUsername(json.getString("username"));
                         session.setIp(json.getString("ip"));
@@ -216,18 +269,30 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
                                 attributes.put(key2, attrs.get(key2));
                             }
                             session.setAttributes(attributes);
+
+                            // 兼容旧数据：如果顶层 userId 为空，尝试从 attributes 获取
+                            if (session.getUserId() == null) {
+                                Object attrUserId = attrs.get("userId");
+                                if (attrUserId instanceof Number) {
+                                    session.setUserId(((Number) attrUserId).longValue());
+                                }
+                            }
+                            if (session.getUsername() == null) {
+                                Object attrUsername = attrs.get("username");
+                                if (attrUsername instanceof String) {
+                                    session.setUsername((String) attrUsername);
+                                }
+                            }
                         }
 
                         if (isKicked(session.getId())) {
                             kickedCount.incrementAndGet();
-                            // 清理已被踢出的过期 session key
                             redisTemplate.delete(key);
                             return;
                         }
 
                         if (session.isExpired()) {
                             expiredCount.incrementAndGet();
-                            // 删除已过期的 session（Redis 可能尚未惰性清理）
                             deleteById(session.getId());
                             return;
                         }
@@ -247,11 +312,39 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         return sessions;
     }
 
+    /**
+     * 清理 Redis 中所有 session 数据（用于清除孤儿 session）
+     */
+    public int clearAllSessions() {
+        int count = 0;
+        try (var cursor = redisTemplate.scan(
+                org.springframework.data.redis.core.ScanOptions.scanOptions()
+                        .match(SESSION_KEY_PREFIX + "*")
+                        .count(500)
+                        .build())) {
+            List<String> keysToDelete = new ArrayList<>();
+            cursor.forEachRemaining(keysToDelete::add);
+            if (!keysToDelete.isEmpty()) {
+                count = keysToDelete.size();
+                redisTemplate.delete(keysToDelete);
+                // 同时清理 user:sessions 索引
+                Set<String> indexKeys = redisTemplate.keys(USER_SESSIONS_KEY_PREFIX + "*");
+                if (indexKeys != null && !indexKeys.isEmpty()) {
+                    redisTemplate.delete(indexKeys);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to clear sessions", e);
+        }
+        log.info("Cleared {} orphan sessions from Redis", count);
+        return count;
+    }
+
     public void kickSession(String sessionId) {
         redisTemplate.opsForSet().add(KICKED_SESSIONS_KEY, sessionId);
-        redisTemplate.expire(KICKED_SESSIONS_KEY, 
+        redisTemplate.expire(KICKED_SESSIONS_KEY,
             sessionProperties.getKickedRecordExpireMinutes(), TimeUnit.MINUTES);
-        
+
         deleteById(sessionId);
     }
 
@@ -261,19 +354,19 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
 
     public void enforceMaxConcurrentSessions(Long userId, String currentSessionId) {
         Map<String, RedisSession> userSessions = findByUserId(userId);
-        
+
         int maxConcurrent = sessionProperties.getMaxConcurrent();
         int currentCount = userSessions.size();
-        
+
         if (currentCount >= maxConcurrent) {
             List<RedisSession> sessionsToKick = userSessions.values().stream()
                 .filter(s -> !s.getId().equals(currentSessionId))
                 .sorted(Comparator.comparing(RedisSession::getLoginTime))
                 .limit(currentCount - maxConcurrent + 1)
                 .toList();
-            
+
             for (RedisSession session : sessionsToKick) {
-                log.info("Kicking session {} for user {} due to max concurrent limit", 
+                log.info("Kicking session {} for user {} due to max concurrent limit",
                     session.getId(), userId);
                 kickSession(session.getId());
             }
@@ -322,6 +415,8 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
     @Data
     public static class RedisSession implements Session {
         private String id;
+        /** 追踪 changeSessionId 前的原始 ID，用于清理旧 Redis key */
+        private transient String originalId;
         private Instant creationTime;
         private Instant lastAccessedTime;
         private Duration maxInactiveInterval;
@@ -352,9 +447,12 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
 
         @Override
         public String changeSessionId() {
+            // 【修复 Bug 2】保存原始 ID，以便 save() 时清理旧 key
+            this.originalId = this.id;
             String newId = java.util.UUID.randomUUID().toString().replace("-", "");
             this.id = newId;
             this.changed = true;
+            log.debug("[SESSION] changeSessionId: {} -> {}", originalId, newId);
             return newId;
         }
 
@@ -410,7 +508,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
 
         @Override
         public boolean isExpired() {
-            return lastAccessedTime != null && 
+            return lastAccessedTime != null &&
                    Instant.now().isAfter(lastAccessedTime.plus(maxInactiveInterval));
         }
 
