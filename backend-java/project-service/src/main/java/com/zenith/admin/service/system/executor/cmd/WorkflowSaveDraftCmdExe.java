@@ -2,7 +2,7 @@ package com.zenith.admin.service.system.executor.cmd;
 
 import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dataobject.ProcessTemplateDO;
-import com.zenith.admin.dto.data.ProcessInstanceCreateCmd;
+import com.zenith.admin.dto.cmd.ProcessInstanceCreateCmd;
 import com.zenith.admin.enums.ProcessStatusEnum;
 import com.zenith.admin.mapper.ProcessInstanceMapper;
 import com.zenith.admin.mapper.ProcessTemplateMapper;

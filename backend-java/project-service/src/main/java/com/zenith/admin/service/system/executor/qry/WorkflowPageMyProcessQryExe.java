@@ -5,7 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dto.data.ProcessInstanceDTO;
-import com.zenith.admin.dto.data.ProcessInstancePageQuery;
+import com.zenith.admin.dto.query.ProcessInstancePageQuery;
 import com.zenith.admin.mapper.ProcessInstanceMapper;
 import com.zenith.admin.util.PageResponseUtils;
 import lombok.RequiredArgsConstructor;

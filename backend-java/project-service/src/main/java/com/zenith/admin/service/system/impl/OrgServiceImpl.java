@@ -2,10 +2,10 @@ package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.system.OrgService;
-import com.zenith.admin.dto.data.OrgAddCmd;
+import com.zenith.admin.dto.cmd.OrgAddCmd;
 import com.zenith.admin.dto.data.OrgDTO;
-import com.zenith.admin.dto.data.OrgPageQuery;
-import com.zenith.admin.dto.data.OrgUpdateCmd;
+import com.zenith.admin.dto.query.OrgPageQuery;
+import com.zenith.admin.dto.cmd.OrgUpdateCmd;
 import com.zenith.admin.service.system.executor.cmd.OrgDeleteCmdExe;
 import com.zenith.admin.service.system.executor.qry.OrgGetByIdQryExe;
 import com.zenith.admin.service.system.executor.qry.OrgListAllQryExe;

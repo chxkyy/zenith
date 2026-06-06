@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.cmd;
 
-import com.zenith.admin.dto.data.FunctionAddCmd;
+import com.zenith.admin.dto.cmd.FunctionAddCmd;
 import com.zenith.admin.dataobject.FunctionDO;
 import com.zenith.admin.mapper.FunctionMapper;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,11 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.data.*;
+import com.zenith.admin.dto.cmd.TaskApproveCmd;
+import com.zenith.admin.dto.cmd.TaskCountersignCmd;
+import com.zenith.admin.dto.cmd.TaskRejectCmd;
+import com.zenith.admin.dto.data.TaskDTO;
+import com.zenith.admin.dto.query.TaskPageQuery;
 
 public interface TaskService {
 

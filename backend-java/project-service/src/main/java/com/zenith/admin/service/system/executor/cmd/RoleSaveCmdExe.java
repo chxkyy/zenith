@@ -3,7 +3,7 @@ package com.zenith.admin.service.system.executor.cmd;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.alibaba.cola.exception.BizException;
 import com.zenith.admin.dataobject.RoleDO;
-import com.zenith.admin.dto.data.RoleAddCmd;
+import com.zenith.admin.dto.cmd.RoleAddCmd;
 import com.zenith.admin.mapper.RoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

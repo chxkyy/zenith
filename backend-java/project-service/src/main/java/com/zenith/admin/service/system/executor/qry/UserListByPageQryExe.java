@@ -11,7 +11,7 @@ import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dataobject.UserRoleDO;
 import com.zenith.admin.dto.data.UserDTO;
-import com.zenith.admin.dto.data.UserPageQuery;
+import com.zenith.admin.dto.query.UserPageQuery;
 import com.zenith.admin.mapper.OrgMapper;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.mapper.UserMapper;

@@ -5,7 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dataobject.DictDO;
 import com.zenith.admin.dto.data.DictDTO;
-import com.zenith.admin.dto.data.DictPageQuery;
+import com.zenith.admin.dto.query.DictPageQuery;
 import com.zenith.admin.mapper.DictMapper;
 import com.zenith.admin.service.system.executor.converter.DictConvertor;
 import com.zenith.admin.util.PageResponseUtils;

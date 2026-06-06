@@ -6,7 +6,7 @@ import com.github.pagehelper.PageInfo;
 import com.zenith.admin.service.system.executor.converter.OrgConvertor;
 import com.zenith.admin.dataobject.OrgDO;
 import com.zenith.admin.dto.data.OrgDTO;
-import com.zenith.admin.dto.data.OrgPageQuery;
+import com.zenith.admin.dto.query.OrgPageQuery;
 import com.zenith.admin.mapper.OrgMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

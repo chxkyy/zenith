@@ -5,7 +5,7 @@ import com.alibaba.cola.dto.Response;
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.config.RedisSessionRepository;
 import com.zenith.admin.config.RedisSessionRepository.RedisSession;
-import com.zenith.admin.dto.data.ForceLogoutCmd;
+import com.zenith.admin.dto.cmd.ForceLogoutCmd;
 import com.zenith.admin.dto.data.OnlineUserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

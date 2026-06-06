@@ -2,7 +2,7 @@ package com.zenith.admin.service.system.executor.cmd;
 
 import com.alibaba.cola.exception.BizException;
 import com.zenith.admin.dataobject.MenuDO;
-import com.zenith.admin.dto.data.MenuAddCmd;
+import com.zenith.admin.dto.cmd.MenuAddCmd;
 import com.zenith.admin.mapper.MenuMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

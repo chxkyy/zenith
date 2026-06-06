@@ -5,7 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dataobject.FileDO;
 import com.zenith.admin.dto.data.FileDTO;
-import com.zenith.admin.dto.data.FilePageQuery;
+import com.zenith.admin.dto.query.FilePageQuery;
 import com.zenith.admin.mapper.FileMapper;
 import com.zenith.admin.service.system.executor.converter.FileConvertor;
 import com.zenith.admin.util.PageResponseUtils;

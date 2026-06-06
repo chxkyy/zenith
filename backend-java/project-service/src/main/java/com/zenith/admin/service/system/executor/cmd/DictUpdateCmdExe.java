@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.executor.cmd;
 
 import com.zenith.admin.dataobject.DictDO;
-import com.zenith.admin.dto.data.DictUpdateCmd;
+import com.zenith.admin.dto.cmd.DictUpdateCmd;
 import com.zenith.admin.mapper.DictMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

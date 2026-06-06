@@ -5,7 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dataobject.*;
 import com.zenith.admin.dto.data.TaskDTO;
-import com.zenith.admin.dto.data.TaskPageQuery;
+import com.zenith.admin.dto.query.TaskPageQuery;
 import com.zenith.admin.enums.NodeTypeEnum;
 import com.zenith.admin.mapper.*;
 import lombok.RequiredArgsConstructor;

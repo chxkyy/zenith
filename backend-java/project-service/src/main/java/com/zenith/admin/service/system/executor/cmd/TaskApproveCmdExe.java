@@ -5,7 +5,7 @@ import com.zenith.admin.api.system.WorkflowDomainService;
 import com.zenith.admin.dataobject.NodeTemplateDO;
 import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dataobject.TaskDO;
-import com.zenith.admin.dto.data.TaskApproveCmd;
+import com.zenith.admin.dto.cmd.TaskApproveCmd;
 import com.zenith.admin.enums.ActionTypeEnum;
 import com.zenith.admin.enums.NodeTypeEnum;
 import com.zenith.admin.enums.ProcessStatusEnum;

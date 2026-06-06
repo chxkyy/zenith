@@ -2,7 +2,7 @@ package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.FileDTO;
-import com.zenith.admin.dto.data.FilePageQuery;
+import com.zenith.admin.dto.query.FilePageQuery;
 
 import java.io.IOException;
 

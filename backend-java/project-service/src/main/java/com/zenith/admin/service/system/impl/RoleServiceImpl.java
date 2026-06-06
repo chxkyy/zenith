@@ -2,10 +2,10 @@ package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.system.RoleService;
-import com.zenith.admin.dto.data.RoleAddCmd;
+import com.zenith.admin.dto.cmd.RoleAddCmd;
 import com.zenith.admin.dto.data.RoleDTO;
-import com.zenith.admin.dto.data.RolePageQuery;
-import com.zenith.admin.dto.data.RoleUpdateCmd;
+import com.zenith.admin.dto.query.RolePageQuery;
+import com.zenith.admin.dto.cmd.RoleUpdateCmd;
 import com.zenith.admin.service.system.executor.cmd.RoleChangeStatusCmdExe;
 import com.zenith.admin.service.system.executor.cmd.RoleDeleteCmdExe;
 import com.zenith.admin.service.system.executor.qry.RoleGetByIdQryExe;

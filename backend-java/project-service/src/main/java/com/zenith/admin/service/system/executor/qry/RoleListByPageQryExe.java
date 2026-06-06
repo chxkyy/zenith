@@ -6,7 +6,7 @@ import com.github.pagehelper.PageInfo;
 import com.zenith.admin.service.system.executor.converter.RoleConvertor;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dto.data.RoleDTO;
-import com.zenith.admin.dto.data.RolePageQuery;
+import com.zenith.admin.dto.query.RolePageQuery;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.util.PageResponseUtils;
 import lombok.RequiredArgsConstructor;

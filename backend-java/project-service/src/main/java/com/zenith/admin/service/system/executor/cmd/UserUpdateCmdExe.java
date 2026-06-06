@@ -3,7 +3,7 @@ package com.zenith.admin.service.system.executor.cmd;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dataobject.UserRoleDO;
-import com.zenith.admin.dto.data.UserUpdateCmd;
+import com.zenith.admin.dto.cmd.UserUpdateCmd;
 import com.zenith.admin.mapper.UserMapper;
 import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;

@@ -7,7 +7,7 @@ import com.zenith.admin.service.system.executor.converter.MenuConvertor;
 import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.dto.data.MenuDTO;
-import com.zenith.admin.dto.data.MenuPageQuery;
+import com.zenith.admin.dto.query.MenuPageQuery;
 import com.zenith.admin.mapper.MenuMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

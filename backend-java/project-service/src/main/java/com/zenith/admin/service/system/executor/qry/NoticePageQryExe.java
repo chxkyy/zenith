@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.NoticeDTO;
-import com.zenith.admin.dto.data.NoticePageQuery;
+import com.zenith.admin.dto.query.NoticePageQuery;
 import com.zenith.admin.service.system.executor.converter.NoticeConvertor;
 import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.NoticeDO;

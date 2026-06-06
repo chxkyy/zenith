@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dto.data.FunctionDTO;
-import com.zenith.admin.dto.data.FunctionPageQuery;
+import com.zenith.admin.dto.query.FunctionPageQuery;
 import com.zenith.admin.service.system.executor.converter.FunctionConvertor;
 import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.FunctionDO;

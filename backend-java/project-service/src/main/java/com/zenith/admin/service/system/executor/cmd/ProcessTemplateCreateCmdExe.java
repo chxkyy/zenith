@@ -2,8 +2,8 @@ package com.zenith.admin.service.system.executor.cmd;
 
 import com.zenith.admin.dataobject.NodeTemplateDO;
 import com.zenith.admin.dataobject.ProcessTemplateDO;
-import com.zenith.admin.dto.data.NodeTemplateCreateCmd;
-import com.zenith.admin.dto.data.ProcessTemplateCreateCmd;
+import com.zenith.admin.dto.cmd.NodeTemplateCreateCmd;
+import com.zenith.admin.dto.cmd.ProcessTemplateCreateCmd;
 import com.zenith.admin.mapper.NodeTemplateMapper;
 import com.zenith.admin.mapper.ProcessTemplateMapper;
 import lombok.RequiredArgsConstructor;

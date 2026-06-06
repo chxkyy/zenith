@@ -2,7 +2,7 @@ package com.zenith.admin.web;
 
 import com.zenith.admin.api.system.OperLogService;
 import com.zenith.admin.util.PageResponseUtils;
-import com.zenith.admin.dto.data.IdQuery;
+import com.zenith.admin.dto.query.IdQuery;
 import com.zenith.admin.dto.data.OperLogDTO;
 import com.github.pagehelper.PageInfo;
 import jakarta.servlet.http.HttpServletResponse;

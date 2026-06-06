@@ -6,7 +6,7 @@ import com.zenith.admin.api.system.WorkflowDomainService;
 import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dataobject.TaskDO;
 import com.zenith.admin.dataobject.UserRoleDO;
-import com.zenith.admin.dto.data.TaskCountersignCmd;
+import com.zenith.admin.dto.cmd.TaskCountersignCmd;
 import com.zenith.admin.enums.ActionTypeEnum;
 import com.zenith.admin.enums.ApproverTypeEnum;
 import com.zenith.admin.enums.TaskStatusEnum;

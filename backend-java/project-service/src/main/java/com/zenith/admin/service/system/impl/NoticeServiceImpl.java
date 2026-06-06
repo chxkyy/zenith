@@ -2,10 +2,10 @@ package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.system.NoticeService;
-import com.zenith.admin.dto.data.NoticeAddCmd;
+import com.zenith.admin.dto.cmd.NoticeAddCmd;
 import com.zenith.admin.dto.data.NoticeDTO;
-import com.zenith.admin.dto.data.NoticePageQuery;
-import com.zenith.admin.dto.data.NoticeUpdateCmd;
+import com.zenith.admin.dto.query.NoticePageQuery;
+import com.zenith.admin.dto.cmd.NoticeUpdateCmd;
 import com.zenith.admin.service.system.executor.cmd.NoticeDeleteCmdExe;
 import com.zenith.admin.service.system.executor.cmd.NoticeSaveCmdExe;
 import com.zenith.admin.service.system.executor.cmd.NoticeUpdateCmdExe;

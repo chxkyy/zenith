@@ -2,7 +2,7 @@ package com.zenith.admin.service.system.executor.cmd;
 
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dataobject.UserRoleDO;
-import com.zenith.admin.dto.data.UserAddCmd;
+import com.zenith.admin.dto.cmd.UserAddCmd;
 import com.zenith.admin.mapper.UserMapper;
 import com.zenith.admin.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;

@@ -1,10 +1,10 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.data.NoticeAddCmd;
+import com.zenith.admin.dto.cmd.NoticeAddCmd;
 import com.zenith.admin.dto.data.NoticeDTO;
-import com.zenith.admin.dto.data.NoticePageQuery;
-import com.zenith.admin.dto.data.NoticeUpdateCmd;
+import com.zenith.admin.dto.query.NoticePageQuery;
+import com.zenith.admin.dto.cmd.NoticeUpdateCmd;
 
 import java.util.List;
 

@@ -1,10 +1,10 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.data.OrgAddCmd;
+import com.zenith.admin.dto.cmd.OrgAddCmd;
 import com.zenith.admin.dto.data.OrgDTO;
-import com.zenith.admin.dto.data.OrgPageQuery;
-import com.zenith.admin.dto.data.OrgUpdateCmd;
+import com.zenith.admin.dto.query.OrgPageQuery;
+import com.zenith.admin.dto.cmd.OrgUpdateCmd;
 
 import java.util.List;
 

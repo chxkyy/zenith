@@ -1,10 +1,10 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.data.FunctionAddCmd;
+import com.zenith.admin.dto.cmd.FunctionAddCmd;
 import com.zenith.admin.dto.data.FunctionDTO;
-import com.zenith.admin.dto.data.FunctionPageQuery;
-import com.zenith.admin.dto.data.FunctionUpdateCmd;
+import com.zenith.admin.dto.query.FunctionPageQuery;
+import com.zenith.admin.dto.cmd.FunctionUpdateCmd;
 
 import java.util.List;
 

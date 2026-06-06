@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.executor.cmd;
 
 import com.zenith.admin.dataobject.OrgDO;
-import com.zenith.admin.dto.data.OrgUpdateCmd;
+import com.zenith.admin.dto.cmd.OrgUpdateCmd;
 import com.zenith.admin.mapper.OrgMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

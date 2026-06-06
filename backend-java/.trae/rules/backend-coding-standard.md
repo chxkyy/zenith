@@ -20,6 +20,22 @@ JDK21路径在C:\java\jdk-21.0.9
 - 命令对象（用于修改操作）以 `Cmd` 结尾，如 `NoticeStatusUpdateCmd`
 - 查询对象（用于读取操作）以 `Query` 结尾，如 `NoticePageQuery`
 
+### 2.6 DTO 包结构规范
+
+DTO 类按类型分包子包存放，禁止混放：
+
+| 类型 | 后缀 | 包路径 | 示例 |
+|------|------|--------|------|
+| 命令对象 | `Cmd` | `com.zenith.admin.dto.cmd` | `UserAddCmd`、`RoleUpdateCmd` |
+| 查询对象 | `Query` | `com.zenith.admin.dto.query` | `UserPageQuery`、`IdQuery` |
+| 数据传输对象 | `DTO` | `com.zenith.admin.dto.data` | `UserDTO`、`RoleDTO` |
+
+**【强制】**
+- ✅ `*Cmd` 类必须放在 `dto.cmd` 包下
+- ✅ `*Query` 类必须放在 `dto.query` 包下
+- ✅ `*DTO` 类必须放在 `dto.data` 包下
+- ❌ 禁止将 Cmd/Query 类放在 `dto.data` 包下
+
 ### 2.3 方法命名
 - 使用 camelCase 命名法，如 `getUserById`、`saveRole`
 - 方法名应该是动词或动词短语，清晰表达方法的功能
