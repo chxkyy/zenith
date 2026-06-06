@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Table, Button, Space, Tag, Popconfirm, App, Card, Input, Modal, Form, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UndoOutlined, SafetyOutlined } from '@ant-design/icons';
@@ -97,7 +97,7 @@ export default function RoleManagement() {
     }
   };
 
-  const columns: ColumnsType<Role> = [
+  const columns: ColumnsType<Role> = useMemo(() => [
     { title: '角色ID', dataIndex: 'id', key: 'id', width: 80 },
     {
       title: '角色名称', dataIndex: 'name', key: 'name', width: 140,
@@ -146,7 +146,7 @@ export default function RoleManagement() {
         </Space>
       ),
     },
-  ];
+  ], [handleStatusChange, hasPermission, openEditModal]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

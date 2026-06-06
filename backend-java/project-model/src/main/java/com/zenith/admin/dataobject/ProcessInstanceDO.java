@@ -7,8 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -25,12 +23,6 @@ public class ProcessInstanceDO {
     private Integer processTemplateVersion;
 
     private String title;
-
-    private BigDecimal amount;
-
-    private LocalDate startDate;
-
-    private LocalDate endDate;
 
     private String formData;
 

@@ -1,8 +1,8 @@
 package com.zenith.admin.dto.data;
 
+import com.zenith.admin.annotation.UserName;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -18,18 +18,13 @@ public class ProcessInstanceDTO {
 
     private String title;
 
-    private BigDecimal amount;
-
-    private Long startDate;
-
-    private Long endDate;
-
     private String formData;
 
     private Integer status;
 
     private String statusName;
 
+    @UserName(userId = "initiatorId")
     private Long initiatorId;
 
     private String initiatorName;

@@ -9,7 +9,6 @@ import com.zenith.admin.mapper.ProcessTemplateMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -31,13 +30,6 @@ public class WorkflowSaveDraftCmdExe {
         instance.setProcessTemplateId(cmd.getProcessTemplateId());
         instance.setProcessTemplateVersion(template.getVersion());
         instance.setTitle(cmd.getTitle());
-        instance.setAmount(cmd.getAmount());
-        if (cmd.getStartDate() != null) {
-            instance.setStartDate(LocalDate.ofEpochDay(cmd.getStartDate() / 86400));
-        }
-        if (cmd.getEndDate() != null) {
-            instance.setEndDate(LocalDate.ofEpochDay(cmd.getEndDate() / 86400));
-        }
         instance.setFormData(cmd.getFormData());
         instance.setStatus(ProcessStatusEnum.DRAFT.getCode());
         instance.setInitiatorId(currentUserId);

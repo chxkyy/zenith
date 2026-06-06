@@ -50,7 +50,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         <Form
           form={form}
           onFinish={handleSubmit}
-          initialValues={{ loginId: 'admin', password: '000000' }}
+          initialValues={{ loginId: '', password: '' }}
           size="large"
         >
           <Form.Item

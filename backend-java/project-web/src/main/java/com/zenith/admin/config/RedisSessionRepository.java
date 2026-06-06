@@ -184,44 +184,47 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
     }
 
     public List<RedisSession> findAllActiveSessions() {
-        Set<String> keys = redisTemplate.keys(SESSION_KEY_PREFIX + "*");
-        if (keys == null || keys.isEmpty()) {
-            return Collections.emptyList();
-        }
-
         List<RedisSession> sessions = new ArrayList<>();
-        for (String key : keys) {
-            String sessionJson = redisTemplate.opsForValue().get(key);
-            if (sessionJson != null) {
-                try {
-                JSONObject json = JSON.parseObject(sessionJson);
-                RedisSession session = new RedisSession();
-                session.setId(json.getString("id"));
-                session.setCreationTime(parseInstant(json.get("creationTime")));
-                session.setLastAccessedTime(parseInstant(json.get("lastAccessedTime")));
-                session.setMaxInactiveInterval(Duration.ofSeconds(parseLong(json.get("maxInactiveInterval"))));
-                session.setUserId(json.getLong("userId"));
-                session.setUsername(json.getString("username"));
-                session.setIp(json.getString("ip"));
-                session.setUserAgent(json.getString("userAgent"));
-                session.setLoginTime(parseLong(json.get("loginTime")));
+        try (var cursor = redisTemplate.scan(
+                org.springframework.data.redis.core.ScanOptions.scanOptions()
+                        .match(SESSION_KEY_PREFIX + "*")
+                        .count(100)
+                        .build())) {
+            cursor.forEachRemaining(key -> {
+                String sessionJson = redisTemplate.opsForValue().get(key);
+                if (sessionJson != null) {
+                    try {
+                        JSONObject json = JSON.parseObject(sessionJson);
+                        RedisSession session = new RedisSession();
+                        session.setId(json.getString("id"));
+                        session.setCreationTime(parseInstant(json.get("creationTime")));
+                        session.setLastAccessedTime(parseInstant(json.get("lastAccessedTime")));
+                        session.setMaxInactiveInterval(Duration.ofSeconds(parseLong(json.get("maxInactiveInterval"))));
+                        session.setUserId(json.getLong("userId"));
+                        session.setUsername(json.getString("username"));
+                        session.setIp(json.getString("ip"));
+                        session.setUserAgent(json.getString("userAgent"));
+                        session.setLoginTime(parseLong(json.get("loginTime")));
 
-                JSONObject attrs = json.getJSONObject("attributes");
-                if (attrs != null) {
-                    Map<String, Object> attributes = new HashMap<>();
-                    for (String key2 : attrs.keySet()) {
-                        attributes.put(key2, attrs.get(key2));
-                    }
-                    session.setAttributes(attributes);
-                }
+                        JSONObject attrs = json.getJSONObject("attributes");
+                        if (attrs != null) {
+                            Map<String, Object> attributes = new HashMap<>();
+                            for (String key2 : attrs.keySet()) {
+                                attributes.put(key2, attrs.get(key2));
+                            }
+                            session.setAttributes(attributes);
+                        }
 
-                if (!isKicked(session.getId())) {
-                        sessions.add(session);
+                        if (!isKicked(session.getId())) {
+                            sessions.add(session);
+                        }
+                    } catch (Exception e) {
+                        log.error("Failed to parse session from key: {}", key, e);
                     }
-                } catch (Exception e) {
-                    log.error("Failed to parse session from key: {}", key, e);
                 }
-            }
+            });
+        } catch (Exception e) {
+            log.error("Failed to scan sessions", e);
         }
         return sessions;
     }
@@ -331,7 +334,10 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
 
         @Override
         public String changeSessionId() {
-            return id;
+            String newId = java.util.UUID.randomUUID().toString().replace("-", "");
+            this.id = newId;
+            this.changed = true;
+            return newId;
         }
 
         @Override

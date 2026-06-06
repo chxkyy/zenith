@@ -15,6 +15,16 @@ import { get } from '../lib/apiClient';
 
 const { Title, Text, Paragraph } = Typography;
 
+/** 默认图表数据（后端无数据时的兜底） */
+const DEFAULT_CHART_DATA = [
+  { name: '1月', value: 0 },
+  { name: '2月', value: 0 },
+  { name: '3月', value: 0 },
+  { name: '4月', value: 0 },
+  { name: '5月', value: 0 },
+  { name: '6月', value: 0 },
+];
+
 export default function Dashboard() {
   const { message } = App.useApp();
   const [stats, setStats] = useState<any>(null);
@@ -47,14 +57,7 @@ export default function Dashboard() {
 
   const data = stats.data;
 
-  const chartData = data.chartData && data.chartData.length > 0 ? data.chartData : [
-    { name: '1月', value: 0 },
-    { name: '2月', value: 0 },
-    { name: '3月', value: 0 },
-    { name: '4月', value: 0 },
-    { name: '5月', value: 0 },
-    { name: '6月', value: 0 }
-  ];
+  const chartData = data.chartData && data.chartData.length > 0 ? data.chartData : DEFAULT_CHART_DATA;
 
   return (
     <div style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 32 }}>

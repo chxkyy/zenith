@@ -43,13 +43,9 @@ public class AuthController {
             return Response.buildFailure("NOT_LOGIN", "未登录");
         }
         Long userId = getUserIdFromSession(session);
-        try {
-            authService.changePassword(userId, changePasswordRequest.getOldPassword(),
-                    changePasswordRequest.getNewPassword());
-            return Response.buildSuccess();
-        } catch (Exception e) {
-            return Response.buildFailure("CHANGE_PASSWORD_ERROR", e.getMessage());
-        }
+        authService.changePassword(userId, changePasswordRequest.getOldPassword(),
+                changePasswordRequest.getNewPassword());
+        return Response.buildSuccess();
     }
 
     @GetMapping("/me")
@@ -107,14 +103,7 @@ public class AuthController {
         query.setIp(ip);
         query.setUserAgent(userAgent);
 
-        UserDTO userDTO = null;
-        String errorMessage = null;
-
-        try {
-            userDTO = authService.login(query);
-        } catch (Exception e) {
-            errorMessage = e.getMessage();
-        }
+        UserDTO userDTO = authService.login(query);
 
         LoginLogDTO loginLogDTO = new LoginLogDTO();
         loginLogDTO.setUsername(request.getLoginId());
@@ -123,60 +112,23 @@ public class AuthController {
         loginLogDTO.setCreatedTime(LocalDateTime.now());
         loginLogDTO.setUpdateTime(LocalDateTime.now());
         loginLogDTO.setUserAgent(userAgent);
+        loginLogDTO.setStatus("成功");
+        loginLogDTO.setMsg("登录成功");
+        loginLogDTO.setCreateUserId(userDTO.getId());
+        loginLogDTO.setUpdateUserId(userDTO.getId());
 
-        if (userDTO != null) {
-            loginLogDTO.setStatus("成功");
-            loginLogDTO.setMsg("登录成功");
-            loginLogDTO.setCreateUserId(userDTO.getId());
-            loginLogDTO.setUpdateUserId(userDTO.getId());
+        HttpSession session = httpRequest.getSession(true);
+        session.setAttribute("userId", userDTO.getId());
+        session.setAttribute("username", userDTO.getUsername());
+        session.setAttribute("loginId", request.getLoginId());
+        session.setAttribute("ip", ip);
+        session.setAttribute("userAgent", userAgent);
+        session.setAttribute("loginTime", System.currentTimeMillis());
 
-            HttpSession session = httpRequest.getSession(true);
-            Long userId = userDTO.getId();
-            String username = userDTO.getUsername();
-            String loginId = request.getLoginId();
-
-            log.info("=== LOGIN DEBUG START ===");
-            log.info("Session class: {}", session.getClass().getName());
-            log.info("Session ID: {}", session.getId());
-            log.info("Setting userId: {}", userId);
-            log.info("Setting username: {}", username);
-
-            session.setAttribute("userId", userId);
-            session.setAttribute("username", username);
-            session.setAttribute("loginId", loginId);
-            session.setAttribute("ip", ip);
-            session.setAttribute("userAgent", userAgent);
-            session.setAttribute("loginTime", System.currentTimeMillis());
-
-            log.info("Session attributes after setAttribute:");
-            log.info("  - userId: {}", session.getAttribute("userId"));
-            log.info("  - username: {}", session.getAttribute("username"));
-            log.info("  - loginId: {}", session.getAttribute("loginId"));
-
-            String sessionId = session.getId();
-            log.info("Login success for user {}, sessionId: {}", username, sessionId);
-
-            RedisSessionRepository.RedisSession redisSession = sessionRepository.findById(sessionId);
-            log.info("RedisSession found in Redis: {}", redisSession != null);
-            if (redisSession != null) {
-                log.info("RedisSession attributes: {}", redisSession.getAttributes());
-                log.info("RedisSession userId field: {}", redisSession.getUserId());
-            }
-
-            sessionRepository.enforceMaxConcurrentSessions(userId, sessionId);
-            log.info("=== LOGIN DEBUG END ===");
-        } else {
-            loginLogDTO.setStatus("失败");
-            loginLogDTO.setMsg(errorMessage);
-        }
-
+        sessionRepository.enforceMaxConcurrentSessions(userDTO.getId(), session.getId());
         loginLogService.save(loginLogDTO);
 
-        if (userDTO != null) {
-            return SingleResponse.of(userDTO);
-        } else {
-            return SingleResponse.buildFailure("LOGIN_FAILED", errorMessage);
-        }
+        return SingleResponse.of(userDTO);
     }
 
     @PostMapping("/logout")
@@ -205,13 +157,9 @@ public class AuthController {
             return Response.buildFailure("NOT_LOGIN", "未登录");
         }
         Long userId = (Long) session.getAttribute("userId");
-        try {
-            authService.updateProfile(userId, updateProfileRequest.getUsername(), updateProfileRequest.getEmail(),
-                    updateProfileRequest.getPhone());
-            return Response.buildSuccess();
-        } catch (Exception e) {
-            return Response.buildFailure("UPDATE_PROFILE_ERROR", e.getMessage());
-        }
+        authService.updateProfile(userId, updateProfileRequest.getUsername(), updateProfileRequest.getEmail(),
+                updateProfileRequest.getPhone());
+        return Response.buildSuccess();
     }
 
     @lombok.Data

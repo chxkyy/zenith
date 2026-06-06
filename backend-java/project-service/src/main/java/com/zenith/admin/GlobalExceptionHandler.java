@@ -1,6 +1,7 @@
 package com.zenith.admin;
 
 import com.alibaba.cola.dto.Response;
+import com.alibaba.cola.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -13,6 +14,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BizException.class)
+    public Response handleBizException(BizException e) {
+        log.warn("业务异常: errCode={}, errMsg={}", e.getErrCode(), e.getMessage());
+        return Response.buildFailure(e.getErrCode(), e.getMessage());
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Response handleValidationException(MethodArgumentNotValidException e) {

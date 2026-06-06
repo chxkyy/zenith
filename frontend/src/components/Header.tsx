@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Layout, Button, Avatar, Dropdown, Space } from 'antd';
 import {
   MenuFoldOutlined,
@@ -18,14 +18,14 @@ interface HeaderProps {
 }
 
 export default function Header({ username, onLogout, onToggleSidebar, collapsed }: HeaderProps) {
-  const menuItems = [
+  const menuItems = useMemo(() => [
     {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: '退出登录',
       onClick: onLogout,
     },
-  ];
+  ], [onLogout]);
 
   return (
     <AntHeader style={{

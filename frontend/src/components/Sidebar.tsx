@@ -58,8 +58,8 @@ export default function Sidebar({ collapsed, menus = [] }: SidebarProps) {
   const location = useLocation();
 
   const menuItems = useMemo(() => {
-    return getDefaultMenuItems();
-  }, []);
+    return menus && menus.length > 0 ? buildMenuItems(menus) : getDefaultMenuItems();
+  }, [menus]);
 
   const selectedKey = getSelectedKey(location.pathname);
 

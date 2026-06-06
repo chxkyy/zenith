@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, Button, Tag, Space, App, Tabs, Modal, Input, Select, Popconfirm } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -11,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
-import Notification from './Notification';
+import { post } from '../lib/apiClient';
 
 interface Task {
   id: number;
@@ -41,8 +41,6 @@ export default function TaskList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info'; key: number } | null>(null);
-
   const [actionModalOpen, setActionModalOpen] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'countersign' | 'terminate'>('approve');
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
@@ -50,7 +48,7 @@ export default function TaskList() {
   const [countersignType, setCountersignType] = useState(1);
   const [countersignIds, setCountersignIds] = useState('');
 
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
       const query = {
@@ -59,31 +57,24 @@ export default function TaskList() {
         processTemplateName: searchParams.processTemplateName || undefined,
       };
 
-      const url = activeTab === 'todo' 
-        ? '/api/workflow/tasks/todo/page' 
+      const url = activeTab === 'todo'
+        ? '/api/workflow/tasks/todo/page'
         : '/api/workflow/tasks/done/page';
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(query),
-      });
-      const data = await response.json();
-      if (data.success && data.data) {
-        if (activeTab === 'todo') {
-          setTodoTasks(data.data);
-        } else {
-          setDoneTasks(data.data);
-        }
-        setTotalCount(data.totalCount || 0);
+      const result = await post<{ data: Task[]; totalCount: number }>(url, query);
+      if (activeTab === 'todo') {
+        setTodoTasks(result.data);
+      } else {
+        setDoneTasks(result.data);
       }
+      setTotalCount(result.totalCount || 0);
     } catch (error) {
       console.error('获取任务列表失败:', error);
-      setNotification({ message: '获取任务列表失败', type: 'error', key: Date.now() });
+      message.error('获取任务列表失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, currentPage, pageSize, searchParams.processTemplateName, message]);
 
   useEffect(() => {
     fetchTasks();
@@ -108,7 +99,7 @@ export default function TaskList() {
 
     try {
       let url = '';
-      let body: any = { taskId: currentTask.id, opinion };
+      let body: Record<string, unknown> = { taskId: currentTask.id, opinion };
 
       switch (actionType) {
         case 'approve':
@@ -131,28 +122,19 @@ export default function TaskList() {
           break;
       }
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setActionModalOpen(false);
-        fetchTasks();
-        const actionNames: Record<string, string> = {
-          approve: '审批通过',
-          reject: '退回',
-          countersign: '加签',
-          terminate: '提前终止',
-        };
-        setNotification({ message: `${actionNames[actionType]}成功`, type: 'success', key: Date.now() });
-      } else {
-        setNotification({ message: data.errMessage || '操作失败', type: 'error', key: Date.now() });
-      }
+      await post(url, body);
+      setActionModalOpen(false);
+      fetchTasks();
+      const actionNames: Record<string, string> = {
+        approve: '审批通过',
+        reject: '退回',
+        countersign: '加签',
+        terminate: '提前终止',
+      };
+      message.success(`${actionNames[actionType]}成功`);
     } catch (error) {
-      setNotification({ message: '操作失败，请重试', type: 'error', key: Date.now() });
+      const msg = error instanceof Error ? error.message : '操作失败，请重试';
+      message.error(msg);
     }
   };
 
@@ -160,7 +142,7 @@ export default function TaskList() {
     navigate(`/workflow/detail?id=${task.processInstanceId}`);
   };
 
-  const columns: ColumnsType<Task> = [
+  const columns: ColumnsType<Task> = useMemo(() => [
     {
       title: '流程编号',
       dataIndex: 'processNo',
@@ -239,7 +221,7 @@ export default function TaskList() {
         </Space>
       ),
     },
-  ];
+  ], [activeTab, handleViewDetail]);
 
   return (
     <div style={{ padding: 24 }}>
@@ -336,10 +318,6 @@ export default function TaskList() {
           placeholder="请输入审批意见"
         />
       </Modal>
-
-      {notification && (
-        <Notification key={notification.key} message={notification.message} type={notification.type} />
-      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 package com.zenith.admin.dto.data;
 
+import com.zenith.admin.annotation.UserName;
 import lombok.Data;
 
 @Data
@@ -23,6 +24,7 @@ public class TaskDTO {
 
     private String nodeTypeName;
 
+    @UserName(userId = "initiatorId")
     private Long initiatorId;
 
     private String initiatorName;

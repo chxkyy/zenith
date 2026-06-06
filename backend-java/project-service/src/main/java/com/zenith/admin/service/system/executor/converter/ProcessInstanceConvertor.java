@@ -14,7 +14,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -42,12 +41,6 @@ public abstract class ProcessInstanceConvertor {
 
     @AfterMapping
     protected void afterMapping(ProcessInstanceDO source, @MappingTarget ProcessInstanceDTO target) {
-        if (source.getStartDate() != null) {
-            target.setStartDate(source.getStartDate().toEpochDay() * 86400);
-        }
-        if (source.getEndDate() != null) {
-            target.setEndDate(source.getEndDate().toEpochDay() * 86400);
-        }
         if (source.getCreatedTime() != null) {
             target.setCreatedTime(source.getCreatedTime().toEpochSecond(ZoneOffset.ofHours(8)));
         }
@@ -67,13 +60,6 @@ public abstract class ProcessInstanceConvertor {
                 target.setProcessTemplateName(template.getName());
             }
         }
-    }
-
-    protected Long map(LocalDate date) {
-        if (date == null) {
-            return null;
-        }
-        return date.toEpochDay() * 86400;
     }
 
     protected Long map(LocalDateTime dateTime) {

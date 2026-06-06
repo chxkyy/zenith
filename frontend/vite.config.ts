@@ -77,6 +77,8 @@ export default defineConfig(({mode}) => {
           manualChunks: (id) => {
             if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
               return 'vendor';
+            } else if (id.includes('node_modules/antd') || id.includes('node_modules/@ant-design')) {
+              return 'antd';
             } else if (id.includes('node_modules/recharts')) {
               return 'charts';
             } else if (id.includes('node_modules/motion')) {

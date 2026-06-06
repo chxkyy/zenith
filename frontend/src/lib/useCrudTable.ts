@@ -165,6 +165,7 @@ export function usePaginatedQuery<T>(config: UsePaginatedQueryConfig<T>): UsePag
   }, []);
 
   // 页码/每页条数变化时重新查询
+  // 注：keyword 变化不在此处触发，由 search() 手动调用 fetchData，避免搜索输入每个字符都发请求
   useEffect(() => {
     if (!hasFetched.current) return;
     fetchData(currentPage, pageSize, keyword);

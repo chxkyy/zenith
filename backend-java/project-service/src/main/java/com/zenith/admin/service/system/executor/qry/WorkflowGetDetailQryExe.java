@@ -124,13 +124,6 @@ public class WorkflowGetDetailQryExe {
         dto.setProcessNo(dO.getProcessNo());
         dto.setProcessTemplateId(dO.getProcessTemplateId());
         dto.setTitle(dO.getTitle());
-        dto.setAmount(dO.getAmount());
-        if (dO.getStartDate() != null) {
-            dto.setStartDate(dO.getStartDate().toEpochDay() * 86400);
-        }
-        if (dO.getEndDate() != null) {
-            dto.setEndDate(dO.getEndDate().toEpochDay() * 86400);
-        }
         dto.setFormData(dO.getFormData());
         dto.setStatus(dO.getStatus());
         dto.setStatusName(ProcessStatusEnum.getByCode(dO.getStatus()) != null

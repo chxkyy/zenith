@@ -1,5 +1,6 @@
 package com.zenith.admin.dto.data;
 
+import com.zenith.admin.annotation.UserName;
 import lombok.Data;
 
 @Data
@@ -11,6 +12,7 @@ public class ApprovalRecordDTO {
 
     private String nodeName;
 
+    @UserName(userId = "operatorId")
     private Long operatorId;
 
     private String operatorName;
