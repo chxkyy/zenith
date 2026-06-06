@@ -126,20 +126,20 @@ function AppContent() {
           }>
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/roles" element={<RoleManagement />} />
-              <Route path="/orgs" element={<OrgUserManagement />} />
+              <Route path="/system/role" element={<RoleManagement />} />
+              <Route path="/system/menu" element={<MenuManagement />} />
+              <Route path="/system/org" element={<OrgUserManagement />} />
+              <Route path="/system/dict" element={<DictTable />} />
+              <Route path="/system/notice" element={<NoticeTable />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/notices" element={<NoticeTable />} />
-              <Route path="/menus" element={<MenuManagement />} />
               <Route path="/logs/oper" element={<LogOper />} />
               <Route path="/logs/login" element={<LogLogin />} />
               <Route path="/logs/error" element={<LogError />} />
               <Route path="/config" element={<ConfigTable />} />
-              <Route path="/dicts" element={<DictTable />} />
-              <Route path="/files" element={<FileTable />} />
-              <Route path="/monitoring" element={<MonitoringTable />} />
-              <Route path="/cache" element={<CacheTable />} />
-              <Route path="/online" element={<OnlineUsersTable />} />
+              <Route path="/system/file" element={<FileTable />} />
+              <Route path="/system/monitoring" element={<MonitoringTable />} />
+              <Route path="/system/cache" element={<CacheTable />} />
+              <Route path="/system/online" element={<OnlineUsersTable />} />
               <Route path="/workflow/templates" element={<ProcessTemplateTable />} />
               <Route path="/workflow/todo" element={<TaskList />} />
               <Route path="/workflow/start" element={<StartProcess />} />

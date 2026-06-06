@@ -111,9 +111,21 @@ export function del<T>(url: string, body?: Record<string, unknown>): Promise<T> 
   return post<T>(url, body);
 }
 
-/** 分页列表查询 — POST + 返回 PaginatedResponse<T> */
-export function pageQuery<T>(url: string, query: Record<string, unknown>): Promise<PaginatedResponse<T>> {
-  return post<PaginatedResponse<T>>(url, query);
+/** 分页列表查询 — POST + 返回完整分页响应（data/totalCount 等字段平级，不做 json.data 解包） */
+export async function pageQuery<T>(url: string, query: Record<string, unknown>): Promise<PaginatedResponse<T>> {
+  const response = await fetch(url, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(query),
+  });
+  const text = await response.text();
+  if (!text.trim()) throw new ApiError(response.status, response.statusText);
+  const json = JSON.parse(text);
+  if (!response.ok) throw new ApiError(response.status, response.statusText, json.errMessage || `HTTP ${response.status}`);
+  if (!json.success) throw new ApiError(response.status, 'Business Error', json.errMessage || '操作失败');
+  // 后端分页接口：data 和 totalCount 在信封顶层平级，不是嵌套在 data 内部
+  return json as PaginatedResponse<T>;
 }
 
 /** 文件上传（FormData） */

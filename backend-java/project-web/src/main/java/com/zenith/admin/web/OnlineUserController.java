@@ -122,27 +122,18 @@ public class OnlineUserController {
 
     @GetMapping("/list")
     public MultiResponse<OnlineUserDTO> list(@RequestParam(required = false) String username) {
-        log.info("=== ONLINE USERS DEBUG START ===");
         List<OnlineUserDTO> result = new ArrayList<>();
 
         List<RedisSession> sessions = sessionRepository.findAllActiveSessions();
-        log.info("Total active sessions from Redis: {}", sessions.size());
+        log.debug("Total active sessions from Redis: {}", sessions.size());
 
         for (RedisSession session : sessions) {
-            log.info("Processing session: {}", session.getId());
-            log.info("  - Session attributes: {}", session.getAttributes());
-            log.info("  - Session userId field: {}", session.getUserId());
-
             Long userId = null;
             Object userIdAttr = session.getAttribute("userId");
-            log.info("  - userIdAttr from getAttribute: {} (type: {})", userIdAttr,
-                    userIdAttr != null ? userIdAttr.getClass().getName() : "null");
-
             if (userIdAttr instanceof Number) {
                 userId = ((Number) userIdAttr).longValue();
             }
             if (userId == null) {
-                log.info("  - Skipping session (userId is null)");
                 continue;
             }
 
@@ -175,8 +166,6 @@ public class OnlineUserController {
             result.add(dto);
         }
 
-        log.info("Final result size: {}", result.size());
-        log.info("=== ONLINE USERS DEBUG END ===");
         return MultiResponse.of(result);
     }
 

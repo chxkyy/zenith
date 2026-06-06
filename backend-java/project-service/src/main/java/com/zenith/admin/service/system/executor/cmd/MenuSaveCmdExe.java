@@ -1,6 +1,7 @@
 package com.zenith.admin.service.system.executor.cmd;
 
 import com.alibaba.cola.exception.BizException;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.dto.cmd.MenuAddCmd;
 import com.zenith.admin.mapper.MenuMapper;
@@ -28,11 +29,24 @@ public class MenuSaveCmdExe {
         menuDO.setComponent(cmd.getComponent());
         menuDO.setType(cmd.getType());
         menuDO.setParentId(cmd.getParentId());
-        menuDO.setSort(cmd.getSort());
+        menuDO.setSort(calculateNextSort(cmd.getParentId()));
         menuDO.setIcon(cmd.getIcon());
         menuDO.setStatus(cmd.getStatus());
         menuDO.setPermission(cmd.getPermission());
         menuMapper.insert(menuDO);
+    }
+
+    /**
+     * 计算同级菜单的下一个排序号（当前最大值 + 1）
+     */
+    private int calculateNextSort(Long parentId) {
+        LambdaQueryWrapper<MenuDO> wrapper = new LambdaQueryWrapper<MenuDO>()
+                .eq(parentId != null && parentId > 0, MenuDO::getParentId, parentId)
+                .isNull(parentId == null || parentId == 0, MenuDO::getParentId)
+                .orderByDesc(MenuDO::getSort)
+                .last("LIMIT 1");
+        MenuDO lastMenu = menuMapper.selectOne(wrapper);
+        return lastMenu == null ? 0 : lastMenu.getSort() + 1;
     }
 
     private int getDepth(Long menuId) {

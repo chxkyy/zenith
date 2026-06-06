@@ -154,6 +154,7 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
         <Form.Item label="图标" name="icon">
           <Input placeholder="请输入图标名称，如 LayoutDashboard" />
         </Form.Item>
+        {mode === 'edit' && (
         <Form.Item label="排序" name="sort" rules={[
           { required: true, message: '请输入排序数字' },
           {
@@ -167,6 +168,8 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
         ]}>
           <Input type="number" min={0} max={9999} placeholder="请输入排序数字" />
         </Form.Item>
+        )}
+        {mode === 'edit' && (
         <Form.Item label="状态" name="status">
           <Select
             options={[
@@ -175,6 +178,7 @@ const MenuModal: React.FC<MenuModalProps> = ({ isOpen, onClose, onSave, menu, mo
             ]}
           />
         </Form.Item>
+        )}
         <Form.Item label="备注" name="remark">
           <Input.TextArea rows={3} placeholder="请输入备注信息" />
         </Form.Item>

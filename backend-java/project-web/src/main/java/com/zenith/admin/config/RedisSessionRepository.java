@@ -41,7 +41,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         String sessionId = sessionIdGenerator.generate();
         Instant now = Instant.now();
         RedisSession session = new RedisSession(sessionId, now, now, defaultMaxInactiveInterval);
-        log.debug("Creating new session: {}", sessionId);
+        log.info("[SESSION] Created new session: {} at {}", sessionId, now);
         return session;
     }
 
@@ -83,7 +83,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         }
 
         session.setChanged(false);
-        log.debug("Saved session: {}", session.getId());
+        log.debug("[SESSION] Saved session: {} userId:{}", session.getId(), session.getUserId());
     }
 
     @Override
@@ -96,6 +96,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         String sessionJson = redisTemplate.opsForValue().get(sessionKey);
 
         if (sessionJson == null) {
+            log.warn("[SESSION] Session not found in Redis (may be expired or invalid): {}", sessionId);
             log.debug("Session not found: {}", sessionId);
             return null;
         }
@@ -185,6 +186,8 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
 
     public List<RedisSession> findAllActiveSessions() {
         List<RedisSession> sessions = new ArrayList<>();
+        java.util.concurrent.atomic.AtomicInteger expiredCount = new java.util.concurrent.atomic.AtomicInteger(0);
+        java.util.concurrent.atomic.AtomicInteger kickedCount = new java.util.concurrent.atomic.AtomicInteger(0);
         try (var cursor = redisTemplate.scan(
                 org.springframework.data.redis.core.ScanOptions.scanOptions()
                         .match(SESSION_KEY_PREFIX + "*")
@@ -215,9 +218,21 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
                             session.setAttributes(attributes);
                         }
 
-                        if (!isKicked(session.getId())) {
-                            sessions.add(session);
+                        if (isKicked(session.getId())) {
+                            kickedCount.incrementAndGet();
+                            // 清理已被踢出的过期 session key
+                            redisTemplate.delete(key);
+                            return;
                         }
+
+                        if (session.isExpired()) {
+                            expiredCount.incrementAndGet();
+                            // 删除已过期的 session（Redis 可能尚未惰性清理）
+                            deleteById(session.getId());
+                            return;
+                        }
+
+                        sessions.add(session);
                     } catch (Exception e) {
                         log.error("Failed to parse session from key: {}", key, e);
                     }
@@ -225,6 +240,9 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
             });
         } catch (Exception e) {
             log.error("Failed to scan sessions", e);
+        }
+        if (expiredCount.get() > 0 || kickedCount.get() > 0) {
+            log.info("findAllActiveSessions cleaned up {} expired and {} kicked sessions", expiredCount.get(), kickedCount.get());
         }
         return sessions;
     }
