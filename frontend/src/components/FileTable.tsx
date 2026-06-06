@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Table, Button, Input, Popconfirm, Space, App } from 'antd';
 import {
   FileOutlined,
@@ -13,6 +13,8 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { formatDateTime } from '../lib/utils';
 import { usePermission } from '../lib/PermissionContext';
+import { usePaginatedQuery } from '../lib/useCrudTable';
+import { post, del, uploadFile, downloadBlob } from '../lib/apiClient';
 
 interface FileItem {
   id: number;
@@ -33,44 +35,22 @@ interface FileItem {
 export default function FileTable() {
   const { message } = App.useApp();
   const { hasPermission } = usePermission();
-  const [files, setFiles] = useState<FileItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchFiles = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/files/page', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pageIndex: currentPage,
-          pageSize: pageSize,
-          keyword: searchKeyword,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch files');
-      }
-      const data = await response.json();
-      if (data.success && data.data) {
-        setFiles(data.data);
-        setTotalCount(data.totalCount || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching files:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFiles();
-  }, [currentPage, searchKeyword, pageSize]);
+  const {
+    data: files,
+    loading,
+    currentPage,
+    pageSize,
+    totalCount,
+    keyword,
+    setKeyword,
+    goToPage,
+    search,
+    refresh,
+  } = usePaginatedQuery<FileItem>({
+    apiUrl: '/api/files/page',
+  });
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -80,17 +60,9 @@ export default function FileTable() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/files/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-      if (data.success) {
-        message.success('上传成功');
-        fetchFiles();
-      } else {
-        message.error(data.errMessage || '上传失败');
-      }
+      await uploadFile('/api/files/upload', formData);
+      message.success('上传成功');
+      refresh();
     } catch (error) {
       console.error('Error uploading file:', error);
       message.error('上传失败，请重试');
@@ -103,18 +75,9 @@ export default function FileTable() {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch('/api/files/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        message.success('删除成功');
-        fetchFiles();
-      } else {
-        message.error(data.errMessage || '删除失败');
-      }
+      await del('/api/files/delete', { id });
+      message.success('删除成功');
+      refresh();
     } catch (error) {
       console.error('Error deleting file:', error);
       message.error('删除失败，请重试');
@@ -123,11 +86,7 @@ export default function FileTable() {
 
   const handleDownload = async (id: number, fileName: string) => {
     try {
-      const response = await fetch(`/api/files/download?id=${id}`);
-      if (!response.ok) {
-        throw new Error('Download failed');
-      }
-      const blob = await response.blob();
+      const blob = await downloadBlob('/api/files/download', { id: String(id) });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -292,13 +251,13 @@ export default function FileTable() {
           prefix={<SearchOutlined />}
           style={{ width: 300 }}
           onSearch={(value) => {
-            setSearchKeyword(value);
-            setCurrentPage(1);
+            setKeyword(value);
+            search();
           }}
           onChange={(e) => {
             if (!e.target.value) {
-              setSearchKeyword('');
-              setCurrentPage(1);
+              setKeyword('');
+              search();
             }
           }}
         />
@@ -318,10 +277,7 @@ export default function FileTable() {
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50', '100'],
           size: 'default',
-          onChange: (page, size) => {
-            setCurrentPage(page);
-            setPageSize(size);
-          },
+          onChange: (page, size) => goToPage(page, size),
         }}
       />
     </div>

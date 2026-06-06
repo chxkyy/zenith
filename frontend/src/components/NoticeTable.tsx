@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Table, Button, Tag, Modal, Form, Select, Input, Space, App, Popconfirm } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -14,6 +14,8 @@ import {
 } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
 import { usePermission } from '../lib/PermissionContext';
+import { usePaginatedQuery, useCrudModal } from '../lib/useCrudTable';
+import { post, del } from '../lib/apiClient';
 
 interface Notice {
   id: number;
@@ -59,103 +61,65 @@ const statusColorMap: Record<string, string> = {
 export default function NoticeTable() {
   const { message } = App.useApp();
   const { hasPermission } = usePermission();
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchParams, setSearchParams] = useState({
-    keyword: '',
-    type: '',
-    status: '',
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-
-  // 新增/编辑模态框
-  const [formModalOpen, setFormModalOpen] = useState(false);
-  const [formModalType, setFormModalType] = useState<'add' | 'edit'>('add');
   const [form] = Form.useForm();
 
-  // 查看详情模态框
-  const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [currentNotice, setCurrentNotice] = useState<Notice | null>(null);
+  // 搜索参数（多字段）
+  const [searchParams, setSearchParams] = useState({ keyword: '', type: '', status: '' });
 
-  // 从后端获取通知数据
-  const fetchNotices = async () => {
-    setLoading(true);
-    try {
-      const query = {
-        pageIndex: currentPage,
-        pageSize: pageSize,
-        keyword: searchParams.keyword,
-        type: searchParams.type,
-        status: searchParams.status,
-      };
+  // 分页查询
+  const {
+    data: notices,
+    loading,
+    currentPage,
+    pageSize,
+    totalCount,
+    goToPage,
+    search: handleSearch,
+    refresh,
+  } = usePaginatedQuery<Notice>({
+    apiUrl: '/api/notices/page',
+    buildQuery: (page, size) => ({
+      pageIndex: page,
+      pageSize: size,
+      keyword: searchParams.keyword || undefined,
+      type: searchParams.type || undefined,
+      status: searchParams.status || undefined,
+    }),
+    autoFetch: false,
+  });
 
-      const response = await fetch('/api/notices/page', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(query),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch notices');
-      }
-      const data = await response.json();
-      if (data.success && data.data) {
-        const formattedNotices = data.data.map((notice: any) => ({
-          id: notice.id,
-          title: notice.title,
-          type: notice.type,
-          author: notice.author,
-          time: formatDateTime(notice.createdTime || notice.createdAt || notice.time),
-          status: notice.status,
-          statusName: notice.statusName,
-          isPinned: notice.isPinned || false,
-          readCount: notice.readCount || 0,
-          content: notice.content,
-          remark: notice.remark,
-          createUserId: notice.createUserId,
-          updateUserId: notice.updateUserId,
-          createdTime: notice.createdTime,
-          updateTime: notice.updateTime,
-          createUserName: notice.createUserName,
-          updateUserName: notice.updateUserName,
-        }));
-        setNotices(formattedNotices);
-        setTotalCount(data.totalCount || 0);
-      }
-    } catch (error) {
-      console.error('获取通知列表失败:', error);
-      message.error('获取通知列表失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotices();
+  // 首次加载 + 依赖搜索参数变化
+  React.useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize]);
 
-  // 手动触发搜索
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchNotices();
-  };
+  const hasFetchedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // 打开新增公告模态框
+  // 新增/编辑模态框
+  const { modalOpen: formModalOpen, modalMode: formModalType, editingRecord, openAddModal, openEditModal, closeModal: closeFormModal } =
+    useCrudModal<Notice>();
+
+  // 查看详情模态框
+  const [viewModalOpen, setViewModalOpen] = React.useState(false);
+  const [currentNotice, setCurrentNotice] = React.useState<Notice | null>(null);
+
+  const handleSearchClick = () => { goToPage(1); };
+
   const handleAddNotice = () => {
-    setFormModalType('add');
+    openAddModal();
     form.resetFields();
-    form.setFieldsValue({
-      type: 'system',
-      author: 'admin',
-      status: '0',
-    });
-    setFormModalOpen(true);
+    form.setFieldsValue({ type: 'system', author: 'admin', status: '0' });
   };
 
-  // 打开编辑公告模态框
   const handleEditNotice = (notice: Notice) => {
-    setFormModalType('edit');
+    openEditModal(notice);
     form.resetFields();
     form.setFieldsValue({
       id: notice.id,
@@ -166,16 +130,13 @@ export default function NoticeTable() {
       status: notice.status,
       remark: notice.remark || '',
     });
-    setFormModalOpen(true);
   };
 
-  // 打开查看详情模态框
   const handleViewNotice = (notice: Notice) => {
     setCurrentNotice(notice);
     setViewModalOpen(true);
   };
 
-  // 保存公告
   const handleSaveNotice = async () => {
     try {
       const values = await form.validateFields();
@@ -183,83 +144,35 @@ export default function NoticeTable() {
         id: formModalType === 'edit' ? values.id : null,
         ...values,
       };
-
-      const response = await fetch('/api/notices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save notice');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setFormModalOpen(false);
-        fetchNotices();
-        message.success(formModalType === 'edit' ? '公告编辑成功' : '公告新增成功');
-      } else {
-        message.error(data.errMessage || '保存失败');
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error('保存公告失败:', error);
-        message.error('保存失败，请重试');
+      await post('/api/notices', formData);
+      closeFormModal();
+      message.success(formModalType === 'edit' ? '公告编辑成功' : '公告新增成功');
+      refresh();
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message !== 'Validate Failed') {
+        message.error(err.message || '保存失败，请重试');
       }
     }
   };
 
-  // 删除公告
   const handleDeleteNotice = async (notice: Notice) => {
     try {
-      const response = await fetch('/api/notices/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: notice.id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete notice');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        fetchNotices();
-        message.success('公告删除成功');
-      } else {
-        message.error(data.errMessage || '删除失败');
-      }
-    } catch (error) {
-      console.error('删除公告失败:', error);
-      message.error('删除失败，请重试');
+      await del('/api/notices/delete', { id: notice.id });
+      message.success('公告删除成功');
+      refresh();
+    } catch (err: unknown) {
+      message.error(err instanceof Error ? err.message : '删除失败，请重试');
     }
   };
 
-  // 发布/撤回公告
   const handlePublishNotice = async (notice: Notice) => {
     try {
       const newStatus = notice.status === '1' ? '0' : '1';
-      const response = await fetch('/api/notices/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: notice.id, status: newStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update notice status');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        fetchNotices();
-        message.success(notice.status === '1' ? '公告已撤回' : '公告已发布');
-      } else {
-        message.error(data.errMessage || '操作失败');
-      }
-    } catch (error) {
-      console.error('更新公告状态失败:', error);
-      message.error('操作失败，请重试');
+      await post('/api/notices/status', { id: notice.id, status: newStatus });
+      message.success(notice.status === '1' ? '公告已撤回' : '公告已发布');
+      refresh();
+    } catch (err: unknown) {
+      message.error(err instanceof Error ? err.message : '操作失败，请重试');
     }
   };
 
@@ -283,12 +196,7 @@ export default function NoticeTable() {
       width: 100,
       render: (type: string) => <Tag>{typeMap[type] || type}</Tag>,
     },
-    {
-      title: '发布人',
-      dataIndex: 'author',
-      key: 'author',
-      width: 90,
-    },
+    { title: '发布人', dataIndex: 'author', key: 'author', width: 90 },
     {
       title: '状态',
       dataIndex: 'status',
@@ -299,41 +207,11 @@ export default function NoticeTable() {
         <Tag color={statusColorMap[status] || 'default'}>{record.statusName}</Tag>
       ),
     },
-    {
-      title: '阅读人数',
-      dataIndex: 'readCount',
-      key: 'readCount',
-      width: 90,
-      align: 'center',
-    },
-    {
-      title: '创建人',
-      dataIndex: 'createUserName',
-      key: 'createUserName',
-      width: 90,
-      render: (val: string) => val || '-',
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdTime',
-      key: 'createdTime',
-      width: 170,
-      render: (val: string) => formatDateTime(val),
-    },
-    {
-      title: '修改人',
-      dataIndex: 'updateUserName',
-      key: 'updateUserName',
-      width: 90,
-      render: (val: string) => val || '-',
-    },
-    {
-      title: '修改时间',
-      dataIndex: 'updateTime',
-      key: 'updateTime',
-      width: 170,
-      render: (val: string) => formatDateTime(val),
-    },
+    { title: '阅读人数', dataIndex: 'readCount', key: 'readCount', width: 90, align: 'center' },
+    { title: '创建人', dataIndex: 'createUserName', key: 'createUserName', width: 90, render: (val: string) => val || '-' },
+    { title: '创建时间', dataIndex: 'createdTime', key: 'createdTime', width: 170, render: (val: string) => formatDateTime(val) },
+    { title: '修改人', dataIndex: 'updateUserName', key: 'updateUserName', width: 90, render: (val: string) => val || '-' },
+    { title: '修改时间', dataIndex: 'updateTime', key: 'updateTime', width: 170, render: (val: string) => formatDateTime(val) },
     {
       title: '操作',
       key: 'action',
@@ -344,48 +222,32 @@ export default function NoticeTable() {
             查看
           </Button>
           {hasPermission('notice:edit') && (
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditNotice(record)}>
-            编辑
-          </Button>
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditNotice(record)}>
+              编辑
+            </Button>
           )}
           {hasPermission('notice:publish') && (
-          record.status === '1' ? (
-            <Popconfirm
-              title="确定要撤回该公告吗？"
-              onConfirm={() => handlePublishNotice(record)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button type="link" size="small" icon={<RollbackOutlined />}>
-                撤回
-              </Button>
-            </Popconfirm>
-          ) : (
-            <Popconfirm
-              title="确定要发布该公告吗？"
-              onConfirm={() => handlePublishNotice(record)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button type="link" size="small" icon={<SendOutlined />} style={{ color: '#52c41a' }}>
-                发布
-              </Button>
-            </Popconfirm>
-          )
+            record.status === '1' ? (
+              <Popconfirm title="确定要撤回该公告吗？" onConfirm={() => handlePublishNotice(record)} okText="确定" cancelText="取消">
+                <Button type="link" size="small" icon={<RollbackOutlined />}>撤回</Button>
+              </Popconfirm>
+            ) : (
+              <Popconfirm title="确定要发布该公告吗？" onConfirm={() => handlePublishNotice(record)} okText="确定" cancelText="取消">
+                <Button type="link" size="small" icon={<SendOutlined />} style={{ color: '#52c41a' }}>发布</Button>
+              </Popconfirm>
+            )
           )}
           {hasPermission('notice:delete') && (
-          <Popconfirm
-            title="删除后数据不可恢复，是否确认删除？"
-            icon={<ExclamationCircleOutlined style={{ color: '#faad14' }} />}
-            onConfirm={() => handleDeleteNotice(record)}
-            okText="确定"
-            cancelText="取消"
-            okButtonProps={{ danger: true }}
-          >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
+            <Popconfirm
+              title="删除后数据不可恢复，是否确认删除？"
+              icon={<ExclamationCircleOutlined style={{ color: '#faad14' }} />}
+              onConfirm={() => handleDeleteNotice(record)}
+              okText="确定"
+              cancelText="取消"
+              okButtonProps={{ danger: true }}
+            >
+              <Button type="link" size="small" danger icon={<DeleteOutlined />}>删除</Button>
+            </Popconfirm>
           )}
         </Space>
       ),
@@ -399,7 +261,8 @@ export default function NoticeTable() {
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>通知公告</h2>
           <p style={{ color: '#64748b', marginTop: 4 }}>管理系统内的通知、公告及重要规则发布。</p>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNotice} style={{ display: hasPermission('notice:add') ? undefined : 'none' }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNotice}
+          style={{ display: hasPermission('notice:add') ? undefined : 'none' }}>
           新增公告
         </Button>
       </div>
@@ -409,7 +272,7 @@ export default function NoticeTable() {
           placeholder="搜索公告标题..."
           value={searchParams.keyword}
           onChange={(e) => setSearchParams((prev) => ({ ...prev, keyword: e.target.value }))}
-          onSearch={handleSearch}
+          onSearch={handleSearchClick}
           allowClear
           style={{ width: 280 }}
         />
@@ -436,7 +299,7 @@ export default function NoticeTable() {
             { value: '0', label: '草稿' },
           ]}
         />
-        <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+        <Button type="primary" icon={<SearchOutlined />} onClick={handleSearchClick}>
           查询
         </Button>
       </div>
@@ -455,10 +318,7 @@ export default function NoticeTable() {
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50', '100'],
           size: 'default',
-          onChange: (page, size) => {
-            setCurrentPage(page);
-            setPageSize(size);
-          },
+          onChange: goToPage,
         }}
       />
 
@@ -467,7 +327,7 @@ export default function NoticeTable() {
         title={formModalType === 'add' ? '新增公告' : '编辑公告'}
         open={formModalOpen}
         onOk={handleSaveNotice}
-        onCancel={() => setFormModalOpen(false)}
+        onCancel={closeFormModal}
         okText="保存"
         cancelText="取消"
         width={640}
@@ -475,55 +335,26 @@ export default function NoticeTable() {
       >
         <Form form={form} layout="vertical" preserve={false}>
           {formModalType === 'edit' && (
-            <Form.Item name="id" hidden>
-              <Input />
-            </Form.Item>
+            <Form.Item name="id" hidden><Input /></Form.Item>
           )}
-          <Form.Item
-            name="title"
-            label="公告标题"
-            rules={[{ required: true, message: '请输入公告标题' }]}
-          >
+          <Form.Item name="title" label="公告标题" rules={[{ required: true, message: '请输入公告标题' }]}>
             <Input placeholder="请输入公告标题" />
           </Form.Item>
-          <Form.Item
-            name="type"
-            label="公告类型"
-            rules={[{ required: true, message: '请选择公告类型' }]}
-          >
-            <Select
-              options={[
-                { value: 'system', label: '系统通知' },
-                { value: 'business', label: '业务公告' },
-                { value: 'rule', label: '规则通知' },
-              ]}
-            />
+          <Form.Item name="type" label="公告类型" rules={[{ required: true, message: '请选择公告类型' }]}>
+            <Select options={[
+              { value: 'system', label: '系统通知' },
+              { value: 'business', label: '业务公告' },
+              { value: 'rule', label: '规则通知' },
+            ]} />
           </Form.Item>
-          <Form.Item
-            name="author"
-            label="发布人"
-            rules={[{ required: true, message: '请输入发布人' }]}
-          >
+          <Form.Item name="author" label="发布人" rules={[{ required: true, message: '请输入发布人' }]}>
             <Input placeholder="请输入发布人" />
           </Form.Item>
-          <Form.Item
-            name="content"
-            label="公告内容"
-            rules={[{ required: true, message: '请输入公告内容' }]}
-          >
+          <Form.Item name="content" label="公告内容" rules={[{ required: true, message: '请输入公告内容' }]}>
             <Input.TextArea rows={6} placeholder="请输入公告内容" />
           </Form.Item>
-          <Form.Item
-            name="status"
-            label="状态"
-            rules={[{ required: true, message: '请选择状态' }]}
-          >
-            <Select
-              options={[
-                { value: '0', label: '草稿' },
-                { value: '1', label: '已发布' },
-              ]}
-            />
+          <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
+            <Select options={[{ value: '0', label: '草稿' }, { value: '1', label: '已发布' }]} />
           </Form.Item>
           <Form.Item name="remark" label="备注">
             <Input.TextArea rows={3} placeholder="请输入备注" />

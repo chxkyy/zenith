@@ -1,9 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Table, Button, Space, Tag, Popconfirm, App, Card, Input, Modal, Form, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UndoOutlined, SafetyOutlined } from '@ant-design/icons';
 import { formatDateTime } from '../lib/utils';
 import { usePermission } from '../lib/PermissionContext';
+import { usePaginatedQuery, useCrudModal, useCrudOperations } from '../lib/useCrudTable';
+import { post, del } from '../lib/apiClient';
 import PermissionAssignModal from './PermissionAssignModal';
 
 interface Role {
@@ -22,125 +24,73 @@ interface Role {
 export default function RoleManagement() {
   const { message } = App.useApp();
   const { hasPermission } = usePermission();
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [form] = Form.useForm();
   const [isPermModalOpen, setIsPermModalOpen] = useState(false);
   const [permRole, setPermRole] = useState<{ id: number; name: string } | null>(null);
-  const hasFetchedRoles = useRef(false);
-  const [form] = Form.useForm();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [totalCount, setTotalCount] = useState(0);
 
-  const fetchRoles = async (page?: number, size?: number, keyword?: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/roles/page', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pageIndex: page ?? currentPage,
-          pageSize: size ?? pageSize,
-          keyword: keyword ?? searchKeyword ?? undefined,
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to fetch roles');
-      const data = await response.json();
-      if (data.success) {
-        setRoles(data.data || []);
-        setTotalCount(data.totalCount || 0);
-      } else {
-        message.error(data.errMessage || '获取角色列表失败');
-      }
-    } catch (error: any) {
-      console.error('Error fetching roles:', error);
-      message.error(error.message || '获取角色列表失败');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 分页查询
+  const {
+    data: roles,
+    loading,
+    currentPage,
+    pageSize,
+    totalCount,
+    keyword: searchKeyword,
+    setKeyword: setSearchKeyword,
+    goToPage,
+    search: handleSearch,
+    refresh,
+  } = usePaginatedQuery<Role>({
+    apiUrl: '/api/roles/page',
+    initialPageSize: 20,
+    buildQuery: (page, size, kw) => ({
+      pageIndex: page,
+      pageSize: size,
+      ...(kw ? { keyword: kw } : {}),
+    }),
+  });
 
-  React.useEffect(() => {
-    if (hasFetchedRoles.current) return;
-    hasFetchedRoles.current = true;
-    fetchRoles();
-  }, []);
+  // 模态框状态
+  const { modalOpen, modalMode, editingRecord, openAddModal, openEditModal, closeModal } =
+    useCrudModal<Role>();
 
-  const handleStatusChange = async (id: number, checked: boolean) => {
-    try {
-      const response = await fetch('/api/roles/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status: checked ? 1 : 0 }),
-      });
-      if (!response.ok) throw new Error('Failed to change status');
-      const data = await response.json();
-      if (data.success) {
-        message.success(checked ? '角色已启用' : '角色已禁用');
-        fetchRoles(currentPage, pageSize);
-      } else {
-        throw new Error(data.errMessage || '状态切换失败');
-      }
-    } catch (error: any) {
-      console.error('Error changing status:', error);
-      message.error(error.message || '状态切换失败');
-    }
-  };
+  // CRUD 操作（不包含 create/update，因为需要通过 form.validateFields 触发）
+  const { remove: handleDeleteRole, submitting } = useCrudOperations<Role>(
+    {
+      deleteUrl: '/api/roles/delete',
+      successMessages: { delete: '角色删除成功' },
+    },
+    { refresh },
+  );
 
   const handleSaveRole = async () => {
     try {
       const values = await form.validateFields();
       const roleDTO = {
-        id: selectedRole?.id,
+        id: (editingRecord as Role | null)?.id,
         name: values.name,
         status: values.status,
-        description: values.description
+        description: values.description,
       };
       const url = modalMode === 'add' ? '/api/roles' : '/api/roles/update';
-      const response = await fetch(url, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(roleDTO)
-      });
-      if (!response.ok) throw new Error('Failed to save role');
-      const data = await response.json();
-      if (data.success) {
-        setIsModalOpen(false);
-        message.success(modalMode === 'add' ? '角色新增成功' : '角色编辑成功');
-        fetchRoles(currentPage, pageSize);
-      } else {
-        throw new Error(data.errMessage || '保存失败');
-      }
-    } catch (error: any) {
-      console.error('Error saving role:', error);
-      message.error(error.message || '保存角色失败');
+      await post(url, roleDTO);
+      message.success(modalMode === 'add' ? '角色新增成功' : '角色编辑成功');
+      closeModal();
+      refresh();
+    } catch (err: unknown) {
+      if (err instanceof Error) message.error(err.message || '保存角色失败');
     }
   };
 
-  const handleDeleteRole = async (id: number) => {
+  const handleStatusChange = async (id: number, checked: boolean) => {
     try {
-      const response = await fetch(`/api/roles/delete`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id })
-      });
-      if (!response.ok) throw new Error('Failed to delete role');
-      const data = await response.json();
-      if (data.success) {
-        message.success('角色删除成功');
-        fetchRoles(currentPage, pageSize);
-      } else {
-        throw new Error(data.errMessage || '删除失败');
-      }
-    } catch (error: any) {
-      console.error('Error deleting role:', error);
-      message.error(error.message || '删除角色失败');
+      await post('/api/roles/status', { id, status: checked ? 1 : 0 });
+      message.success(checked ? '角色已启用' : '角色已禁用');
+      refresh();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '状态切换失败';
+      message.error(msg);
     }
-  };
-
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchRoles(1, pageSize, searchKeyword);
   };
 
   const columns: ColumnsType<Role> = [
@@ -152,7 +102,7 @@ export default function RoleManagement() {
           <SafetyOutlined style={{ color: '#9333ea' }} />
           <span style={{ fontWeight: 500 }}>{name}</span>
         </span>
-      )
+      ),
     },
     {
       title: '状态', dataIndex: 'status', key: 'status', width: 100,
@@ -164,7 +114,7 @@ export default function RoleManagement() {
           unCheckedChildren="禁用"
           disabled={record.id === 1}
         />
-      )
+      ),
     },
     { title: '备注', dataIndex: 'description', key: 'description', width: 160, ellipsis: true, render: (v) => v || '-' },
     { title: '创建人', dataIndex: 'createUserName', key: 'createUserName', width: 90, render: (v) => v || '-' },
@@ -176,25 +126,25 @@ export default function RoleManagement() {
       render: (_, record) => (
         <Space size="small">
           {hasPermission('sys:role:edit') && (
-          <Button type="link" size="small" icon={<EditOutlined />}
-            onClick={() => { setSelectedRole(record); setModalMode('edit'); setIsModalOpen(true); }}>
-            编辑
-          </Button>
+            <Button type="link" size="small" icon={<EditOutlined />}
+              onClick={() => { openEditModal(record); }}>
+              编辑
+            </Button>
           )}
           {hasPermission('sys:role:permission') && (
-          <Button type="link" size="small" icon={<SafetyOutlined />}
-            onClick={() => { setPermRole({ id: record.id, name: record.name }); setIsPermModalOpen(true); }}>
-            权限
-          </Button>
+            <Button type="link" size="small" icon={<SafetyOutlined />}
+              onClick={() => { setPermRole({ id: record.id, name: record.name }); setIsPermModalOpen(true); }}>
+              权限
+            </Button>
           )}
           {hasPermission('sys:role:delete') && record.id !== 1 && (
-          <Popconfirm title="确定删除该角色吗？删除后不可恢复" onConfirm={() => handleDeleteRole(record.id)} okText="确定" cancelText="取消">
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>删除</Button>
-          </Popconfirm>
+            <Popconfirm title="确定删除该角色吗？删除后不可恢复" onConfirm={() => handleDeleteRole(record.id)} okText="确定" cancelText="取消">
+              <Button type="link" size="small" danger icon={<DeleteOutlined />}>删除</Button>
+            </Popconfirm>
           )}
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -212,12 +162,13 @@ export default function RoleManagement() {
               onPressEnter={handleSearch}
               style={{ width: 200 }}
               allowClear
-              onClear={() => { setSearchKeyword(''); setCurrentPage(1); fetchRoles(1, pageSize, ''); }}
+              onClear={() => { setSearchKeyword(''); goToPage(1); refresh(); }}
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setModalMode('add'); setSelectedRole(null); setIsModalOpen(true); }} style={{ display: hasPermission('sys:role:add') ? undefined : 'none' }}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={openAddModal}
+              style={{ display: hasPermission('sys:role:add') ? undefined : 'none' }}>
               新增角色
             </Button>
-            <Button icon={<UndoOutlined />} onClick={() => fetchRoles()}>刷新</Button>
+            <Button icon={<UndoOutlined />} onClick={refresh}>刷新</Button>
           </Space>
         }
       >
@@ -236,39 +187,31 @@ export default function RoleManagement() {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
             size: 'default',
-            onChange: (page, size) => {
-              setCurrentPage(page);
-              setPageSize(size);
-              fetchRoles(page, size);
-            },
+            onChange: goToPage,
           }}
         />
       </Card>
 
       <Modal
         title={modalMode === 'add' ? '新增角色' : '编辑角色'}
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        open={modalOpen}
+        onCancel={closeModal}
         onOk={handleSaveRole}
         okText={modalMode === 'add' ? '保存角色' : '更新角色'}
         destroyOnHidden
       >
         <Form form={form} layout="vertical" preserve={false}
           initialValues={{
-            name: selectedRole?.name || '',
-            status: selectedRole?.status ?? 1,
-            description: selectedRole?.description || ''
-          }}>
+            name: (editingRecord as Role | null)?.name || '',
+            status: (editingRecord as Role | null)?.status ?? 1,
+            description: (editingRecord as Role | null)?.description || '',
+          }}
+        >
           <Form.Item label="角色名称" name="name" rules={[{ required: true, message: '请输入角色名称' }]}>
             <Input placeholder="请输入角色名称" />
           </Form.Item>
           <Form.Item label="状态" name="status">
-            <Select
-              options={[
-                { value: 1, label: '启用' },
-                { value: 0, label: '禁用' },
-              ]}
-            />
+            <Select options={[{ value: 1, label: '启用' }, { value: 0, label: '禁用' }]} />
           </Form.Item>
           <Form.Item label="备注" name="description">
             <Input.TextArea rows={3} placeholder="请输入备注信息" />

@@ -8,6 +8,8 @@ import com.zenith.admin.dto.query.LoginQuery;
 import com.zenith.admin.mapper.UserMapper;
 import com.zenith.admin.api.UserService;
 import com.alibaba.cola.exception.BizException;
+import com.zenith.admin.service.system.executor.cmd.UserChangePasswordCmdExe;
+import com.zenith.admin.service.system.executor.cmd.UserUpdateProfileCmdExe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
     private final UserService userService;
+    private final UserChangePasswordCmdExe userChangePasswordCmdExe;
+    private final UserUpdateProfileCmdExe userUpdateProfileCmdExe;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -49,36 +53,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void changePassword(Long userId, String oldPassword, String newPassword) {
-        UserDO user = userMapper.selectById(userId);
-        if (user == null) {
-            throw new BizException("USER_NOT_FOUND", "用户不存在");
-        }
-
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new BizException("OLD_PASSWORD_ERROR", "旧密码错误");
-        }
-
-        String encodedPassword = passwordEncoder.encode(newPassword);
-        user.setPassword(encodedPassword);
-        userMapper.updateById(user);
+        userChangePasswordCmdExe.execute(userId, oldPassword, newPassword);
     }
 
     @Override
     public void updateProfile(Long userId, String username, String email, String phone) {
-        UserDO user = userMapper.selectById(userId);
-        if (user == null) {
-            throw new BizException("USER_NOT_FOUND", "用户不存在");
-        }
-
-        if (username != null && !username.isBlank()) {
-            user.setUsername(username.trim());
-        }
-        if (email != null) {
-            user.setEmail(email.trim());
-        }
-        if (phone != null) {
-            user.setPhone(phone.trim());
-        }
-        userMapper.updateById(user);
+        userUpdateProfileCmdExe.execute(userId, username, email, phone);
     }
 }
