@@ -96,7 +96,7 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
         if (session.getOriginalId() != null && !session.getOriginalId().equals(session.getId())) {
             String oldKey = SESSION_KEY_PREFIX + session.getOriginalId();
             redisTemplate.delete(oldKey);
-            log.info("[SESSION] Cleaned up old session key after changeSessionId: {} -> {}",
+            log.debug("[SESSION] Cleaned up old key after changeSessionId: {} -> {}",
                     session.getOriginalId(), session.getId());
             session.setOriginalId(null);
         }
@@ -310,34 +310,6 @@ public class RedisSessionRepository implements FindByIndexNameSessionRepository<
             log.info("findAllActiveSessions cleaned up {} expired and {} kicked sessions", expiredCount.get(), kickedCount.get());
         }
         return sessions;
-    }
-
-    /**
-     * 清理 Redis 中所有 session 数据（用于清除孤儿 session）
-     */
-    public int clearAllSessions() {
-        int count = 0;
-        try (var cursor = redisTemplate.scan(
-                org.springframework.data.redis.core.ScanOptions.scanOptions()
-                        .match(SESSION_KEY_PREFIX + "*")
-                        .count(500)
-                        .build())) {
-            List<String> keysToDelete = new ArrayList<>();
-            cursor.forEachRemaining(keysToDelete::add);
-            if (!keysToDelete.isEmpty()) {
-                count = keysToDelete.size();
-                redisTemplate.delete(keysToDelete);
-                // 同时清理 user:sessions 索引
-                Set<String> indexKeys = redisTemplate.keys(USER_SESSIONS_KEY_PREFIX + "*");
-                if (indexKeys != null && !indexKeys.isEmpty()) {
-                    redisTemplate.delete(indexKeys);
-                }
-            }
-        } catch (Exception e) {
-            log.error("Failed to clear sessions", e);
-        }
-        log.info("Cleared {} orphan sessions from Redis", count);
-        return count;
     }
 
     public void kickSession(String sessionId) {

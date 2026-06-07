@@ -48,6 +48,12 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                // 禁用 session fixation 防护：
+                // SessionAuthenticationFilter 每次请求都从 session 恢复 Authentication，
+                // 导致 SessionManagementFilter 误判为"新登录事件"而每次都调用 changeSessionId()，
+                // 造成每个请求产生一个新的 Redis session key。由于我们已在 AuthController.login()
+                // 中手动创建 session，此处不需要 Spring Security 再做 session fixation。
+                .sessionFixation(sf -> sf.none())
             )
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
