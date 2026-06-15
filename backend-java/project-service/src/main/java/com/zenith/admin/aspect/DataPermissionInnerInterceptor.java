@@ -7,6 +7,7 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import com.baomidou.mybatisplus.extension.plugins.inner.InnerInterceptor;
+import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.regex.Pattern;
  * @see com.zenith.admin.annotation.DataPermission
  */
 @Slf4j
+@Component
 public class DataPermissionInnerInterceptor implements InnerInterceptor {
 
     /** 策略二 JOIN 绑定表的别名 */
