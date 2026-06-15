@@ -50,4 +50,41 @@
         </foreach>
     </select>
 
+    <!--
+        使用 PostgreSQL CTE 递归查询获取指定组织及其所有下级组织的 ID 列表（含自身）
+
+        功能说明:
+            通过 WITH RECURSIVE CTE 递归遍历组织树，返回从根节点到所有叶子节点的完整路径。
+            CYCLE 子句用于检测循环引用（PRODUCT.md #43），遇到环时自动终止。
+
+        参数:
+            orgId (Long) - 起始组织ID
+
+        返回:
+            List<Long> - 包含自身及所有下级组织的 ID 列表
+
+        性能说明:
+            CTE 在数据库引擎层面执行递归，比 Java 层面的多次查询 + 递归更高效。
+    -->
+    <select id="selectChildOrgIdsRecursive" resultType="java.lang.Long">
+        WITH RECURSIVE org_tree AS (
+            -- 锚点：起始组织自身
+            SELECT id, parent_id
+            FROM t_sys_org
+            WHERE id = #{orgId}
+
+            UNION ALL
+
+            -- 递归部分：查找所有子组织
+            SELECT o.id, o.parent_id
+            FROM t_sys_org o
+                     INNER JOIN org_tree ot ON o.parent_id = ot.id
+            -- 环检测：若发现循环引用则停止该分支
+            CYCLE id SET is_cycle USING path
+        )
+        SELECT id
+        FROM org_tree
+        WHERE is_cycle = false
+    </select>
+
 </mapper>

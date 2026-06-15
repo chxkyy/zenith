@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zenith.admin.mapper.DataPermissionMapper">
+
+    <!-- 查询指定用户在特定数据类型下负责的数据ID列表 -->
+    <select id="selectDataIdsByUserAndType" resultType="java.lang.Long">
+        SELECT data_id
+        FROM t_data_permission
+        WHERE user_id = #{userId}
+          AND data_type = #{dataType}
+    </select>
+
+    <!-- 查询指定业务数据记录的负责人用户ID列表 -->
+    <select id="selectUserIdsByData" resultType="java.lang.Long">
+        SELECT user_id
+        FROM t_data_permission
+        WHERE data_type = #{dataType}
+          AND data_id = #{dataId}
+    </select>
+
+    <!-- 批量查询多个负责人在特定数据类型下负责的数据ID列表（去重） -->
+    <select id="selectDataIdsByUsersAndType" resultType="java.lang.Long">
+        SELECT DISTINCT data_id
+        FROM t_data_permission
+        WHERE user_id IN
+        <foreach collection="userIds" item="uid" open="(" separator="," close=")">
+            #{uid}
+        </foreach>
+          AND data_type = #{dataType}
+    </select>
+
+    <!-- 检查绑定关系是否存在 -->
+    <select id="existsBinding" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM t_data_permission
+        WHERE user_id = #{userId}
+          AND data_type = #{dataType}
+          AND data_id = #{dataId}
+    </select>
+
+</mapper>

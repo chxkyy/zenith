@@ -18,9 +18,20 @@ public interface OrgMapper extends BaseMapper<OrgDO> {
     Integer selectCountMemberByOrgId(Long orgId);
 
     /**
-     * 统计多个组织的成员总数（用于递归统计父组织及其所有子组织的成员）
-     * @param orgIds 组织ID列表（包含自身及所有子组织ID）
+     * 统计多个组织的成员总数（递归统计：包含指定组织及其所有子组织的成员）
+     * @param orgIds (List<Long>) - 组织ID列表（包含自身及所有子组织ID）
      * @return 成员总数
      */
     int countMembersByOrgIds(@Param("orgIds") List<Long> orgIds);
+
+    /**
+     * 使用 PostgreSQL CTE 递归查询获取指定组织及其所有下级组织的 ID 列表（含自身）
+     *
+     * <p>相比 Java 递归 getChildOrgIds()，CTE 方式在数据库层面完成树遍历，
+     * 性能更好且天然支持环检测（通过 CYCLE 子句）。</p>
+     *
+     * @param orgId 起始组织ID
+     * @return 包含自身及所有下级组织的 ID 列表
+     */
+    List<Long> selectChildOrgIdsRecursive(@Param("orgId") Long orgId);
 }
