@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.qry;
 
-import com.zenith.admin.dto.data.FileDTO;
+import com.zenith.admin.dto.system.data.FileDTO;
 import com.zenith.admin.service.system.executor.converter.FileConvertor;
 import com.zenith.admin.dataobject.FileDO;
 import com.zenith.admin.mapper.FileMapper;

@@ -2,8 +2,8 @@ package com.zenith.admin.service.system.executor.qry;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.dataobject.DataPermissionDO;
-import com.zenith.admin.dto.data.DataPermissionDTO;
-import com.zenith.admin.dto.query.DataPermissionQuery;
+import com.zenith.admin.dto.system.data.DataPermissionDTO;
+import com.zenith.admin.dto.system.qry.DataPermissionQuery;
 import com.zenith.admin.mapper.DataPermissionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

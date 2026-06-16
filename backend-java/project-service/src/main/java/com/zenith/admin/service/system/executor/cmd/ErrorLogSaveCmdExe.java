@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.cmd;
 
-import com.zenith.admin.dto.data.ErrorLogDTO;
+import com.zenith.admin.dto.system.data.ErrorLogDTO;
 import com.zenith.admin.service.system.executor.converter.ErrorLogConvertor;
 import com.zenith.admin.dataobject.ErrorLogDO;
 import com.zenith.admin.mapper.ErrorLogMapper;

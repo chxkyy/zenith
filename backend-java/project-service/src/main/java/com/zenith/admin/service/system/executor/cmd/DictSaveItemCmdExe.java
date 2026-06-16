@@ -3,7 +3,7 @@ package com.zenith.admin.service.system.executor.cmd;
 import com.alibaba.cola.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenith.admin.dataobject.DictItemDO;
-import com.zenith.admin.dto.cmd.DictItemAddCmd;
+import com.zenith.admin.dto.system.cmd.DictItemAddCmd;
 import com.zenith.admin.mapper.DictItemMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -2,8 +2,8 @@ package com.zenith.admin.service.system.executor.converter;
 
 import com.zenith.admin.dataobject.NodeTemplateDO;
 import com.zenith.admin.dataobject.ProcessTemplateDO;
-import com.zenith.admin.dto.data.NodeTemplateDTO;
-import com.zenith.admin.dto.data.ProcessTemplateDTO;
+import com.zenith.admin.dto.system.data.NodeTemplateDTO;
+import com.zenith.admin.dto.system.data.ProcessTemplateDTO;
 import com.zenith.admin.enums.NodeTypeEnum;
 import org.springframework.stereotype.Component;
 

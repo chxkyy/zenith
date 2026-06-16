@@ -5,13 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dataobject.ProcessInstanceDO;
-import com.zenith.admin.dto.data.ProcessInstanceDTO;
-import com.zenith.admin.dto.query.ProcessInstancePageQuery;
+import com.zenith.admin.dto.system.data.ProcessInstanceDTO;
+import com.zenith.admin.dto.system.qry.ProcessInstancePageQuery;
 import com.zenith.admin.mapper.ProcessInstanceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component

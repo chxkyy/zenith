@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.executor.converter;
 
 import com.zenith.admin.dataobject.ApprovalRecordDO;
-import com.zenith.admin.dto.data.ApprovalRecordDTO;
+import com.zenith.admin.dto.system.data.ApprovalRecordDTO;
 import com.zenith.admin.enums.ActionTypeEnum;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;

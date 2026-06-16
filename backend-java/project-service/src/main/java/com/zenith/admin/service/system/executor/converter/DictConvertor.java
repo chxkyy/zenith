@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.executor.converter;
 
-import com.zenith.admin.dto.data.DictDTO;
-import com.zenith.admin.dto.data.DictItemDTO;
+import com.zenith.admin.dto.system.data.DictDTO;
+import com.zenith.admin.dto.system.data.DictItemDTO;
 import com.zenith.admin.dataobject.DictDO;
 import com.zenith.admin.dataobject.DictItemDO;
 import org.mapstruct.Mapper;

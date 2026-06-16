@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.impl;
 
 import com.zenith.admin.api.system.PermissionService;
-import com.zenith.admin.dto.data.MenuDTO;
+import com.zenith.admin.dto.system.data.MenuDTO;
 import com.zenith.admin.service.system.executor.cmd.PermissionAssignCmdExe;
 import com.zenith.admin.service.system.executor.cmd.UserRolesUpdateCmdExe;
 import com.zenith.admin.service.system.executor.qry.AccessibleMenusQryExe;

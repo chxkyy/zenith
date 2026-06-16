@@ -2,7 +2,7 @@ package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.system.OperLogService;
-import com.zenith.admin.dto.data.OperLogDTO;
+import com.zenith.admin.dto.system.data.OperLogDTO;
 import com.zenith.admin.service.system.executor.cmd.OperLogDeleteCmdExe;
 import com.zenith.admin.service.system.executor.cmd.OperLogSaveCmdExe;
 import com.zenith.admin.service.system.executor.qry.OperLogListAllQryExe;

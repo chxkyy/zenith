@@ -1,8 +1,8 @@
 package com.zenith.admin.service.impl;
 
 import com.zenith.admin.api.system.UserService;
-import com.zenith.admin.dto.data.UserDTO;
-import com.zenith.admin.dto.query.LoginQuery;
+import com.zenith.admin.dto.system.data.UserDTO;
+import com.zenith.admin.dto.system.qry.LoginQuery;
 import com.zenith.admin.service.system.executor.qry.LoginAuthQryExe;
 import com.zenith.admin.service.system.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;

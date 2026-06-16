@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.cmd;
 
-import com.zenith.admin.dto.data.LoginLogDTO;
+import com.zenith.admin.dto.system.data.LoginLogDTO;
 import com.zenith.admin.service.system.executor.converter.LoginLogConvertor;
 import com.zenith.admin.dataobject.LoginLogDO;
 import com.zenith.admin.mapper.LoginLogMapper;

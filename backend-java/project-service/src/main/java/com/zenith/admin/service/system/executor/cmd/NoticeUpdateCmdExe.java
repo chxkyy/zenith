@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.cmd;
 
-import com.zenith.admin.dto.cmd.NoticeUpdateCmd;
+import com.zenith.admin.dto.system.cmd.NoticeUpdateCmd;
 import com.zenith.admin.dataobject.NoticeDO;
 import com.zenith.admin.mapper.NoticeMapper;
 import lombok.RequiredArgsConstructor;

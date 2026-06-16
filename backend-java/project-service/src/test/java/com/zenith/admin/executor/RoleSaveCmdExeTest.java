@@ -2,7 +2,7 @@ package com.zenith.admin.executor;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zenith.admin.dataobject.RoleDO;
-import com.zenith.admin.dto.cmd.RoleAddCmd;
+import com.zenith.admin.dto.system.cmd.RoleAddCmd;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.service.system.executor.cmd.RoleSaveCmdExe;
 import org.junit.jupiter.api.BeforeEach;

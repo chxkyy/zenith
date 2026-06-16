@@ -3,7 +3,7 @@ package com.zenith.admin.service.system.executor.converter;
 import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dataobject.ProcessTemplateDO;
 import com.zenith.admin.dataobject.UserDO;
-import com.zenith.admin.dto.data.ProcessInstanceDTO;
+import com.zenith.admin.dto.system.data.ProcessInstanceDTO;
 import com.zenith.admin.enums.ProcessStatusEnum;
 import com.zenith.admin.mapper.ProcessTemplateMapper;
 import com.zenith.admin.mapper.UserMapper;

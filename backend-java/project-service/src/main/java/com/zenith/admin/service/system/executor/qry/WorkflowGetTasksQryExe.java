@@ -2,7 +2,7 @@ package com.zenith.admin.service.system.executor.qry;
 
 import com.zenith.admin.service.system.executor.converter.TaskConvertor;
 import com.zenith.admin.dataobject.TaskDO;
-import com.zenith.admin.dto.data.TaskDTO;
+import com.zenith.admin.dto.system.data.TaskDTO;
 import com.zenith.admin.mapper.TaskMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

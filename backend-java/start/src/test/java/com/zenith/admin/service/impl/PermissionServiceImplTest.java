@@ -1,6 +1,6 @@
 package com.zenith.admin.service.impl;
 
-import com.zenith.admin.dto.data.MenuDTO;
+import com.zenith.admin.dto.system.data.MenuDTO;
 import com.zenith.admin.service.system.executor.qry.AccessibleMenusQryExe;
 import com.zenith.admin.service.system.executor.qry.PermissionResolveQryExe;
 import com.zenith.admin.service.system.executor.qry.RoleMenuQryExe;

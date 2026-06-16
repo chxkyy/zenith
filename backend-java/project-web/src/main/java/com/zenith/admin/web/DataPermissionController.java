@@ -2,11 +2,11 @@ package com.zenith.admin.web;
 
 import com.alibaba.cola.dto.SingleResponse;
 import com.zenith.admin.context.UserContext;
-import com.zenith.admin.dto.cmd.DataPermissionAssignCmd;
-import com.zenith.admin.dto.cmd.DataPermissionBatchAssignCmd;
-import com.zenith.admin.dto.cmd.DataPermissionRevokeCmd;
-import com.zenith.admin.dto.data.DataPermissionDTO;
-import com.zenith.admin.dto.query.DataPermissionQuery;
+import com.zenith.admin.dto.system.cmd.DataPermissionAssignCmd;
+import com.zenith.admin.dto.system.cmd.DataPermissionBatchAssignCmd;
+import com.zenith.admin.dto.system.cmd.DataPermissionRevokeCmd;
+import com.zenith.admin.dto.system.data.DataPermissionDTO;
+import com.zenith.admin.dto.system.qry.DataPermissionQuery;
 import com.zenith.admin.service.system.executor.cmd.DataPermissionManageCmdExe;
 import com.zenith.admin.service.system.executor.qry.DataPermissionListQryExe;
 import jakarta.validation.Valid;

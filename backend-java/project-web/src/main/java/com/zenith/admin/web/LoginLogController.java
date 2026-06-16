@@ -2,8 +2,8 @@ package com.zenith.admin.web;
 
 import com.zenith.admin.api.system.LoginLogService;
 import com.zenith.admin.util.PageResponseUtils;
-import com.zenith.admin.dto.query.IdQuery;
-import com.zenith.admin.dto.data.LoginLogDTO;
+import com.zenith.admin.dto.system.qry.IdQuery;
+import com.zenith.admin.dto.system.data.LoginLogDTO;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

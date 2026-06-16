@@ -3,16 +3,14 @@ package com.zenith.admin.service.system.executor.qry;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.data.FunctionDTO;
-import com.zenith.admin.dto.query.FunctionPageQuery;
+import com.zenith.admin.dto.system.data.FunctionDTO;
+import com.zenith.admin.dto.system.qry.FunctionPageQuery;
 import com.zenith.admin.service.system.executor.converter.FunctionConvertor;
 import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.FunctionDO;
 import com.zenith.admin.mapper.FunctionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor

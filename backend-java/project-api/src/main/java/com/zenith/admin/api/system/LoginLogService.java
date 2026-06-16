@@ -1,7 +1,7 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.data.LoginLogDTO;
+import com.zenith.admin.dto.system.data.LoginLogDTO;
 
 public interface LoginLogService {
     void delete(Long id);

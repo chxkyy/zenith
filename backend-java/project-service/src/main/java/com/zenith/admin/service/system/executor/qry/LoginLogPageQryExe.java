@@ -3,7 +3,7 @@ package com.zenith.admin.service.system.executor.qry;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.data.LoginLogDTO;
+import com.zenith.admin.dto.system.data.LoginLogDTO;
 import com.zenith.admin.service.system.executor.converter.LoginLogConvertor;
 import com.zenith.admin.util.PageResponseUtils;
 import com.zenith.admin.dataobject.LoginLogDO;
@@ -11,8 +11,6 @@ import com.zenith.admin.mapper.LoginLogMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor

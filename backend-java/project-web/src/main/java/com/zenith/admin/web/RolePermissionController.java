@@ -3,7 +3,7 @@ package com.zenith.admin.web;
 import com.alibaba.cola.dto.MultiResponse;
 import com.alibaba.cola.dto.Response;
 import com.zenith.admin.api.system.PermissionService;
-import com.zenith.admin.dto.cmd.RolePermissionAssignCmd;
+import com.zenith.admin.dto.system.cmd.RolePermissionAssignCmd;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

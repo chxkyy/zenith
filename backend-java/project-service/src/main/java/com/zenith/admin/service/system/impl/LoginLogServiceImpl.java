@@ -2,7 +2,7 @@ package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.system.LoginLogService;
-import com.zenith.admin.dto.data.LoginLogDTO;
+import com.zenith.admin.dto.system.data.LoginLogDTO;
 import com.zenith.admin.service.system.executor.cmd.LoginLogDeleteCmdExe;
 import com.zenith.admin.service.system.executor.cmd.LoginLogSaveCmdExe;
 import com.zenith.admin.service.system.executor.cmd.LoginLogUpdateLogoutAtCmdExe;

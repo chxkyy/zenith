@@ -1,6 +1,6 @@
 package com.zenith.admin.api.system;
 
-import com.zenith.admin.dto.data.TaskDTO;
+import com.zenith.admin.dto.system.data.TaskDTO;
 import com.zenith.admin.enums.ActionTypeEnum;
 
 import java.util.List;

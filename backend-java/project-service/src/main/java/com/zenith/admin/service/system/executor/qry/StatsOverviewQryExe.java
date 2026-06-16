@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.qry;
 
-import com.zenith.admin.dto.data.StatsOverviewDTO;
+import com.zenith.admin.dto.system.data.StatsOverviewDTO;
 import com.zenith.admin.mapper.ErrorLogMapper;
 import com.zenith.admin.mapper.OperLogMapper;
 import com.zenith.admin.mapper.RoleMapper;

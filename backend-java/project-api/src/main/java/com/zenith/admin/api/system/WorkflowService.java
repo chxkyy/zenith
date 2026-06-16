@@ -1,9 +1,9 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.cmd.ProcessInstanceCreateCmd;
-import com.zenith.admin.dto.data.ProcessInstanceDTO;
-import com.zenith.admin.dto.query.ProcessInstancePageQuery;
+import com.zenith.admin.dto.system.cmd.ProcessInstanceCreateCmd;
+import com.zenith.admin.dto.system.data.ProcessInstanceDTO;
+import com.zenith.admin.dto.system.qry.ProcessInstancePageQuery;
 
 public interface WorkflowService {
 

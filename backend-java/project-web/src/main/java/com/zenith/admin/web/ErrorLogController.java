@@ -2,8 +2,8 @@ package com.zenith.admin.web;
 
 import com.zenith.admin.api.system.ErrorLogService;
 import com.zenith.admin.util.PageResponseUtils;
-import com.zenith.admin.dto.query.IdQuery;
-import com.zenith.admin.dto.data.ErrorLogDTO;
+import com.zenith.admin.dto.system.qry.IdQuery;
+import com.zenith.admin.dto.system.data.ErrorLogDTO;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

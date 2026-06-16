@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.cmd;
 
-import com.zenith.admin.dto.data.OperLogDTO;
+import com.zenith.admin.dto.system.data.OperLogDTO;
 import com.zenith.admin.service.system.executor.converter.OperLogConvertor;
 import com.zenith.admin.dataobject.OperLogDO;
 import com.zenith.admin.mapper.OperLogMapper;

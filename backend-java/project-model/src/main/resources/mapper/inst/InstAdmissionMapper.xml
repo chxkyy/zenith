@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zenith.admin.mapper.inst.InstAdmissionMapper">
+
+    <!--
+        查询我的准入申请列表
+
+        功能说明:
+            查询当前用户提交的所有准入申请
+
+        参数:
+            createUserId (Long) - 创建人ID（申请人ID）
+
+        返回:
+            Page<InstAdmissionDO> - 分页结果
+
+        SQL逻辑:
+            按创建人ID过滤，按创建时间倒序排列
+    -->
+    <select id="selectMyApplications" resultType="com.zenith.admin.dataobject.inst.InstAdmissionDO">
+        SELECT *
+        FROM t_inst_admission
+        WHERE create_user_id = #{createUserId}
+        ORDER BY created_time DESC
+    </select>
+
+    <!--
+        按状态查询准入申请
+
+        功能说明:
+            根据申请状态分页查询准入申请列表
+
+        参数:
+            status (String) - 申请状态
+
+        返回:
+            Page<InstAdmissionDO> - 分页结果
+
+        SQL逻辑:
+            按状态精确匹配，按创建时间倒序排列
+    -->
+    <select id="selectByStatus" resultType="com.zenith.admin.dataobject.inst.InstAdmissionDO">
+        SELECT *
+        FROM t_inst_admission
+        WHERE status = #{status}
+        ORDER BY created_time DESC
+    </select>
+
+    <!--
+        查询待评审的申请
+
+        功能说明:
+            查询处于待评审状态的准入申请（等待评分人员打分）
+
+        返回:
+            Page<InstAdmissionDO> - 分页结果
+
+        SQL逻辑:
+            筛选状态为 PENDING_REVIEW 的记录
+            按创建时间升序排列（优先处理较早的申请）
+    -->
+    <select id="selectPendingReview" resultType="com.zenith.admin.dataobject.inst.InstAdmissionDO">
+        SELECT *
+        FROM t_inst_admission
+        WHERE status = 'PENDING_REVIEW'
+        ORDER BY created_time ASC
+    </select>
+
+    <!--
+        查询待审批的申请
+
+        功能说明:
+            查询处于待审批状态的准入申请（评分完成，等待审批人审批）
+
+        返回:
+            Page<InstAdmissionDO> - 分页结果
+
+        SQL逻辑:
+            筛选状态为 PENDING_APPROVAL 的记录
+            按创建时间升序排列（优先处理较早的申请）
+    -->
+    <select id="selectPendingApproval" resultType="com.zenith.admin.dataobject.inst.InstAdmissionDO">
+        SELECT *
+        FROM t_inst_admission
+        WHERE status = 'PENDING_APPROVAL'
+        ORDER BY created_time ASC
+    </select>
+
+</mapper>

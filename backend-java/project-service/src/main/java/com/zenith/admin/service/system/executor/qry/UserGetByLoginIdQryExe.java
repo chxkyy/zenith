@@ -6,7 +6,7 @@ import com.zenith.admin.service.system.executor.converter.UserConvertor;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.UserDO;
 import com.zenith.admin.dataobject.UserRoleDO;
-import com.zenith.admin.dto.data.UserDTO;
+import com.zenith.admin.dto.system.data.UserDTO;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.mapper.UserMapper;
 import com.zenith.admin.mapper.UserRoleMapper;

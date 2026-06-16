@@ -2,8 +2,8 @@ package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.system.FileService;
-import com.zenith.admin.dto.data.FileDTO;
-import com.zenith.admin.dto.query.FilePageQuery;
+import com.zenith.admin.dto.system.data.FileDTO;
+import com.zenith.admin.dto.system.qry.FilePageQuery;
 import com.zenith.admin.service.system.executor.cmd.FileDeleteCmdExe;
 import com.zenith.admin.service.system.executor.cmd.FileUploadCmdExe;
 import com.zenith.admin.service.system.executor.qry.FileGetByIdQryExe;

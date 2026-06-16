@@ -8,7 +8,7 @@ import com.zenith.admin.dataobject.MenuDO;
 import com.zenith.admin.dataobject.RoleDO;
 import com.zenith.admin.dataobject.RoleFunctionDO;
 import com.zenith.admin.dataobject.RoleMenuDO;
-import com.zenith.admin.dto.data.OperLogDTO;
+import com.zenith.admin.dto.system.data.OperLogDTO;
 import com.zenith.admin.context.UserContext;
 import com.zenith.admin.mapper.FunctionMapper;
 import com.zenith.admin.mapper.MenuMapper;

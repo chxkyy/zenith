@@ -3,7 +3,7 @@ package com.zenith.admin.service.system.executor.qry;
 import com.alibaba.cola.exception.BizException;
 import com.zenith.admin.service.system.executor.converter.OrgConvertor;
 import com.zenith.admin.dataobject.OrgDO;
-import com.zenith.admin.dto.data.OrgDTO;
+import com.zenith.admin.dto.system.data.OrgDTO;
 import com.zenith.admin.mapper.OrgMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -2,10 +2,10 @@ package com.zenith.admin.service.system.impl;
 
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.api.system.UserService;
-import com.zenith.admin.dto.cmd.UserAddCmd;
-import com.zenith.admin.dto.data.UserDTO;
-import com.zenith.admin.dto.query.UserPageQuery;
-import com.zenith.admin.dto.cmd.UserUpdateCmd;
+import com.zenith.admin.dto.system.cmd.UserAddCmd;
+import com.zenith.admin.dto.system.data.UserDTO;
+import com.zenith.admin.dto.system.qry.UserPageQuery;
+import com.zenith.admin.dto.system.cmd.UserUpdateCmd;
 import com.zenith.admin.service.system.executor.cmd.UserChangeStatusCmdExe;
 import com.zenith.admin.service.system.executor.cmd.UserDeleteCmdExe;
 import com.zenith.admin.service.system.executor.qry.UserGetByIdQryExe;

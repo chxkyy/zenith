@@ -1,14 +1,14 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.cmd.DictAddCmd;
-import com.zenith.admin.dto.data.DictDTO;
-import com.zenith.admin.dto.cmd.DictItemAddCmd;
-import com.zenith.admin.dto.data.DictItemDTO;
-import com.zenith.admin.dto.query.DictItemPageQuery;
-import com.zenith.admin.dto.cmd.DictItemUpdateCmd;
-import com.zenith.admin.dto.query.DictPageQuery;
-import com.zenith.admin.dto.cmd.DictUpdateCmd;
+import com.zenith.admin.dto.system.cmd.DictAddCmd;
+import com.zenith.admin.dto.system.data.DictDTO;
+import com.zenith.admin.dto.system.cmd.DictItemAddCmd;
+import com.zenith.admin.dto.system.data.DictItemDTO;
+import com.zenith.admin.dto.system.qry.DictItemPageQuery;
+import com.zenith.admin.dto.system.cmd.DictItemUpdateCmd;
+import com.zenith.admin.dto.system.qry.DictPageQuery;
+import com.zenith.admin.dto.system.cmd.DictUpdateCmd;
 
 import java.util.List;
 

@@ -1,10 +1,10 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.cmd.RoleAddCmd;
-import com.zenith.admin.dto.data.RoleDTO;
-import com.zenith.admin.dto.query.RolePageQuery;
-import com.zenith.admin.dto.cmd.RoleUpdateCmd;
+import com.zenith.admin.dto.system.cmd.RoleAddCmd;
+import com.zenith.admin.dto.system.data.RoleDTO;
+import com.zenith.admin.dto.system.qry.RolePageQuery;
+import com.zenith.admin.dto.system.cmd.RoleUpdateCmd;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package com.zenith.admin.service.system.executor.qry;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zenith.admin.dto.data.FunctionDTO;
+import com.zenith.admin.dto.system.data.FunctionDTO;
 import com.zenith.admin.service.system.executor.converter.FunctionConvertor;
 import com.zenith.admin.dataobject.FunctionDO;
 import com.zenith.admin.mapper.FunctionMapper;

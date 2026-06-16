@@ -2,7 +2,7 @@ package com.zenith.admin.executor;
 
 import com.zenith.admin.service.system.executor.converter.RoleConvertor;
 import com.zenith.admin.dataobject.RoleDO;
-import com.zenith.admin.dto.data.RoleDTO;
+import com.zenith.admin.dto.system.data.RoleDTO;
 import com.zenith.admin.mapper.RoleMapper;
 import com.zenith.admin.service.system.executor.qry.RoleGetByIdQryExe;
 import org.junit.jupiter.api.BeforeEach;

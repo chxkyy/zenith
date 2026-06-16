@@ -4,16 +4,14 @@ import com.zenith.admin.util.PageResponseUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dataobject.*;
-import com.zenith.admin.dto.data.TaskDTO;
-import com.zenith.admin.dto.query.TaskPageQuery;
+import com.zenith.admin.dto.system.data.TaskDTO;
+import com.zenith.admin.dto.system.qry.TaskPageQuery;
 import com.zenith.admin.enums.NodeTypeEnum;
 import com.zenith.admin.mapper.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
-import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component

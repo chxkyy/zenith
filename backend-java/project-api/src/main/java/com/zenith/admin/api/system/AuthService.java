@@ -1,7 +1,7 @@
 package com.zenith.admin.api.system;
 
-import com.zenith.admin.dto.data.UserDTO;
-import com.zenith.admin.dto.query.LoginQuery;
+import com.zenith.admin.dto.system.data.UserDTO;
+import com.zenith.admin.dto.system.qry.LoginQuery;
 
 public interface AuthService {
     UserDTO login(LoginQuery query);

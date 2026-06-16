@@ -3,7 +3,7 @@ package com.zenith.admin.service.system.executor.qry;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zenith.admin.service.system.executor.converter.RoleConvertor;
 import com.zenith.admin.dataobject.RoleDO;
-import com.zenith.admin.dto.data.RoleDTO;
+import com.zenith.admin.dto.system.data.RoleDTO;
 import com.zenith.admin.mapper.RoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

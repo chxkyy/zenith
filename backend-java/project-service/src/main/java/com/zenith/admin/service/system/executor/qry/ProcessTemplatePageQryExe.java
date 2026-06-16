@@ -4,15 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.zenith.admin.dataobject.ProcessTemplateDO;
-import com.zenith.admin.dto.data.ProcessTemplateDTO;
-import com.zenith.admin.dto.query.ProcessTemplatePageQuery;
+import com.zenith.admin.dto.system.data.ProcessTemplateDTO;
+import com.zenith.admin.dto.system.qry.ProcessTemplatePageQuery;
 import com.zenith.admin.mapper.ProcessTemplateMapper;
 import com.zenith.admin.service.system.executor.converter.ProcessTemplateConvertor;
 import com.zenith.admin.util.PageResponseUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor

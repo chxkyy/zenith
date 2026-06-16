@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zenith.admin.mapper.inst.InstAdmissionLogMapper">
+
+    <!--
+        查询指定申请的操作日志（按时间倒序排列）
+
+        功能说明:
+            获取某个准入申请的所有操作日志记录，用于追踪申请的处理过程
+
+        参数:
+            admissionId (Long) - 准入申请ID
+
+        返回:
+            List<InstAdmissionLogDO> - 日志列表（按时间倒序，最新的在前）
+
+        SQL逻辑:
+            按创建时间倒序排列，便于查看最新的操作记录
+    -->
+    <select id="selectByAdmissionIdOrderByTime" resultType="com.zenith.admin.dataobject.inst.InstAdmissionLogDO">
+        SELECT *
+        FROM t_inst_admission_log
+        WHERE admission_id = #{admissionId}
+        ORDER BY created_time DESC
+    </select>
+
+</mapper>

@@ -2,8 +2,8 @@ package com.zenith.admin.service.system.impl;
 
 import com.zenith.admin.api.system.AuthService;
 import com.zenith.admin.api.system.UserService;
-import com.zenith.admin.dto.data.UserDTO;
-import com.zenith.admin.dto.query.LoginQuery;
+import com.zenith.admin.dto.system.data.UserDTO;
+import com.zenith.admin.dto.system.qry.LoginQuery;
 import com.zenith.admin.service.system.executor.cmd.UserChangePasswordCmdExe;
 import com.zenith.admin.service.system.executor.cmd.UserUpdateProfileCmdExe;
 import com.zenith.admin.service.system.executor.qry.LoginAuthQryExe;

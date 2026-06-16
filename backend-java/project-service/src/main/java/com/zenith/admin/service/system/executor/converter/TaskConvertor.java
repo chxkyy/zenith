@@ -4,7 +4,7 @@ import com.zenith.admin.dataobject.ProcessInstanceDO;
 import com.zenith.admin.dataobject.ProcessTemplateDO;
 import com.zenith.admin.dataobject.TaskDO;
 import com.zenith.admin.dataobject.UserDO;
-import com.zenith.admin.dto.data.TaskDTO;
+import com.zenith.admin.dto.system.data.TaskDTO;
 import com.zenith.admin.enums.NodeTypeEnum;
 import com.zenith.admin.mapper.ProcessInstanceMapper;
 import com.zenith.admin.mapper.ProcessTemplateMapper;

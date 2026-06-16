@@ -1,13 +1,13 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.cmd.MenuAddCmd;
-import com.zenith.admin.dto.data.MenuDTO;
-import com.zenith.admin.dto.query.MenuPageQuery;
-import com.zenith.admin.dto.cmd.MenuUpdateCmd;
-import com.zenith.admin.dto.cmd.MenuToggleStatusCmd;
-import com.zenith.admin.dto.cmd.MenuUpdateParentCmd;
-import com.zenith.admin.dto.cmd.MenuReorderCmd;
+import com.zenith.admin.dto.system.cmd.MenuAddCmd;
+import com.zenith.admin.dto.system.data.MenuDTO;
+import com.zenith.admin.dto.system.qry.MenuPageQuery;
+import com.zenith.admin.dto.system.cmd.MenuUpdateCmd;
+import com.zenith.admin.dto.system.cmd.MenuToggleStatusCmd;
+import com.zenith.admin.dto.system.cmd.MenuUpdateParentCmd;
+import com.zenith.admin.dto.system.cmd.MenuReorderCmd;
 
 import java.util.List;
 

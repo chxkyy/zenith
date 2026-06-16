@@ -1,7 +1,7 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.data.OperLogDTO;
+import com.zenith.admin.dto.system.data.OperLogDTO;
 
 import java.util.List;
 

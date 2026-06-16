@@ -1,6 +1,6 @@
 package com.zenith.admin.api.system;
 
-import com.zenith.admin.dto.data.MenuDTO;
+import com.zenith.admin.dto.system.data.MenuDTO;
 import java.util.List;
 
 public interface PermissionService {

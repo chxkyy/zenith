@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.converter;
 
-import com.zenith.admin.dto.data.NoticeDTO;
+import com.zenith.admin.dto.system.data.NoticeDTO;
 import com.zenith.admin.dataobject.NoticeDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

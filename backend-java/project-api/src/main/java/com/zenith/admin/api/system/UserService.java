@@ -1,10 +1,10 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.cmd.UserAddCmd;
-import com.zenith.admin.dto.data.UserDTO;
-import com.zenith.admin.dto.query.UserPageQuery;
-import com.zenith.admin.dto.cmd.UserUpdateCmd;
+import com.zenith.admin.dto.system.cmd.UserAddCmd;
+import com.zenith.admin.dto.system.data.UserDTO;
+import com.zenith.admin.dto.system.qry.UserPageQuery;
+import com.zenith.admin.dto.system.cmd.UserUpdateCmd;
 
 public interface UserService {
     void changeStatus(Long id, Integer status, Long currentUserId);

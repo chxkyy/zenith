@@ -1,10 +1,10 @@
 package com.zenith.admin.api.system;
 
 import com.github.pagehelper.PageInfo;
-import com.zenith.admin.dto.cmd.ProcessTemplateCreateCmd;
-import com.zenith.admin.dto.cmd.ProcessTemplateUpdateCmd;
-import com.zenith.admin.dto.data.ProcessTemplateDTO;
-import com.zenith.admin.dto.query.ProcessTemplatePageQuery;
+import com.zenith.admin.dto.system.cmd.ProcessTemplateCreateCmd;
+import com.zenith.admin.dto.system.cmd.ProcessTemplateUpdateCmd;
+import com.zenith.admin.dto.system.data.ProcessTemplateDTO;
+import com.zenith.admin.dto.system.qry.ProcessTemplatePageQuery;
 
 import java.util.List;
 

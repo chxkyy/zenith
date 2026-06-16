@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zenith.admin.mapper.inst.InstAdmissionMaterialMapper">
+
+    <!--
+        查询指定申请的所有材料（按排序顺序）
+
+        功能说明:
+            获取某个准入申请提交的所有附件材料
+
+        参数:
+            admissionId (Long) - 准入申请ID
+
+        返回:
+            List<InstAdmissionMaterialDO> - 材料列表（已按排序字段排序）
+
+        SQL逻辑:
+            按 sort_order 升序排列，确保材料按照预定义的顺序展示
+    -->
+    <select id="selectByAdmissionId" resultType="com.zenith.admin.dataobject.inst.InstAdmissionMaterialDO">
+        SELECT *
+        FROM t_inst_admission_material
+        WHERE admission_id = #{admissionId}
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <!--
+        删除指定申请的所有材料
+
+        功能说明:
+            批量删除某个准入申请的所有材料记录（通常在删除申请或重新提交时使用）
+
+        参数:
+            admissionId (Long) - 准入申请ID
+
+        返回:
+            int - 删除的记录数
+
+        SQL逻辑:
+            使用 DELETE 语句批量删除符合条件的记录
+    -->
+    <delete id="deleteByAdmissionId">
+        DELETE FROM t_inst_admission_material
+        WHERE admission_id = #{admissionId}
+    </delete>
+
+</mapper>

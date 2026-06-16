@@ -3,7 +3,7 @@ package com.zenith.admin.service.system.executor.qry;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.alibaba.cola.exception.BizException;
 import com.zenith.admin.dataobject.UserDO;
-import com.zenith.admin.dto.data.UserDTO;
+import com.zenith.admin.dto.system.data.UserDTO;
 import com.zenith.admin.mapper.UserMapper;
 import com.zenith.admin.service.system.executor.converter.UserConvertor;
 import lombok.RequiredArgsConstructor;

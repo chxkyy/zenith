@@ -1,6 +1,6 @@
 package com.zenith.admin.service.system.executor.converter;
 
-import com.zenith.admin.dto.data.OperLogDTO;
+import com.zenith.admin.dto.system.data.OperLogDTO;
 import com.zenith.admin.dataobject.OperLogDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
