@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zenith.admin.mapper.InstPoolInstitutionMapper">
+
+    <select id="selectByPoolId" resultType="com.zenith.admin.dataobject.InstPoolInstitutionDO">
+        SELECT *
+        FROM t_inst_pool_institution
+        WHERE pool_id = #{poolId}
+        ORDER BY join_date ASC
+    </select>
+
+    <select id="selectByInstitutionId" resultType="com.zenith.admin.dataobject.InstPoolInstitutionDO">
+        SELECT *
+        FROM t_inst_pool_institution
+        WHERE institution_id = #{institutionId}
+        ORDER BY join_date ASC
+    </select>
+
+    <select id="countByPoolId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_inst_pool_institution
+        WHERE pool_id = #{poolId}
+    </select>
+
+</mapper>

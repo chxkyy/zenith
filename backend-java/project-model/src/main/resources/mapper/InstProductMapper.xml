@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zenith.admin.mapper.InstProductMapper">
+
+    <select id="selectByInstitutionIdWithStatus" resultType="com.zenith.admin.dataobject.InstProductDO">
+        SELECT *
+        FROM t_inst_product
+        WHERE institution_id = #{institutionId}
+        <if test="cooperationStatus != null and cooperationStatus != ''">
+            AND cooperation_status = #{cooperationStatus}
+        </if>
+        ORDER BY created_time DESC
+    </select>
+
+</mapper>

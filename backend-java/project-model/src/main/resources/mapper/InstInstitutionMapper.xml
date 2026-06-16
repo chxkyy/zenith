@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zenith.admin.mapper.InstInstitutionMapper">
+
+    <!--
+        按关键词搜索机构（名称或信用代码模糊匹配）
+
+        功能说明:
+            根据关键词搜索机构，匹配全称、简称或统一社会信用代码
+
+        参数:
+            keyword (String) - 搜索关键词
+
+        返回:
+            List<InstInstitutionDO> - 匹配的机构列表
+
+        SQL逻辑:
+            使用 ILIKE 进行不区分大小写的模糊搜索
+            搜索范围包括：全称、简称、信用代码
+    -->
+    <select id="selectByKeyword" resultType="com.zenith.admin.dataobject.InstInstitutionDO">
+        SELECT *
+        FROM t_inst_institution
+        WHERE full_name ILIKE CONCAT('%', #{keyword}, '%')
+           OR short_name ILIKE CONCAT('%', #{keyword}, '%')
+           OR credit_code ILIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_time DESC
+    </select>
+
+    <!--
+        分页查询机构列表（按关键词筛选）
+
+        功能说明:
+            支持按关键词分页查询机构列表
+
+        参数:
+            keyword (String) - 搜索关键词（可选）
+
+        返回:
+            Page<InstInstitutionDO> - 分页结果
+
+        SQL逻辑:
+            动态条件组合，支持关键词模糊搜索
+    -->
+    <select id="selectPageByKeyword" resultType="com.zenith.admin.dataobject.InstInstitutionDO">
+        SELECT *
+        FROM t_inst_institution
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (full_name ILIKE CONCAT('%', #{keyword}, '%')
+                     OR short_name ILIKE CONCAT('%', #{keyword}, '%')
+                     OR credit_code ILIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY created_time DESC
+    </select>
+
+</mapper>
